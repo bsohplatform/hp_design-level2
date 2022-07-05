@@ -1,5 +1,6 @@
 from enum import Enum
 from dataclasses import dataclass, field
+from CoolProp.CoolProp import PropsSI
 
 """
 Common Data Types
@@ -36,8 +37,11 @@ class WireObjectFluid:
     h: float = 0.0
     s: float = 0.0
     fluidmixture: str = ''
+    p_crit: float = 0.0
+    T_crit: float = 0.0
     
-    def YtoFluidmix(self, Y):
+    def __init__(self, Y):
+        
         for fluids, ratio in Y.items():
             print(type(fluids))
             
@@ -45,8 +49,9 @@ class WireObjectFluid:
                 self.fluidmixture = self.fluidmixture+fluids+'['+str(ratio)+']'
             else:
                 self.fluidmixture = self.fluidmixture+fluids+'['+str(ratio)+']'+'&'
-            
-        return(self.fluidmixture)
+                
+        self.p_crit: float = PropsSI('PCRIT','',0,'',0,self.fluidmixture)
+        self.T_crit: float = PropsSI('TCRIT','',0,'',0,self.fluidmixture)
         
         
 @dataclass
@@ -57,6 +62,7 @@ class Settings:
     cond_dP: float = 0.01
     cond_N_element: int = 30
     cond_N_row: int = 5
+    cond_UA = 0.0
     
     # 증발기 스펙
     evap_T_pp: float = 5.0
@@ -64,6 +70,7 @@ class Settings:
     evap_dP: float = 0.01
     evap_N_element: int = 30
     evap_N_row: int = 5
+    evap_UA = 0.0
     
     # 터보기기 스펙
     comp_eff: float = 0.7
@@ -118,11 +125,11 @@ class Auxfunction:
     
 
 if __name__ == "__main__":
-    from CoolProp.CoolProp import PropsSI
     
     print("...")
-    vchp_input_1 = WireObjectFluid(Y={'Ethane': 0.4, 'Propane':0.6})
-    aux_func = Auxfunction()
-    fluids = aux_func.YtoFluidmix(vchp_input_1.Y)
+    vchp_input_1 = WireObjectFluid(Y={'Ethane': 0.3, 'Propane':0.7})
+    fluids = vchp_input_1.fluidmixture
+    print(fluids)
     h = PropsSI('H','T',300,'P',1.0e5,fluids)
     print(h)
+    print(vchp_input_1.p_crit)
