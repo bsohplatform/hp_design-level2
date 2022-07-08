@@ -1,5 +1,4 @@
 import copy
-from dataclasses import dataclass
 import numpy as np
 from CoolProp.CoolProp import PropsSI
 # test 용 import
