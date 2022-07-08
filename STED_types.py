@@ -96,33 +96,7 @@ class Settings:
     
     # 수렴오차
     tol: float = 1.0-3
-
-@dataclass
-class Errormsg:
-    cond_T_rvs: int = 1
-    evap_T_rvs: int = 1
-    cas_T_rvs: int = 1
-    P_high: int = 1
-    P_low: int = 1
-
-'''
-class Auxfunction:
-    def __init__(self):
-        self.fluidmixture = 
-    
-    def YtoFluidmix(self, Y:dict):
-        for fluids, ratio in Y.items():
-            print(type(fluids))
-            
-            if fluids == list(Y.keys())[-1]:
-                self.fluidmixture = self.fluidmixture+fluids+'['+str(ratio)+']'
-            else:
-                self.fluidmixture = self.fluidmixture+fluids+'['+str(ratio)+']'+'&'
-            
-        return(self.fluidmixture)'''
-
-    
-    
+        
 
 if __name__ == "__main__":
     
