@@ -1,5 +1,6 @@
 from enum import Enum
 from dataclasses import dataclass, field
+from re import T
 from CoolProp.CoolProp import PropsSI
 
 """
@@ -29,33 +30,34 @@ class WireObjectFluid:
     2. 공정열(q)는 기본 사양에는 없지만 VCHP의 output이 공정열이라는 값을 반환. 확인 필요
     """
 
-    Y: dict = field(default_factory=dict) # Default_factory는 배열 형태 자료형을 미리 할당함 (default_factory=list, default_factory=tuple, ...)
-    m: float = 0.0
-    T: float = 0.0
-    p: float = 0.0
-    q: float = 0.0
-    h: float = 0.0
-    s: float = 0.0
-    fluidmixture: str = ''
-    p_crit: float = 0.0
-    T_crit: float = 0.0
     
-    def __init__(self, Y):
-        
-        for fluids, ratio in Y.items():
-            print(type(fluids))
-            
+    
+    def __init__(self,  Y: dict = field(default_factory=dict),  m: float = 0.0,  T: float = 0.0, p: float = 0.0, q: float = 0.0, h: float = 0.0, s: float = 0.0):
+        self.fluidmixture: str = ''
+        for fluids, ratio in Y.items():         
             if fluids == list(Y.keys())[-1]:
                 self.fluidmixture = self.fluidmixture+fluids+'['+str(ratio)+']'
             else:
                 self.fluidmixture = self.fluidmixture+fluids+'['+str(ratio)+']'+'&'
-                
+                    
+        self.m = m
+        self.T = T
+        self.p = p
+        self.q = q
+        self.h = h
+        self.s = s
         self.p_crit: float = PropsSI('PCRIT','',0,'',0,self.fluidmixture)
         self.T_crit: float = PropsSI('TCRIT','',0,'',0,self.fluidmixture)
-        
+
         
 @dataclass
 class Settings:
+    # 냉매 입력
+    Y = {'R410A':1.0}
+    
+    # 공정 정보
+    second: str = 'process'
+    
     # 응축기 스펙
     cond_T_pp: float = 5.0
     cond_T_lm: float = 15.0
@@ -88,22 +90,42 @@ class Settings:
     cas_hot_dP: float = 0.01
     cas_N_element: int = 30
     
-    P_crit: float = 0.0
-    T_crit: float = 0.0
-    h_crit: float = 0.0
-    s_crit: float = 0.0
+    # 증기 공정 조건 입력
+    T_steam: float = 120.0
+    T_steam = T_steam + 273.15
+    m_steam: float = 0.1
+    T_makeup: float = 30.0
+    T_makeup = T_makeup + 273.15
+    m_makeup = 1.0
     
-    
+    # 급탕 공정 조건 입력
+    M_load: float = 100.0
+    T_target: float = 60
+    T_target = T_target + 273.15
+    dT_lift: float = 10.0
+    time_target: float = 600.0
     # 수렴오차
     tol: float = 1.0-3
         
+@dataclass
+class Bound:
+    # 압축기 하한 경계 조건
+    p_lb: float = 0.0
+    p_ub: float = 0.0
+    
+    # 공정 정보
+    second: str = 'process'
+    
+    # 응축기 스펙
+    cond_T_pp: float = 5.0
+    cond_T_lm: float = 15
 
 if __name__ == "__main__":
     
     print("...")
-    vchp_input_1 = WireObjectFluid(Y={'Ethane': 0.3, 'Propane':0.7})
+    vchp_input_1 = WireObjectFluid(Y={'Ethane': 0.3, 'Propane':0.7},T=300, p=1.0e5)
     fluids = vchp_input_1.fluidmixture
     print(fluids)
-    h = PropsSI('H','T',300,'P',1.0e5,fluids)
+    h = PropsSI('H','T',vchp_input_1.T,'P',vchp_input_1.p,fluids)
     print(h)
     print(vchp_input_1.p_crit)
