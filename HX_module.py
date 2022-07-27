@@ -236,11 +236,16 @@ class Heatexchanger_module:
 if __name__ == "__main__":
         # Condensor input
         
+<<<<<<< HEAD
         secondary_in = WireObjectFluid(Y={'Ethane': 0.3, 'Propane':0.7},T=300, p=1.0e5)
         print(secondary_in.fluidmixture)
         secondary_in.h = PropsSI('H','T',secondary_in.T,'P',secondary_in.p,secondary_in.fluidmixture)
         print(secondary_in.h)
         '''secondary_in.T = 370
+=======
+        secondary_in = WireObjectFluid({'water':1})
+        secondary_in.T = 370
+>>>>>>> origin/객체지향형_코딩
         secondary_in.p = 301300
         secondary_in.m = 1.0
         secondary_in.h = PropsSI('H','T',secondary_in.T,'P',secondary_in.p,secondary_in.fluidmixture)
@@ -266,7 +271,11 @@ if __name__ == "__main__":
         print(primary_out.h)
         print(condensor.T_rvs)
         print(condensor.UA)
+<<<<<<< HEAD
         '''
+=======
+        
+>>>>>>> origin/객체지향형_코딩
         # Evaporate input
         
         '''
