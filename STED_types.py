@@ -72,7 +72,7 @@ class Settings:
     # 응축기 스펙
     cond_type = 'phe'
     cond_T_pp: float = 5.0
-    cond_T_lm: float = 15.0
+    cond_T_lm: float = 10.0
     cond_dp: float = 0.01
     cond_N_element: int = 30
     cond_N_row: int = 5
@@ -82,7 +82,7 @@ class Settings:
     # 증발기 스펙
     evap_type = 'phe'
     evap_T_pp: float = 5.0
-    evap_T_lm: float = 15.0
+    evap_T_lm: float = 10.0
     evap_dp: float = 0.01
     evap_N_element: int = 30
     evap_N_row: int = 5

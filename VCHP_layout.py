@@ -284,6 +284,9 @@ class VCHP_basic(VCHP):
                 elif self.no_input == 'OutCondT':
                     self.OutCond.h = self.InCond.h + self.InCond.q/self.InCond.m
                     self.OutCond.T = PropsSI('T','P',self.OutCond.p, 'H', self.OutCond.h, self.OutCond.fluidmixture)
+                elif self.no_input == 'Condm':
+                    self.InCond.m = self.InCond.q/(self.OutCond.h - self.InCond.h)
+                    self.OutCond.m = self.InCond.m
                 
             elif (self.no_input == 'InEvapT') or (self.no_input == 'OutEvapT') or (self.no_input == 'Evapm'):
                 self.InCond_REF.m = self.InCond.q/(self.InCond_REF.h - self.OutCond_REF.h)
@@ -305,7 +308,10 @@ class VCHP_basic(VCHP):
                 elif self.no_input == 'OutEvapT':
                     self.OutEvap.h = self.InEvap.h + self.InEvap.q/self.InEvap.m
                     self.OutEvap.T = PropsSI('T','P',self.OutEvap.p, 'H', self.OutEvap.h, self.OutEvap.fluidmixture)
-                    
+                elif self.no_input == 'Evapm':
+                    self.InEvap.m = self.InEvap.q/(self.OutEvap.h - self.InEvap.h)
+                    self.OutEvap.m = self.InEvap.m
+                
             cond = HX.Heatexchanger_module(self.InCond_REF, self.OutCond_REF, self.InCond, self.OutCond)
         
             if self.inputs.cond_type == 'fthe':
@@ -319,7 +325,7 @@ class VCHP_basic(VCHP):
             self.OutCond_REF = cond.primary_out
             
             if cond.T_rvs == 1:
-                self.cond_P_lb = self.InCond_REF.p
+                self.cond_p_lb = self.InCond_REF.p
             else:
                 if cond_err < 0:
                     self.cond_p_ub = self.InCond_REF.p
@@ -340,38 +346,40 @@ class VCHP_basic(VCHP):
         print('Refrigerant:{}'.format(self.OutCond_REF.fluidmixture))
         print('Q heating: {:.2f} [kW] ({:.2f} [usRT])'.format(self.OutCond.q/1000, self.OutCond.q/3516.8525))
         print('Q cooling: {:.2f} [kW] ({:.2f} [usRT])'.format(self.OutEvap_REF.q/1000, self.OutEvap_REF.q/3516.8525))
-        print('Hot fluid Inlet T:{:.2f}[℃]/P:{:.2f}[bar]/m{:.2f}[kg/s]:   -------> Hot fluid Outlet T:{:.2f}[℃]/P:{:.2f}[bar]/m{:.2f}[kg/s]'.format(self.InCond.T, self.InCond.p/1.0e5, self.InCond.m, self.OutCond.T, self.OutCond.p, self.OutCond.m))
-        print('Cold fluid Outlet T:{:.2f}[℃]/P:{:.2f}[bar]/m{:.2f}[kg/s]: <------- Cold fluid Inlet T:{:.2f}[℃]/P:{:.2f}[bar]/m{:.2f}[kg/s]'.format(self.OutEvap.T, self.OutEvap.p/1.0e5, self.OutEvap.m, self.InEvap.T, self.InEvap.p, self.InEvap.m))
+        print('Hot fluid Inlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]:   -------> Hot fluid Outlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]'.format(self.InCond.T, self.InCond.p/1.0e5, self.InCond.m, self.OutCond.T, self.OutCond.p, self.OutCond.m))
+        print('Cold fluid Outlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]: <------- Cold fluid Inlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]'.format(self.OutEvap.T, self.OutEvap.p/1.0e5, self.OutEvap.m, self.InEvap.T, self.InEvap.p, self.InEvap.m))
         print('Plow: {:.2f} [bar], Phigh: {:.2f} [bar], mdot: {:.2f}[kg/s]'.format(self.OutEvap_REF.p/1.0e5, self.InCond_REF.p/1.0e5, self.OutEvap_REF.m))
 
    
 if __name__ == '__main__':
     
-    inevapT = 333.15
+    inevapT = 313.15
     inevapp = 101300.0
-    inevaph = PropsSI('H','T',inevapT, 'P', inevapp, 'H2O')
-    inevaps = PropsSI('S','T',inevapT, 'P', inevapp, 'H2O')
-    InEvap = WireObjectFluid(Y={'H2O':1.0,},m = 1.0, T = inevapT, p = inevapp, q = 0.0, h = inevaph, s = inevaps)
+    inevaph = PropsSI('H','T',inevapT, 'P', inevapp, 'AIR')
+    inevaps = PropsSI('S','T',inevapT, 'P', inevapp, 'AIR')
+    InEvap = WireObjectFluid(Y={'AIR':1.0,},m = 1.0, T = inevapT, p = inevapp, q = 0.0, h = inevaph, s = inevaps)
     
     outevapp = 101300.0
-    OutEvap = WireObjectFluid(Y={'H2O':1.0,}, p = outevapp)
+    OutEvap = WireObjectFluid(Y={'AIR':1.0,}, p = outevapp)
     
-    incondT = 373.15
+    incondT = 383.15
     incondp = 101300.0
-    incondh = PropsSI('H','T',incondT, 'P', incondp, 'H2O')
-    inconds = PropsSI('S','T',incondT, 'P', incondp, 'H2O')
-    InCond = WireObjectFluid(Y={'H2O':1.0,},m = 1.0, T = incondT, p = incondp, q = 0.0, h = incondh, s = inconds)
+    incondh = PropsSI('H','T',incondT, 'P', incondp, 'AIR')
+    inconds = PropsSI('S','T',incondT, 'P', incondp, 'AIR')
+    InCond = WireObjectFluid(Y={'AIR':1.0,},m = 1.0, T = incondT, p = incondp, q = 0.0, h = incondh, s = inconds)
     
-    outcondT = 383.15
+    outcondT = 393.15
     outcondp = 101300.0
-    outcondh = PropsSI('H','T',outcondT, 'P', outcondp, 'H2O')
-    outconds = PropsSI('S','T',outcondT, 'P', outcondp, 'H2O')
-    OutCond = WireObjectFluid(Y={'H2O':1.0,},m = 1.0, T = outcondT, p = outcondp, q = 0.0, h = outcondh, s = outconds)
+    outcondh = PropsSI('H','T',outcondT, 'P', outcondp, 'AIR')
+    outconds = PropsSI('S','T',outcondT, 'P', outcondp, 'AIR')
+    OutCond = WireObjectFluid(Y={'AIR':1.0,},m = 1.0, T = outcondT, p = outcondp, q = 0.0, h = outcondh, s = outconds)
     
     inputs = Settings()
     inputs.Y = {'R134A':1.0,}
     inputs.second = 'process'
     inputs.cycle = 'scc'
+    inputs.cond_type = 'fthe'
+    inputs.evap_type = 'fthe'
     #vchp_pre = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
     
     vchp_basic = VCHP_basic(InCond, OutCond, InEvap, OutEvap, inputs)
