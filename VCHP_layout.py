@@ -27,7 +27,14 @@ class VCHP():
             return print('선택하신 냉매는 NBP를 구할 수 없습니다.')
         
         self.Input_Processing()
+    
+    def __call__(self):
         
+        self.Input_Processing()
+        
+        self.Cycle_Solver()
+        
+        self.Post_Processing()
             
     def Input_Processing(self):
         no_InCondT = 0
@@ -360,6 +367,12 @@ class VCHP():
         print('Cold fluid Outlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]: <------- Cold fluid Inlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]'.format(self.OutEvap.T, self.OutEvap.p/1.0e5, self.OutEvap.m, self.InEvap.T, self.InEvap.p, self.InEvap.m))
         print('Plow: {:.2f} [bar], Phigh: {:.2f} [bar], mdot: {:.2f}[kg/s]'.format(self.OutEvap_REF.p/1.0e5, self.InCond_REF.p/1.0e5, self.OutEvap_REF.m))
 
+'''class VCHP_injection(VCHP):
+    def __init__(self, InCond, OutCond, InEvap, OutEvap, inputs):
+        super().__init__(InCond, OutCond, InEvap, OutEvap, inputs)
+    
+    def Intermediate'''    
+    
 if __name__ == '__main__':
     
     evapfluid = 'WATER'
@@ -391,8 +404,7 @@ if __name__ == '__main__':
     inputs.cycle = 'vcc'
     inputs.cond_type = 'phe'
     inputs.evap_type = 'phe'
-    inputs.layout = 'bas'
+    inputs.layout = 'ihx'
 
     vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
-    vchp_basic.Cycle_Solver()
-    vchp_basic.Post_Processing()
+    vchp_basic()
