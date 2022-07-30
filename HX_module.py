@@ -294,19 +294,22 @@ class Heatexchanger_module:
         h_secondary_out_ideal = PropsSI('H','T',self.primary_in.T,'P',self.secondary_out.p,self.secondary_in.fluidmixture)
         h_primary_out_ideal = PropsSI('H','T',self.secondary_in.T,'P',self.primary_out.p,self.primary_in.fluidmixture)
         
-        Q_ideal = min(abs(h_primary_out_ideal-self.primary_in.h)*self.primary_in.m,abs(h_secondary_out_ideal - self.secondary_in.h)*self.secondary_in.m)
-        if self.primary_in.T > self.secondary_in:
-            self.primary_in.q = -Q_ideal*eff_HX
+        q_ideal = min(abs(h_primary_out_ideal-self.primary_in.h),abs(h_secondary_out_ideal - self.secondary_in.h))
+        if self.primary_in.T > self.secondary_in.T:
+            self.primary_in.q = -q_ideal*eff_HX
         else:
-            self.primary_in.q = Q_ideal*eff_HX
+            self.primary_in.q = q_ideal*eff_HX
             
         self.secondary_in.q = -self.primary_in.q
         
-        self.primary_out.h = self.primary_in.h + self.primary_in.q/self.primary_in.m
-        self.secondary_out.h = self.secondary_in.h - self.secondary_in.q/self.secondary_in.m
+        self.primary_out.h = self.primary_in.h + self.primary_in.q
+        self.secondary_out.h = self.secondary_in.h + self.secondary_in.q
         
         self.primary_out.T = PropsSI('T','H',self.primary_out.h,'P',self.primary_out.p,self.primary_out.fluidmixture)
         self.secondary_out.T = PropsSI('T','H',self.secondary_out.h,'P',self.secondary_out.p,self.secondary_out.fluidmixture)
+        
+        self.primary_out.s = PropsSI('S','T',self.primary_out.T,'P',self.primary_out.p, self.primary_out.fluidmixture)
+        self.secondary_out.s = PropsSI('S','T',self.secondary_out.T,'P',self.secondary_out.p,self.secondary_out.fluidmixture)
 
 if __name__ == "__main__":
         # Condensor input
