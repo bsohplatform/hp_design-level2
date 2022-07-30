@@ -167,58 +167,53 @@ class VCHP():
         self.OutCond.q = 0.5*self.inputs.M_load*Cp_water*(self.inputs.T_target - self.InCond.T)/self.inputs.time_target
         self.OutCond.m = self.OutCond.q/(Cp_water*self.inputs.dT_lift)
         self.OutCond.T = self.InCond.T + self.inputs.dT_lift
-
-     
-class VCHP_basic(VCHP):
-    def __init__(self, InCond, OutCond, InEvap, OutEvap, inputs):
-        super().__init__(InCond, OutCond, InEvap, OutEvap, inputs)
         
     def Cycle_Solver(self):
-        if self.no_input == 'InEvapT':
-            self.evap_p_ub = PropsSI('P','T',self.OutEvap.T, 'Q', 1.0, self.InEvap_REF.fluidmixture)        
-        else:
-            self.evap_p_ub = PropsSI('P','T',self.InEvap.T, 'Q', 1.0, self.InEvap_REF.fluidmixture)
-            
-        self.evap_p_lb = 101300.0
-        
-        while 1: 
-            self.OutEvap_REF.p = 0.5*(self.evap_p_lb+self.evap_p_ub)
-            self.InEvap_REF.p = self.OutEvap_REF.p/(1.0-self.inputs.evap_dp)
-            
-            self.OutEvap_REF.T = PropsSI('T','P',self.OutEvap_REF.p, 'Q', 1.0, self.OutEvap_REF.fluidmixture) + self.inputs.DSH
-            if self.inputs.DSH == 0:
-                self.OutEvap_REF.h = PropsSI('H','P',self.OutEvap_REF.p, 'Q', 1.0, self.OutEvap_REF.fluidmixture)
-                self.OutEvap_REF.s = PropsSI('S','P',self.OutEvap_REF.p, 'Q', 1.0, self.OutEvap_REF.fluidmixture)
+            if self.no_input == 'InEvapT':
+                self.evap_p_ub = PropsSI('P','T',self.OutEvap.T, 'Q', 1.0, self.InEvap_REF.fluidmixture)        
             else:
-                self.OutEvap_REF.h = PropsSI('H','T',self.OutEvap_REF.T, 'P', self.OutEvap_REF.p ,self.OutEvap_REF.fluidmixture)
-                self.OutEvap_REF.s = PropsSI('S','T',self.OutEvap_REF.T, 'P', self.OutEvap_REF.p ,self.OutEvap_REF.fluidmixture)
+                self.evap_p_ub = PropsSI('P','T',self.InEvap.T, 'Q', 1.0, self.InEvap_REF.fluidmixture)
+                
+            self.evap_p_lb = 101300.0
             
-            self.HighPressure_Solver()
-            
-            evap = HX.Heatexchanger_module(self.InEvap_REF, self.OutEvap_REF, self.InEvap, self.OutEvap)
-            
-            if self.inputs.evap_type == 'fthe':
-                evap.FTHE(N_element = self.inputs.evap_N_element, N_row = self.inputs.evap_N_row)
-                evap_err = (self.inputs.evap_T_lm - evap.T_lm)/self.inputs.evap_T_lm
-            elif self.inputs.evap_type == 'phe':
-                evap.PHE(N_element= self.inputs.evap_N_element)
-                evap_err = (self.inputs.evap_T_pp - evap.T_pp)/self.inputs.evap_T_pp
-            
-            self.OutEvap_REF = evap.primary_out
-            
-            if evap.T_rvs == 1:
-                self.evap_p_ub = self.OutEvap_REF.p
-            else:
-                if evap_err < 0:
-                    self.evap_p_lb = self.OutEvap_REF.p
+            while 1: 
+                self.OutEvap_REF.p = 0.5*(self.evap_p_lb+self.evap_p_ub)
+                self.InEvap_REF.p = self.OutEvap_REF.p/(1.0-self.inputs.evap_dp)
+                
+                self.OutEvap_REF.T = PropsSI('T','P',self.OutEvap_REF.p, 'Q', 1.0, self.OutEvap_REF.fluidmixture) + self.inputs.DSH
+                if self.inputs.DSH == 0:
+                    self.OutEvap_REF.h = PropsSI('H','P',self.OutEvap_REF.p, 'Q', 1.0, self.OutEvap_REF.fluidmixture)
+                    self.OutEvap_REF.s = PropsSI('S','P',self.OutEvap_REF.p, 'Q', 1.0, self.OutEvap_REF.fluidmixture)
                 else:
+                    self.OutEvap_REF.h = PropsSI('H','T',self.OutEvap_REF.T, 'P', self.OutEvap_REF.p ,self.OutEvap_REF.fluidmixture)
+                    self.OutEvap_REF.s = PropsSI('S','T',self.OutEvap_REF.T, 'P', self.OutEvap_REF.p ,self.OutEvap_REF.fluidmixture)
+                
+                self.HighPressure_Solver()
+                
+                evap = HX.Heatexchanger_module(self.InEvap_REF, self.OutEvap_REF, self.InEvap, self.OutEvap)
+                
+                if self.inputs.evap_type == 'fthe':
+                    evap.FTHE(N_element = self.inputs.evap_N_element, N_row = self.inputs.evap_N_row)
+                    evap_err = (self.inputs.evap_T_lm - evap.T_lm)/self.inputs.evap_T_lm
+                elif self.inputs.evap_type == 'phe':
+                    evap.PHE(N_element= self.inputs.evap_N_element)
+                    evap_err = (self.inputs.evap_T_pp - evap.T_pp)/self.inputs.evap_T_pp
+                
+                self.OutEvap_REF = evap.primary_out
+                
+                if evap.T_rvs == 1:
                     self.evap_p_ub = self.OutEvap_REF.p
-                    
-            if abs(evap_err) < self.inputs.tol:
-                break
-            elif self.evap_p_ub - self.evap_p_lb < self.inputs.tol:
-                break
-            
+                else:
+                    if evap_err < 0:
+                        self.evap_p_lb = self.OutEvap_REF.p
+                    else:
+                        self.evap_p_ub = self.OutEvap_REF.p
+                        
+                if abs(evap_err) < self.inputs.tol:
+                    break
+                elif self.evap_p_ub - self.evap_p_lb < self.inputs.tol:
+                    break
+                
     def HighPressure_Solver(self):
         if self.inputs.cycle == 'scc':
             self.cond_p_ub = min(2*self.InCond_REF.p_crit, 3.0e7)
@@ -365,7 +360,6 @@ class VCHP_basic(VCHP):
         print('Cold fluid Outlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]: <------- Cold fluid Inlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]'.format(self.OutEvap.T, self.OutEvap.p/1.0e5, self.OutEvap.m, self.InEvap.T, self.InEvap.p, self.InEvap.m))
         print('Plow: {:.2f} [bar], Phigh: {:.2f} [bar], mdot: {:.2f}[kg/s]'.format(self.OutEvap_REF.p/1.0e5, self.InCond_REF.p/1.0e5, self.OutEvap_REF.m))
 
-   
 if __name__ == '__main__':
     
     evapfluid = 'WATER'
@@ -397,9 +391,8 @@ if __name__ == '__main__':
     inputs.cycle = 'vcc'
     inputs.cond_type = 'phe'
     inputs.evap_type = 'phe'
-    inputs.layout = 'ihx'
-    #vchp_pre = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
-    
-    vchp_basic = VCHP_basic(InCond, OutCond, InEvap, OutEvap, inputs)
+    inputs.layout = 'bas'
+
+    vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
     vchp_basic.Cycle_Solver()
     vchp_basic.Post_Processing()
