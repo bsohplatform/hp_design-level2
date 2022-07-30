@@ -1,3 +1,4 @@
+from copy import deepcopy
 import numpy as np
 import HX_module as HX
 import COMPAND_module as CP
@@ -255,12 +256,26 @@ class VCHP_basic(VCHP):
                 else:
                     self.cond_p_err = 0 
             
-            comp = CP.Compander_module(self.OutEvap_REF, self.InCond_REF)
+            if self.inputs.layout == 'ihx':
+                InComp = deepcopy(self.OutEvap_REF)
+                InComp.p = InComp.p*(1.0-self.inputs.ihx_cold_dp)
+                InExpand = deepcopy(self.OutCond_REF)
+                InExpand.p = InExpand.p*(1.0-self.inputs.ihx_hot_dp)
+                IHX = HX.Heatexchanger_module(self.OutCond_REF, InExpand, self.OutEvap_REF, InComp)
+                IHX.SIMPHX(eff_HX = self.inputs.ihx_eff)
+            
+                InExpand = IHX.primary_out
+                InComp = IHX.secondary_out
+            else:
+                InComp = self.OutEvap_REF
+                InExpand = self.OutCond_REF
+            
+            comp = CP.Compander_module(InComp, self.InCond_REF)
             comp.COMP(eff_isen = self.inputs.comp_eff, eff_mech = self.inputs.mech_eff, cycle_index = self.inputs.cycle)
             self.InCond_REF = comp.primary_out
             self.compPower = comp.Pspecific
             
-            expand = CP.Compander_module(self.OutCond_REF, self.InEvap_REF)
+            expand = CP.Compander_module(InExpand, self.InEvap_REF)
             expand.EXPAND(eff_isen = self.inputs.expand_eff, eff_mech = self.inputs.mech_eff)
             self.InEvap_REF = expand.primary_out
             self.expandPower = expand.Pspecific
@@ -353,33 +368,36 @@ class VCHP_basic(VCHP):
    
 if __name__ == '__main__':
     
+    evapfluid = 'WATER'
     inevapT = 313.15
     inevapp = 101300.0
-    inevaph = PropsSI('H','T',inevapT, 'P', inevapp, 'AIR')
-    inevaps = PropsSI('S','T',inevapT, 'P', inevapp, 'AIR')
-    InEvap = WireObjectFluid(Y={'AIR':1.0,},m = 1.0, T = inevapT, p = inevapp, q = 0.0, h = inevaph, s = inevaps)
+    inevaph = PropsSI('H','T',inevapT, 'P', inevapp, evapfluid)
+    inevaps = PropsSI('S','T',inevapT, 'P', inevapp, evapfluid)
+    InEvap = WireObjectFluid(Y={evapfluid:1.0,},m = 1.0, T = inevapT, p = inevapp, q = 0.0, h = inevaph, s = inevaps)
     
+    condfluid = 'WATER'
     outevapp = 101300.0
-    OutEvap = WireObjectFluid(Y={'AIR':1.0,}, p = outevapp)
+    OutEvap = WireObjectFluid(Y={condfluid:1.0,}, p = outevapp)
     
-    incondT = 383.15
+    incondT = 323.15
     incondp = 101300.0
-    incondh = PropsSI('H','T',incondT, 'P', incondp, 'AIR')
-    inconds = PropsSI('S','T',incondT, 'P', incondp, 'AIR')
-    InCond = WireObjectFluid(Y={'AIR':1.0,},m = 1.0, T = incondT, p = incondp, q = 0.0, h = incondh, s = inconds)
+    incondh = PropsSI('H','T',incondT, 'P', incondp, condfluid)
+    inconds = PropsSI('S','T',incondT, 'P', incondp, condfluid)
+    InCond = WireObjectFluid(Y={condfluid:1.0,},m = 1.0, T = incondT, p = incondp, q = 0.0, h = incondh, s = inconds)
     
-    outcondT = 393.15
+    outcondT = 333.15
     outcondp = 101300.0
-    outcondh = PropsSI('H','T',outcondT, 'P', outcondp, 'AIR')
-    outconds = PropsSI('S','T',outcondT, 'P', outcondp, 'AIR')
-    OutCond = WireObjectFluid(Y={'AIR':1.0,},m = 1.0, T = outcondT, p = outcondp, q = 0.0, h = outcondh, s = outconds)
+    outcondh = PropsSI('H','T',outcondT, 'P', outcondp, condfluid)
+    outconds = PropsSI('S','T',outcondT, 'P', outcondp, condfluid)
+    OutCond = WireObjectFluid(Y={condfluid:1.0,},m = 1.0, T = outcondT, p = outcondp, q = 0.0, h = outcondh, s = outconds)
     
     inputs = Settings()
     inputs.Y = {'R134A':1.0,}
     inputs.second = 'process'
-    inputs.cycle = 'scc'
-    inputs.cond_type = 'fthe'
-    inputs.evap_type = 'fthe'
+    inputs.cycle = 'vcc'
+    inputs.cond_type = 'phe'
+    inputs.evap_type = 'phe'
+    inputs.layout = 'ihx'
     #vchp_pre = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
     
     vchp_basic = VCHP_basic(InCond, OutCond, InEvap, OutEvap, inputs)
