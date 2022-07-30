@@ -65,6 +65,7 @@ class Settings:
     # 공정 정보
     second: str = 'process'
     cycle: str = 'vcc'
+    layout: str = 'ihx'
     
     DSC = 5.0
     DSH = 5.0
@@ -95,8 +96,8 @@ class Settings:
     
     # 중간열교환기 스펙
     ihx_eff: float = 0.9
-    ihx_cold_dP: float = 0.01
-    ihx_hot_dP: float = 0.01
+    ihx_cold_dp: float = 0.01
+    ihx_hot_dp: float = 0.01
     
     # 케스케이드 열교환기 스펙
     cas_type = 'phe'
