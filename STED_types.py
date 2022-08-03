@@ -1,4 +1,3 @@
-from enum import Enum
 from dataclasses import dataclass, field
 from re import T
 from CoolProp.CoolProp import PropsSI
@@ -122,7 +121,7 @@ class Settings:
     dT_lift: float = 10.0
     time_target: float = 600.0
     # 수렴오차
-    tol: float = 1.0-3
+    tol: float = 1.0e-3
         
 @dataclass
 class Bound:
@@ -136,13 +135,3 @@ class Bound:
     # 응축기 스펙
     cond_T_pp: float = 5.0
     cond_T_lm: float = 15
-
-if __name__ == "__main__":
-    
-    print("...")
-    vchp_input_1 = WireObjectFluid(Y={'Ethane': 0.3, 'Propane':0.7},T=300, p=1.0e5)
-    fluids = vchp_input_1.fluidmixture
-    print(fluids)
-    h = PropsSI('H','T',vchp_input_1.T,'P',vchp_input_1.p,fluids)
-    print(h)
-    print(vchp_input_1.p_crit)
