@@ -1,10 +1,6 @@
 import copy
 import numpy as np
 from CoolProp.CoolProp import PropsSI
-# test 용 import
-from STED_types import WireObjectFluid
-
-
 
 class Heatexchanger_module:
         
@@ -24,8 +20,8 @@ class Heatexchanger_module:
         T_secondary = copy.deepcopy(h_primary)
         p_secondary = copy.deepcopy(h_primary)
         h_secondary = copy.deepcopy(h_primary)
-        LMTD = np.zeros(shape=(N_element, N_row))
-        UA_element = copy.deepcopy(LMTD)
+        LMTD = copy.deepcopy(h_primary)
+        UA_element = copy.deepcopy(h_primary)
         
         p_secondary_out = self.secondary_out.p
         T_secondary_out = self.secondary_out.T
@@ -119,7 +115,6 @@ class Heatexchanger_module:
                             break
                         else:
                             self.T_rvs = 0
-                            
                             LMTD[jj,j] = ((T_primary[jj,j] - T_secondary[jj,j-1]) - (T_primary[0,j-1] - T_secondary[jj,j]))\
                                 /np.log((T_primary[jj,j] - T_secondary[jj,j-1])/(T_primary[0,j-1] - T_secondary[jj,j]))
      
@@ -135,7 +130,6 @@ class Heatexchanger_module:
                             break
                         else:
                             self.T_rvs = 0
-                            
                             LMTD[jj,j] = ((T_primary[jj,j] - T_secondary[jj,j-1]) - (T_primary[jj-1,j] - T_secondary[jj,j]))\
                                 /np.log((T_primary[jj,j] - T_secondary[jj,j-1])/(T_primary[jj-1,j] - T_secondary[jj,j]))
                             
@@ -196,7 +190,6 @@ class Heatexchanger_module:
         
         self.UA = np.sum(np.sum(UA_element))
         self.T_lm = abs(self.primary_in.q)/self.UA
-        
         self.primary_in.x = x_primary_in
         
         if np.round(N_row/2) != N_row/2: # 짝수
@@ -310,130 +303,5 @@ class Heatexchanger_module:
         
         self.primary_out.s = PropsSI('S','T',self.primary_out.T,'P',self.primary_out.p, self.primary_out.fluidmixture)
         self.secondary_out.s = PropsSI('S','T',self.secondary_out.T,'P',self.secondary_out.p,self.secondary_out.fluidmixture)
-
-if __name__ == "__main__":
-        # Condensor input
-        
-        secondary_in = WireObjectFluid(Y={'Ethane': 0.3, 'Propane':0.7},T=300, p=1.0e5)
-        print(secondary_in.fluidmixture)
-        secondary_in.h = PropsSI('H','T',secondary_in.T,'P',secondary_in.p,secondary_in.fluidmixture)
-        print(secondary_in.h)
-        '''secondary_in.T = 370
-        secondary_in.p = 301300
-        secondary_in.m = 1.0
-        secondary_in.h = PropsSI('H','T',secondary_in.T,'P',secondary_in.p,secondary_in.fluidmixture)
-        
-        secondary_out = copy.deepcopy(secondary_in)
-        secondary_out.T = 380
-        secondary_out.p = 301300
-        secondary_out.h = PropsSI('H','T',secondary_out.T,'P',secondary_out.p,secondary_out.fluidmixture)
-        
-        primary_in = WireObjectFluid({'R134a':1})
-        primary_in.q = (secondary_out.h - secondary_in.h)*secondary_in.m
-        primary_in.T = 400
-        primary_in.p = 5000000
-        primary_in.m = 1.0
-        primary_in.h = PropsSI('H','T',primary_in.T,'P',primary_in.p,primary_in.fluidmixture)
-        
-        primary_out = copy.deepcopy(primary_in)
-        primary_out.p = 4990000
-        
-        condensor = Heatexchanger_module(primary_in, primary_out, secondary_in, secondary_out)
-        condensor.PHE()
-        
-        print(primary_out.h)
-        print(condensor.T_rvs)
-        print(condensor.UA)
-        '''
-        # Evaporate input
-        
-        '''
-        secondary_in = WireObjectFluid({'water':1})
-        secondary_in.T = 320
-        secondary_in.p = 101300
-        secondary_in.m = 1.0
-        secondary_in.h = PropsSI('H','T',secondary_in.T,'P',secondary_in.p,secondary_in.fluidmixture)
-        
-        secondary_out = copy.deepcopy(secondary_in)
-        secondary_out.T = 310
-        secondary_out.p = 101300
-        secondary_out.h = PropsSI('H','T',secondary_out.T,'P',secondary_out.p,secondary_out.fluidmixture)
-        
-        primary_in = WireObjectFluid({'R134A':1})
-        primary_in.q = (secondary_out.h - secondary_in.h)*secondary_in.m
-        primary_in.p = 400000
-        primary_in.m = 1.0
-        primary_in.h = PropsSI('H','P',primary_in.p,'Q',0.8,primary_in.fluidmixture)
-        primary_in.T = PropsSI('T','P',primary_in.p,'Q',0.8,primary_in.fluidmixture)
-        primary_out = copy.deepcopy(primary_in)
-        primary_out.p = 399000
-        primary_out.T = PropsSI('T','P',primary_out.p,'Q',1.0,primary_out.fluidmixture)+5.0
-        primary_out.h = PropsSI('H','P',primary_out.p,'T',primary_out.T,primary_out.fluidmixture)
-        
-        evaporator = Heatexchanger_module(primary_in, primary_out, secondary_in, secondary_out)
-        evaporator.FTHE()
-        
-        print(primary_out.h)
-        print(evaporator.T_rvs)
-        print(evaporator.UA)
-        print(evaporator.T_lm)
-        '''
-        '''
-        # Cascade input
-        secondary_in = WireObjectFluid({'R134A':1})
-        secondary_in.p = 3000000
-        secondary_in.m = 1.0
-        secondary_in.T = PropsSI('T','P',secondary_in.p,'Q',1.0,secondary_in.fluidmixture)+5
-        secondary_in.h = PropsSI('H','T',secondary_in.T,'P',secondary_in.p,secondary_in.fluidmixture)
-        
-        
-        secondary_out = copy.deepcopy(secondary_in)
-        secondary_out.p = 2999000
-        secondary_out.T = PropsSI('T','P',secondary_out.p,'Q',0.0,secondary_in.fluidmixture)-1
-        secondary_out.h = PropsSI('H','T',secondary_out.T,'P',secondary_out.p,secondary_out.fluidmixture)
-        
-        
-        primary_in = WireObjectFluid({'R134A':1})
-        primary_in.q = (secondary_out.h - secondary_in.h)*secondary_in.m
-        primary_in.p = 400000
-        primary_in.m = 1.0
-        primary_in.h = PropsSI('H','P',primary_in.p,'Q',0.0,primary_in.fluidmixture)
-        primary_in.T = PropsSI('T','P',primary_in.p,'Q',0.0,primary_in.fluidmixture)
-        primary_out = copy.deepcopy(primary_in)
-        primary_out.p = 399000
-        primary_out.T = PropsSI('T','P',primary_out.p,'Q',1.0,primary_out.fluidmixture)+10.0
-        primary_out.h = PropsSI('H','P',primary_out.p,'T',primary_out.T,primary_out.fluidmixture)
-        
-        cascadeHX = Heatexchanger_module(primary_in, primary_out, secondary_in, secondary_out)
-        cascadeHX.PHE()
-        
-        print(primary_out.h)
-        print(cascadeHX.T_rvs)
-        print(cascadeHX.UA)
-        '''
-        '''
-        # Effectiveness Input
-        secondary_in = WireObjectFluid({'water':1})
-        secondary_in.T = 370
-        secondary_in.p = 301300
-        secondary_in.m = 1.0
-        secondary_in.h = PropsSI('H','T',secondary_in.T,'P',secondary_in.p,secondary_in.fluidmixture)
-        
-        secondary_out = copy.deepcopy(secondary_in)
-        
-        primary_in = WireObjectFluid({'R134a':1})
-        primary_in.T = 400
-        primary_in.p = 5000000
-        primary_in.m = 1.0
-        primary_in.h = PropsSI('H','T',primary_in.T,'P',primary_in.p,primary_in.fluidmixture)
-        
-        primary_out = copy.deepcopy(primary_in)
-        
-        effectiveHX = Heatexchanger_module(primary_in, primary_out, secondary_in, secondary_out)
-        effectiveHX.SIMPHX(1.0)
-        
-        print(primary_in.h)
-        '''
-        
         
         
