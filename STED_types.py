@@ -46,17 +46,29 @@ class WireObjectFluid:
         self.q = q
         self.h = h
         self.s = s
-        self.p_crit: float = PropsSI('PCRIT','',0,'',0,self.fluidmixture)
-        self.T_crit: float = PropsSI('TCRIT','',0,'',0,self.fluidmixture)
-
+        self.x = 0.0
+        try:
+            self.p_crit = PropsSI('PCRIT','',0,'',0,self.fluidmixture)
+        except:
+            return print('해당 유체는 임계압력을 구할 수 없습니다.')
+        try:
+            self.T_crit = PropsSI('TCRIT','',0,'',0,self.fluidmixture)
+        except:
+            return print('해당 유체는 임계온도를 구할 수 없습니다.')
+        
         
 @dataclass
 class Settings:
     # 냉매 입력
-    Y = {'R410A':1.0}
+    Y = {'R410A':1.0,}
     
     # 공정 정보
     second: str = 'process'
+    cycle: str = 'vcc'
+    layout: str = 'ihx'
+    
+    DSC = 5.0
+    DSH = 5.0
     
     # 응축기 스펙
     cond_type = 'phe'
@@ -96,26 +108,12 @@ class Settings:
     cas_N_element: int = 30
     
     # 증기 공정 조건 입력
-<<<<<<< HEAD
     T_steam: float = 120.0
     T_steam = T_steam + 273.15
     m_steam: float = 0.1
     T_makeup: float = 30.0
     T_makeup = T_makeup + 273.15
     m_makeup = 1.0
-=======
-    T_steam = 393.15
-    m_steam: float = 0.1
-    T_makeup: float = 303.15
-    m_makeup = 1.0
-    
-    # 급탕 공정 조건 입력
-    M_load: float = 100.0
-    T_target: float = 60
-    T_target:float = 333.15
-    dT_lift: float = 10.0
-    time_target: float = 600.0
->>>>>>> 8f6065d9c119ce39249b9dd5ddfa13fa52b9b5fa
     
     # 급탕 공정 조건 입력
     M_load: float = 100.0
@@ -124,7 +122,6 @@ class Settings:
     dT_lift: float = 10.0
     time_target: float = 600.0
     # 수렴오차
-<<<<<<< HEAD
     tol: float = 1.0-3
         
 @dataclass
@@ -139,10 +136,6 @@ class Bound:
     # 응축기 스펙
     cond_T_pp: float = 5.0
     cond_T_lm: float = 15
-=======
-    tol: float = 1.0e-3
-
->>>>>>> 8f6065d9c119ce39249b9dd5ddfa13fa52b9b5fa
 
 if __name__ == "__main__":
     
