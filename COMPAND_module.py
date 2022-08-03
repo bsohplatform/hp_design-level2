@@ -1,8 +1,4 @@
-import copy
-import numpy as np
 from CoolProp.CoolProp import PropsSI
-# test 용 import
-from STED_types import WireObjectFluid
 
 class Compander_module:
     
@@ -31,33 +27,3 @@ class Compander_module:
         self.primary_out.T = PropsSI('T','H',self.primary_out.h,'P',self.primary_out.p,self.primary_in.fluidmixture)
         
         self.Pspecific = (self.primary_in.h - self.primary_out.h)*eff_mech
-        
-
-if __name__ == "__main__":
-    '''
-    # Compressor input
-    comp_in = WireObjectFluid({'R134A':1})
-    comp_in.p = 301300
-    comp_in.T = PropsSI('T','P',comp_in.p,'Q',1.0, comp_in.fluidmixture)+5.0
-    comp_in.h = PropsSI('H','T',comp_in.T,'P',comp_in.p,comp_in.fluidmixture)
-    comp_in.s = PropsSI('S','T',comp_in.T,'P',comp_in.p,comp_in.fluidmixture)
-    comp_out = copy.deepcopy(comp_in)
-    comp_out.p = 301300*3
-    
-    compressor = Compander_module(comp_in, comp_out)
-    compressor.COMP(0.7)
-    print(compressor.Pspecific)
-    '''
-    # Expander input
-    expand_in = WireObjectFluid({'R134A':1})
-    expand_in.p = 501300
-    expand_in.T = PropsSI('T','P',expand_in.p,'Q',1.0, expand_in.fluidmixture)+30.0
-    expand_in.h = PropsSI('H','T',expand_in.T,'P',expand_in.p,expand_in.fluidmixture)
-    expand_in.s = PropsSI('S','T',expand_in.T,'P',expand_in.p,expand_in.fluidmixture)
-    expand_out = copy.deepcopy(expand_in)
-    expand_out.p = expand_in.p/3
-    
-    expander = Compander_module(expand_in, expand_out)
-    expander.EXPAND(0.0)
-    print(expander.Pspecific)
-    
