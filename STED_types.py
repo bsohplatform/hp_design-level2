@@ -46,42 +46,17 @@ class WireObjectFluid:
         self.q = q
         self.h = h
         self.s = s
-<<<<<<< HEAD
         self.p_crit: float = PropsSI('PCRIT','',0,'',0,self.fluidmixture)
         self.T_crit: float = PropsSI('TCRIT','',0,'',0,self.fluidmixture)
 
-=======
-        self.x = 0.0
-        try:
-            self.p_crit = PropsSI('PCRIT','',0,'',0,self.fluidmixture)
-        except:
-            return print('해당 유체는 임계압력을 구할 수 없습니다.')
-        try:
-            self.T_crit = PropsSI('TCRIT','',0,'',0,self.fluidmixture)
-        except:
-            return print('해당 유체는 임계온도를 구할 수 없습니다.')
-        
->>>>>>> 8f6065d9c119ce39249b9dd5ddfa13fa52b9b5fa
         
 @dataclass
 class Settings:
     # 냉매 입력
-<<<<<<< HEAD
     Y = {'R410A':1.0}
     
     # 공정 정보
     second: str = 'process'
-=======
-    Y = {'R410A':1.0,}
-    
-    # 공정 정보
-    second: str = 'process'
-    cycle: str = 'vcc'
-    layout: str = 'ihx'
-    
-    DSC = 5.0
-    DSH = 5.0
->>>>>>> 8f6065d9c119ce39249b9dd5ddfa13fa52b9b5fa
     
     # 응축기 스펙
     cond_type = 'phe'
