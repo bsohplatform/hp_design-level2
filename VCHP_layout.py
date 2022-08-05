@@ -206,10 +206,10 @@ class VCHP():
                         else:
                             inter_frac_ub = self.inter_frac
                             
-                        dCOP_array.append(abs(dCOP))
+                        dCOP_array.append(dCOP)
                         
-                        if len(dCOP_array) > 2:
-                            if (dCOP_array[-2] < dCOP_array[-1] and dCOP_array[-2] < dCOP_array[-3]) or (dCOP_array[-1] < self.inputs.tol):
+                        if len(dCOP_array) > 1:
+                            if (dCOP_array[-2]*dCOP_array[-1] < 0) or (abs(dCOP_array[-1]) < self.inputs.tol):
                                 self.COP_heating = COP_o
                                 self.inter_frac = frac_o
                                 frac_a = 0
@@ -486,35 +486,49 @@ class VCHP_injection(VCHP):
     
 if __name__ == '__main__':
     
-    evapfluid = 'WATER'
+    evapfluid = 'AIR'
     inevapT = 313.15
     inevapp = 101300.0
     inevaph = PropsSI('H','T',inevapT, 'P', inevapp, evapfluid)
     inevaps = PropsSI('S','T',inevapT, 'P', inevapp, evapfluid)
     InEvap = WireObjectFluid(Y={evapfluid:1.0,},m = 1.0, T = inevapT, p = inevapp, q = 0.0, h = inevaph, s = inevaps)
     
-    condfluid = 'WATER'
+    '''
     outevapp = 101300.0
-    OutEvap = WireObjectFluid(Y={condfluid:1.0,}, p = outevapp)
+    OutEvap = WireObjectFluid(Y={evapfluid:1.0,},p = outevapp)'''
     
+    
+    outevapT = 307.8
+    outevapp = 101300.0
+    outevaph = PropsSI('H','T',outevapT, 'P', outevapp, evapfluid)
+    outevaps = PropsSI('S','T',outevapT, 'P', outevapp, evapfluid)
+    OutEvap = WireObjectFluid(Y={evapfluid:1.0,},m = 1.0, T = outevapT, p = outevapp, q = 0.0, h = outevaph, s = outevaps)
+    
+    
+    condfluid = 'AIR'
     incondT = 323.15
     incondp = 101300.0
     incondh = PropsSI('H','T',incondT, 'P', incondp, condfluid)
     inconds = PropsSI('S','T',incondT, 'P', incondp, condfluid)
     InCond = WireObjectFluid(Y={condfluid:1.0,},m = 1.0, T = incondT, p = incondp, q = 0.0, h = incondh, s = inconds)
     
-    outcondT = 333.15
+    '''
+    outcondT = 330.0
     outcondp = 101300.0
     outcondh = PropsSI('H','T',outcondT, 'P', outcondp, condfluid)
     outconds = PropsSI('S','T',outcondT, 'P', outcondp, condfluid)
-    OutCond = WireObjectFluid(Y={condfluid:1.0,},m = 1.0, T = outcondT, p = outcondp, q = 0.0, h = outcondh, s = outconds)
+    OutCond = WireObjectFluid(Y={condfluid:1.0,},m = 1.0, T = outcondT, p = outcondp, q = 0.0, h = outcondh, s = outconds)'''
+    
+    
+    outcondp = 101300.0
+    OutCond = WireObjectFluid(Y={condfluid:1.0,},p = outcondp, q = 0.0)
     
     inputs = Settings()
     inputs.Y = {'R134A':1.0,}
     inputs.second = 'process'
     inputs.cycle = 'vcc'
-    inputs.cond_type = 'phe'
-    inputs.evap_type = 'phe'
+    inputs.cond_type = 'fthe'
+    inputs.evap_type = 'fthe'
     inputs.layout = 'inj'
 
     #vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
