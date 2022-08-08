@@ -13,10 +13,6 @@ class VCHP():
         self.InEvap = InEvap
         self.OutEvap = OutEvap
         self.inputs = inputs
-        self.InCond_REF = WireObjectFluid(Y=self.inputs.Y)
-        self.OutCond_REF = WireObjectFluid(Y=self.inputs.Y)
-        self.InEvap_REF = WireObjectFluid(Y=self.inputs.Y)
-        self.OutEvap_REF = WireObjectFluid(Y=self.inputs.Y)
         self.slope = 0.10753154
         self.intercept = 0.004627621995008088
         
@@ -24,16 +20,20 @@ class VCHP():
             self.nbp = PropsSI('T','P',101300,'Q',0.0, self.InCond_REF.fluidmixture)
         except:
             return print('선택하신 냉매는 NBP를 구할 수 없습니다.')
-        
-        self.Input_Processing()
     
     def __call__(self):
         
-        self.Input_Processing()
+        (InCond, OutCond, InEvap, OutEvap, no_input) = self.Input_Processing()
+        
+        InCond_REF = WireObjectFluid(Y=self.inputs.Y)
+        OutCond_REF = WireObjectFluid(Y=self.inputs.Y)
+        InEvap_REF = WireObjectFluid(Y=self.inputs.Y)
+        OutEvap_REF = WireObjectFluid(Y=self.inputs.Y)
+        
         if self.inputs.layout == 'inj':
-            self.InterPressure_opt()
+            (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, Output) = self.InterPressure_opt(InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, no_input)
         else:
-            self.Cycle_Solver()
+            (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, Output) = self.Cycle_Solver(InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, no_input)
         
         self.Post_Processing()
             
@@ -45,54 +45,57 @@ class VCHP():
         no_Evapm = 0
         no_OutEvapT = 0
         
+        InEvap = self.InEvap
+        OutEvap = self.OutEvap
         
         if self.inputs.second == 'steam':
-            self.Steam_module()
+            (InCond, OutCond) = self.Steam_module(self.OutCond.T, self.inputs.T_steam, self.inputs.m_steam, self.inputs.T_makeup, self.inputs.m_makeup, self.OutCond.Y)
             
         elif self.inputs.second == 'hotwater':
-            self.Hotwater_module()
+            (InCond, OutCond) = self.Hotwater_module(self.inputs.T_target, self.inputs.M_load, self.inputs.time_target, self.inputs.dT_lift, self.inputs.T_makeup, self.OutCond.Y)
         
         else: # 일반 공정
-            if self.InCond.p <= 0.0:
-                self.InCond.p = 101300.0
+            InCond = self.InCond
+            OutCond = self.OutCond
+            if InCond.p <= 0.0:
+                InCond.p = 101300.0
         
-            if self.OutCond.p <= 0.0:
-             self.OutCond.p = 101300.0
+            if OutCond.p <= 0.0:
+             OutCond.p = 101300.0
              
-            if self.InCond.T <= 0.0:
+            if InCond.T <= 0.0:
                 no_InCondT = 1
         
-            if self.InCond.m <= 0 and self.OutCond.m <= 0 :
+            if InCond.m <= 0 and OutCond.m <= 0 :
                 no_Condm = 1
             else:
-                if self.InCond.m == 0:
-                    self.InCond.m = self.OutCond.m # shallow copy
+                if InCond.m == 0:
+                    InCond.m = OutCond.m
                 else:
-                    self.OutCond.m = self.InCond.m 
+                    OutCond.m = InCond.m 
                 
-            if self.OutCond.T <= 0.0:
+            if OutCond.T <= 0.0:
                 no_OutCondT = 1
             
-            
-        if self.InEvap.p <= 0.0:
-            self.InEvap.p = 101300.0
+        if InEvap.p <= 0.0:
+            InEvap.p = 101300.0
         
-        if self.OutEvap.p <= 0.0:
-            self.OutEvap.p = 101300.0
+        if OutEvap.p <= 0.0:
+            OutEvap.p = 101300.0
         
         
-        if self.InEvap.T <= 0.0:
+        if InEvap.T <= 0.0:
             no_InEvapT = 1
         
-        if self.InEvap.m <= 0 and self.OutEvap.m <= 0 :
+        if InEvap.m <= 0 and OutEvap.m <= 0 :
             no_Evapm = 1
         else:
-            if self.InEvap.m == 0:
-                self.InEvap.m = self.OutEvap.m # shallow copy
+            if InEvap.m == 0:
+                InEvap.m = OutEvap.m # shallow copy
             else:
-                self.OutEvap.m = self.InEvap.m
+                OutEvap.m = InEvap.m
                 
-        if self.OutEvap.T <= 0.0:
+        if OutEvap.T <= 0.0:
             no_OutEvapT = 1
             
         no_inputs_sum = no_InCondT + no_Condm + no_OutCondT + no_InEvapT + no_Evapm + no_OutEvapT
@@ -103,133 +106,150 @@ class VCHP():
             return print('입력 변수가 Underdefine 됐습니다.')
         else:    
             if no_InCondT == 1:
-                self.InEvap.q = (self.OutEvap.h - self.InEvap.h)*self.InEvap.m
-                self.OutEvap.q = self.InEvap.q 
-                self.no_input = 'InCondT'    
+                InEvap.q = (OutEvap.h - InEvap.h)*InEvap.m
+                OutEvap.q = InEvap.q 
+                no_input = 'InCondT'    
             elif no_OutCondT == 1:
-                self.InEvap.q = (self.OutEvap.h - self.InEvap.h)*self.InEvap.m
-                self.OutEvap.q = self.InEvap.q 
-                self.no_input = 'OutCondT'
+                InEvap.q = (OutEvap.h - InEvap.h)*InEvap.m
+                OutEvap.q = InEvap.q 
+                no_input = 'OutCondT'
             elif no_Condm == 1:   
-                self.InEvap.q = (self.OutEvap.h - self.InEvap.h)*self.InEvap.m
-                self.OutEvap.q = self.InEvap.q 
-                self.no_input = 'Condm'
+                InEvap.q = (OutEvap.h - InEvap.h)*InEvap.m
+                OutEvap.q = InEvap.q 
+                no_input = 'Condm'
             
             elif no_InEvapT == 1:
-                self.InCond.q = (self.OutCond.h - self.InCond.h)*self.InCond.m
-                self.OutCond.q = self.InCond.q
-                self.no_input = 'InEvapT'
+                InCond.q = (OutCond.h - InCond.h)*InCond.m
+                OutCond.q = InCond.q
+                no_input = 'InEvapT'
             elif no_OutEvapT == 1:
-                self.InCond.q = (self.OutCond.h - self.InCond.h)*self.InCond.m
-                self.OutCond.q = self.InCond.q
-                self.no_input = 'OutEvapT'
+                InCond.q = (OutCond.h - InCond.h)*InCond.m
+                OutCond.q = InCond.q
+                no_input = 'OutEvapT'
             elif no_Evapm == 1:   
-                self.InCond.q = (self.OutCond.h - self.InCond.h)*self.InCond.m
-                self.OutCond.q = self.InCond.q
-                self.no_input = 'Evapm'
+                InCond.q = (OutCond.h - InCond.h)*InCond.m
+                OutCond.q = InCond.q
+                no_input = 'Evapm'
             
-            if self.no_input == 'InEvapT':
+            if no_input == 'InEvapT':
                 if self.inputs.evap_type == 'fthe':
-                    if self.nbp > self.OutEvap.T - self.inputs.cond_T_lm:
+                    if self.nbp > OutEvap.T - self.inputs.cond_T_lm:
                         return print('냉매 NBP가 공정 저온 온도 보다 높습니다.')
                 elif self.inputs.evap_type == 'phe':
-                    if self.nbp > self.OutEvap.T - self.inputs.cond_T_pp:
+                    if self.nbp > OutEvap.T - self.inputs.cond_T_pp:
                         return print('냉매 NBP가 공정 저온 온도 보다 높습니다.')
                 else: 
                     print('정의되지 않은 열교환기 타입입니다.')
                 
             else:
                 if self.inputs.evap_type == 'fthe':
-                    if self.nbp > self.InEvap.T - self.inputs.evap_T_lm:
+                    if self.nbp > InEvap.T - self.inputs.evap_T_lm:
                         return print('냉매 NBP가 공정 저온 온도 보다 높습니다.')
                 elif self.inputs.evap_type == 'phe':
-                    if self.nbp > self.InEvap.T - self.inputs.evap_T_pp:
+                    if self.nbp > InEvap.T - self.inputs.evap_T_pp:
                         return print('냉매 NBP가 공정 저온 온도 보다 높습니다.')
                 else: 
                     print('정의되지 않은 열교환기 타입입니다.')
                     
-                
-    def Steam_module(self):
-        p_flash = PropsSI('P','T',self.inputs.T_steam,'Q',1.0, self.InCond.fluidmixture)
-        self.OutCond.p = PropsSI('P','T',self.OutCond.T+0.1, 'Q', 0.0, self.InCond.fluidmixture)
-        self.OutCond.h = PropsSI('H','T',self.OutCond.T+0.1, 'Q', 0.0, self.InCond.fluidmixture)
-        X_flash = PropsSI('Q','H',self.OutCond.h,'P',p_flash, self.InCond.fluidmixture)
-        self.OutCond.m = self.inputs.m_steam / X_flash
-        self.InCond.m = self.OutCond.m
-        m_sat_liq = (1-X_flash)*self.OutCond.m
-        h_sat_liq = PropsSI('H','P',p_flash,'Q',0.0, self.InCond.fluidmixture)
-        h_makeup = PropsSI('H','T',self.inputs.T_makeup,'P',p_flash, self.InCond.fluidmixture)
+        return (InCond, OutCond, InEvap, OutEvap, no_input)
+            
+    def Steam_module(self, OutCondT, T_steam, m_steam, T_makeup, m_makeup, Ycond):
+        OutCond = WireObjectFluid(Y = Ycond, T=OutCondT)
+        InCond = WireObjectFluid(Y = Ycond)
+        p_flash = PropsSI('P','T',T_steam,'Q',1.0, OutCond.fluidmixture)
+        OutCond.p = PropsSI('P','T',OutCond.T+0.1, 'Q', 0.0, OutCond.fluidmixture)
+        OutCond.h = PropsSI('H','T',OutCond.T+0.1, 'Q', 0.0, OutCond.fluidmixture)
+        X_flash = PropsSI('Q','H',OutCond.h,'P',p_flash, OutCond.fluidmixture)
+        OutCond.m = m_steam / X_flash
+        InCond.m = OutCond.m
+        m_sat_liq = (1-X_flash)*OutCond.m
+        h_sat_liq = PropsSI('H','P',p_flash,'Q',0.0, InCond.fluidmixture)
+        h_makeup = PropsSI('H','T',T_makeup,'P',p_flash, InCond.fluidmixture)
         
-        self.InCond.h = (m_sat_liq*h_sat_liq + self.inputs.m_makeup*h_makeup)/self.OutCond.m
-        self.InCond.T = PropsSI('T','H',self.InCond.h,'P',p_flash, self.InCond.fluidmixture)
+        InCond.h = (m_sat_liq*h_sat_liq + m_makeup*h_makeup)/OutCond.m
+        InCond.T = PropsSI('T','H',InCond.h,'P',p_flash, InCond.fluidmixture)
         
-    def Hotwater_module(self):
-        rho_water = PropsSI('D','T',0.5*(self.inputs.T_makeup+self.inputs.T_target),'P',101300, self.InCond.fluidmixture)
-        self.V_tank = self.inputs.M_load/rho_water
-        
-        h_target = PropsSI('H','T',self.inputs.T_target,'P',101300.0,self.InCond.fluidmixture)
-        h_makeup = PropsSI('H','T',self.inputs.T_makeup,'P',101300.0,self.InCond.fluidmixture)
-        self.InCond.h = 0.5*(h_target + h_makeup)
-        self.InCond.T = PropsSI('T','H',self.InCond.h,'P',101300, self.InCond.fluidmixture)
-        Cp_water = PropsSI('C','T',self.InCond.T,'P',101300, self.InCond.fluidmixture)
-        self.OutCond.q = 0.5*self.inputs.M_load*Cp_water*(self.inputs.T_target - self.InCond.T)/self.inputs.time_target
-        self.OutCond.m = self.OutCond.q/(Cp_water*self.inputs.dT_lift)
-        self.OutCond.T = self.InCond.T + self.inputs.dT_lift
+        return (InCond, OutCond)
     
-    def InterPressure_opt(self):
+    def Hotwater_module(self, T_target, M_load, time_target, dT_lift, T_makeup, Ycond):
+        OutCond = WireObjectFluid(Y = Ycond)
+        InCond = WireObjectFluid(Y = Ycond)
+        rho_water = PropsSI('D','T',0.5*(T_makeup+T_target),'P',101300, InCond.fluidmixture)
+        V_tank = M_load/rho_water
+        
+        h_target = PropsSI('H','T',T_target,'P',101300.0,InCond.fluidmixture)
+        h_makeup = PropsSI('H','T',T_makeup,'P',101300.0,InCond.fluidmixture)
+        InCond.h = 0.5*(h_target + h_makeup)
+        InCond.T = PropsSI('T','H',InCond.h,'P',101300, InCond.fluidmixture)
+        Cp_water = PropsSI('C','T',InCond.T,'P',101300, InCond.fluidmixture)
+        OutCond.q = 0.5*M_load*Cp_water*(T_target - InCond.T)/time_target
+        OutCond.m = OutCond.q/(Cp_water*dT_lift)
+        OutCond.T = InCond.T + dT_lift
+        
+        return (InCond, OutCond)
+    
+    def InterPressure_opt(self, InCond, OutCond, InEvap, OutEvap, no_input):
         dfrac = 0.005
         inter_frac_lb = 0.0
         inter_frac_ub = 1.0
-        dCOP_array = []
+        results_array = []
         frac_a = 1
         while frac_a:
             for iii in range(2):
                 if iii == 0:
-                    self.inter_frac = 0.5*(inter_frac_lb+inter_frac_ub)*(1-dfrac)
+                    inter_frac = 0.5*(inter_frac_lb+inter_frac_ub)*(1-dfrac)
                 else:
-                    self.inter_frac = 0.5*(inter_frac_lb+inter_frac_ub)*(1+dfrac)
+                    inter_frac = 0.5*(inter_frac_lb+inter_frac_ub)*(1+dfrac)
                 
-                self.Cycle_Solver()
+                (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, Output) = self.Cycle_Solver(InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, no_input)
                 
-                if self.evap_conv_err == 1:
-                    if self.evap_err > 0:
-                        inter_frac_lb = self.inter_frac
+                if Output.evap_conv_err == 1:
+                    if Output.evap_err > 0:
+                        inter_frac_lb = inter_frac
                         break
                 else:
                     if iii == 0:
-                        COP_o = self.COP_heating
-                        frac_o = self.inter_frac
+                        COP_o = Output.COP_heating
+                        frac_o = inter_frac
                     else:
-                        dCOP = ((self.COP_heating - COP_o)/self.COP_heating)/((self.inter_frac - frac_o)/self.inter_frac)
+                        dCOP = ((Output.COP_heating - COP_o)/Output.COP_heating)/((inter_frac - frac_o)/inter_frac)
                         if dCOP > 0:
-                            inter_frac_lb = self.inter_frac
+                            inter_frac_lb = inter_frac
                         else:
-                            inter_frac_ub = self.inter_frac
+                            inter_frac_ub = inter_frac
                             
-                        dCOP_array.append(dCOP)
+                        results_array.append([0.5*(Output.COP_heating+COP_o), 0.5*(inter_frac+frac_o), dCOP])
                         
-                        if len(dCOP_array) > 1:
-                            if (dCOP_array[-2]*dCOP_array[-1] < 0) or (abs(dCOP_array[-1]) < self.inputs.tol):
-                                self.COP_heating = COP_o
-                                self.inter_frac = frac_o
+                        if len(results_array) > 2:
+                            if abs(results_array[2][-2]) < abs(results_array[2][-1]) and abs(results_array[2][-2]) < abs(results_array[2][-3]):
+                                Output.COP_heating = results_array[0][-2]
+                                Output.opt_frac = results_array[1][-2]
+                                frac_a = 0
+                            elif abs(results_array[2][-1]) < self.inputs.tol:
+                                Output.COP_heating = results_array[0][-1]
+                                Output.opt_frac = results_array[1][-1]
                                 frac_a = 0
                         elif inter_frac_ub - inter_frac_lb < self.inputs.tol:
+                            Output.COP_heating = results_array[0][-1]
+                            Output.opt_frac = results_array[1][-1]
                             frac_a = 0
+                              
+        return (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, Output)
 
-    def Cycle_Solver(self):
-            if self.no_input == 'InEvapT':
-                self.evap_p_ub = PropsSI('P','T',self.OutEvap.T, 'Q', 1.0, self.InEvap_REF.fluidmixture)        
+    def Cycle_Solver(self, InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, no_input):
+            if no_input == 'InEvapT':
+                evap_p_ub = PropsSI('P','T',OutEvap.T, 'Q', 1.0, InEvap_REF.fluidmixture)        
             else:
-                self.evap_p_ub = PropsSI('P','T',self.InEvap.T, 'Q', 1.0, self.InEvap_REF.fluidmixture)
+                evap_p_ub = PropsSI('P','T',InEvap.T, 'Q', 1.0, InEvap_REF.fluidmixture)
                 
-            self.evap_p_lb = 101300.0
+            evap_p_lb = 101300.0
             evap_a = 1
             
             while evap_a: 
-                self.OutEvap_REF.p = 0.5*(self.evap_p_lb+self.evap_p_ub)
-                self.InEvap_REF.p = self.OutEvap_REF.p/(1.0-self.inputs.evap_dp)
+                OutEvap_REF.p = 0.5*(evap_p_lb+evap_p_ub)
+                InEvap_REF.p = OutEvap_REF.p/(1.0-inputs.evap_dp)
                 
-                self.OutEvap_REF.T = PropsSI('T','P',self.OutEvap_REF.p, 'Q', 1.0, self.OutEvap_REF.fluidmixture) + self.inputs.DSH
+                OutEvap_REF.T = PropsSI('T','P',OutEvap_REF.p, 'Q', 1.0, OutEvap_REF.fluidmixture) + self.inputs.DSH
                 if self.inputs.DSH == 0:
                     self.OutEvap_REF.h = PropsSI('H','P',self.OutEvap_REF.p, 'Q', 1.0, self.OutEvap_REF.fluidmixture)
                     self.OutEvap_REF.s = PropsSI('S','P',self.OutEvap_REF.p, 'Q', 1.0, self.OutEvap_REF.fluidmixture)
@@ -465,24 +485,14 @@ class VCHP():
         print('Cold fluid Outlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]: <------- Cold fluid Inlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]'.format(self.OutEvap.T, self.OutEvap.p/1.0e5, self.OutEvap.m, self.InEvap.T, self.InEvap.p, self.InEvap.m))
         print('Plow: {:.2f} [bar], Phigh: {:.2f} [bar], mdot: {:.2f}[kg/s]'.format(self.OutEvap_REF.p/1.0e5, self.InCond_REF.p/1.0e5, self.OutEvap_REF.m))
 
-class VCHP_injection(VCHP):
-    def __init__(self, InCond, OutCond, InEvap, OutEvap, inputs):
+class VCHP_cascade(VCHP):
+    def __init__(self, InCond, OutCond, InEvap, OutEvap, inputs, top_layout: str, bot_layout: str):        
         super().__init__(InCond, OutCond, InEvap, OutEvap, inputs)
-    
-    def InterPressure_Opt(self):
-        dfrac = 0.005
-        inter_frac_lb = 0.0
-        inter_frac_ub = 1.0
-        
-        while 1:
-            for iii in range(2):
-                self.inter_frac = 0.5*(inter_frac_lb+inter_frac_ub)*(1-dfrac)
-            else:
-                self.inter_frac = 0.5*(inter_frac_lb+inter_frac_ub)*(1+dfrac)
-                
+        self.top_layout = top_layout
+        self.bot_layout = bot_layout
+    def Connection_Solver(self):
+        if top_layout == 'bas':
             super().Cycle_Solver()
-            
-            super().Post_Processing()
     
 if __name__ == '__main__':
     
@@ -529,7 +539,7 @@ if __name__ == '__main__':
     inputs.cycle = 'vcc'
     inputs.cond_type = 'fthe'
     inputs.evap_type = 'fthe'
-    inputs.layout = 'inj'
+    inputs.layout = 'bas'
 
     #vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
     #vchp_basic()
