@@ -218,15 +218,15 @@ class VCHP():
 
     def Cycle_Solver(self):
             if self.no_input == 'InEvapT':
-                self.evap_p_ub = PropsSI('P','T',self.OutEvap.T, 'Q', 1.0, self.InEvap_REF.fluidmixture)        
+                evap_p_ub = PropsSI('P','T',self.OutEvap.T, 'Q', 1.0, self.InEvap_REF.fluidmixture)        
             else:
-                self.evap_p_ub = PropsSI('P','T',self.InEvap.T, 'Q', 1.0, self.InEvap_REF.fluidmixture)
+                evap_p_ub = PropsSI('P','T',self.InEvap.T, 'Q', 1.0, self.InEvap_REF.fluidmixture)
                 
-            self.evap_p_lb = 101300.0
+            evap_p_lb = 101300.0
             evap_a = 1
             
             while evap_a: 
-                self.OutEvap_REF.p = 0.5*(self.evap_p_lb+self.evap_p_ub)
+                self.OutEvap_REF.p = 0.5*(evap_p_lb+evap_p_ub)
                 self.InEvap_REF.p = self.OutEvap_REF.p/(1.0-self.inputs.evap_dp)
                 
                 self.OutEvap_REF.T = PropsSI('T','P',self.OutEvap_REF.p, 'Q', 1.0, self.OutEvap_REF.fluidmixture) + self.inputs.DSH
@@ -251,19 +251,19 @@ class VCHP():
                 self.OutEvap_REF = evap.primary_out
                 
                 if evap.T_rvs == 1:
-                    self.evap_p_ub = self.OutEvap_REF.p                    
+                    evap_p_ub = self.OutEvap_REF.p                    
                 else:
                     if self.evap_err < 0:
-                        self.evap_p_lb = self.OutEvap_REF.p
+                        evap_p_lb = self.OutEvap_REF.p
                     else:
-                        self.evap_p_ub = self.OutEvap_REF.p
+                        evap_p_ub = self.OutEvap_REF.p
                         
                 if abs(self.evap_err) < self.inputs.tol:
                     self.evap_conv_err = 0
                     self.COP_heating = abs(self.OutCond.q)/(self.compPower - self.expandPower)
                     self.COP_cooling = abs(self.OutEvap.q)/(self.compPower - self.expandPower)
                     evap_a = 0
-                elif self.evap_p_ub - self.evap_p_lb < self.inputs.tol:
+                elif evap_p_ub - evap_p_lb < self.inputs.tol:
                     self.evap_conv_err = 1
                     evap_a = 0
                 
@@ -529,7 +529,7 @@ if __name__ == '__main__':
     inputs.cycle = 'vcc'
     inputs.cond_type = 'fthe'
     inputs.evap_type = 'fthe'
-    inputs.layout = 'inj'
+    inputs.layout = 'ihx'
 
     #vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
     #vchp_basic()
