@@ -3,7 +3,7 @@ import HX_module as HX
 import COMPAND_module as CP
 from CoolProp.CoolProp import PropsSI
 # test 용 import
-from STED_types import WireObjectFluid, Settings
+from HP_dataclass import ProcessFluid, Settings
 
 
 class VCHP():
@@ -13,10 +13,10 @@ class VCHP():
         self.InEvap = InEvap
         self.OutEvap = OutEvap
         self.inputs = inputs
-        self.InCond_REF = WireObjectFluid(Y=self.inputs.Y)
-        self.OutCond_REF = WireObjectFluid(Y=self.inputs.Y)
-        self.InEvap_REF = WireObjectFluid(Y=self.inputs.Y)
-        self.OutEvap_REF = WireObjectFluid(Y=self.inputs.Y)
+        self.InCond_REF = ProcessFluid(Y=self.inputs.Y)
+        self.OutCond_REF = ProcessFluid(Y=self.inputs.Y)
+        self.InEvap_REF = ProcessFluid(Y=self.inputs.Y)
+        self.OutEvap_REF = ProcessFluid(Y=self.inputs.Y)
         self.slope = 0.10753154
         self.intercept = 0.004627621995008088
         
@@ -88,7 +88,7 @@ class VCHP():
             no_Evapm = 1
         else:
             if self.InEvap.m == 0:
-                self.InEvap.m = self.OutEvap.m # shallow copy
+                self.InEvap.m = self.OutEvap.m
             else:
                 self.OutEvap.m = self.InEvap.m
                 
@@ -103,27 +103,67 @@ class VCHP():
             return print('입력 변수가 Underdefine 됐습니다.')
         else:    
             if no_InCondT == 1:
+                self.OutCond.h = PropsSI('H','T',self.OutCond.T, 'P',self.OutCond.p, self.OutCond.fluidmixture)
+                self.OutCond.Cp = PropsSI('C','T',self.OutCond.T, 'P',self.OutCond.p, self.OutCond.fluidmixture)
+                self.InEvap.h = PropsSI('H','T',self.InEvap.T, 'P',self.InEvap.p, self.InEvap.fluidmixture)
+                self.InEvap.Cp = PropsSI('C','T',self.InEvap.T, 'P',self.InEvap.p, self.InEvap.fluidmixture)
+                self.OutEvap.h = PropsSI('H','T',self.OutEvap.T, 'P',self.OutEvap.p, self.OutEvap.fluidmixture)
+                self.OutEvap.Cp = PropsSI('C','T',self.OutEvap.T, 'P',self.OutEvap.p, self.OutEvap.fluidmixture)
                 self.InEvap.q = (self.OutEvap.h - self.InEvap.h)*self.InEvap.m
                 self.OutEvap.q = self.InEvap.q 
-                self.no_input = 'InCondT'    
+                self.no_input = 'InCondT'
             elif no_OutCondT == 1:
+                self.InCond.h = PropsSI('H','T',self.InCond.T, 'P',self.InCond.p, self.InCond.fluidmixture)
+                self.InCond.Cp = PropsSI('C','T',self.InCond.T, 'P',self.InCond.p, self.InCond.fluidmixture)
+                self.InEvap.h = PropsSI('H','T',self.InEvap.T, 'P',self.InEvap.p, self.InEvap.fluidmixture)
+                self.InEvap.Cp = PropsSI('C','T',self.InEvap.T, 'P',self.InEvap.p, self.InEvap.fluidmixture)
+                self.OutEvap.h = PropsSI('H','T',self.OutEvap.T, 'P',self.OutEvap.p, self.OutEvap.fluidmixture)
+                self.OutEvap.Cp = PropsSI('C','T',self.OutEvap.T, 'P',self.OutEvap.p, self.OutEvap.fluidmixture)
                 self.InEvap.q = (self.OutEvap.h - self.InEvap.h)*self.InEvap.m
                 self.OutEvap.q = self.InEvap.q 
                 self.no_input = 'OutCondT'
-            elif no_Condm == 1:   
+            elif no_Condm == 1:
+                self.InCond.h = PropsSI('H','T',self.InCond.T, 'P',self.InCond.p, self.InCond.fluidmixture)
+                self.InCond.Cp = PropsSI('C','T',self.InCond.T, 'P',self.InCond.p, self.InCond.fluidmixture)
+                self.OutCond.h = PropsSI('H','T',self.OutCond.T, 'P',self.OutCond.p, self.OutCond.fluidmixture)
+                self.OutCond.Cp = PropsSI('C','T',self.OutCond.T, 'P',self.OutCond.p, self.OutCond.fluidmixture)
+                self.InEvap.h = PropsSI('H','T',self.InEvap.T, 'P',self.InEvap.p, self.InEvap.fluidmixture)
+                self.InEvap.Cp = PropsSI('C','T',self.InEvap.T, 'P',self.InEvap.p, self.InEvap.fluidmixture)
+                self.OutEvap.h = PropsSI('H','T',self.OutEvap.T, 'P',self.OutEvap.p, self.OutEvap.fluidmixture)
+                self.OutEvap.Cp = PropsSI('C','T',self.OutEvap.T, 'P',self.OutEvap.p, self.OutEvap.fluidmixture)
                 self.InEvap.q = (self.OutEvap.h - self.InEvap.h)*self.InEvap.m
                 self.OutEvap.q = self.InEvap.q 
                 self.no_input = 'Condm'
             
             elif no_InEvapT == 1:
+                self.InCond.h = PropsSI('H','T',self.InCond.T, 'P',self.InCond.p, self.InCond.fluidmixture)
+                self.InCond.Cp = PropsSI('C','T',self.InCond.T, 'P',self.InCond.p, self.InCond.fluidmixture)
+                self.OutCond.h = PropsSI('H','T',self.OutCond.T, 'P',self.OutCond.p, self.OutCond.fluidmixture)
+                self.OutCond.Cp = PropsSI('C','T',self.OutCond.T, 'P',self.OutCond.p, self.OutCond.fluidmixture)
+                self.OutEvap.h = PropsSI('H','T',self.OutEvap.T, 'P',self.OutEvap.p, self.OutEvap.fluidmixture)
+                self.OutEvap.Cp = PropsSI('C','T',self.OutEvap.T, 'P',self.OutEvap.p, self.OutEvap.fluidmixture)
                 self.InCond.q = (self.OutCond.h - self.InCond.h)*self.InCond.m
                 self.OutCond.q = self.InCond.q
                 self.no_input = 'InEvapT'
             elif no_OutEvapT == 1:
+                self.InCond.h = PropsSI('H','T',self.InCond.T, 'P',self.InCond.p, self.InCond.fluidmixture)
+                self.InCond.Cp = PropsSI('C','T',self.InCond.T, 'P',self.InCond.p, self.InCond.fluidmixture)
+                self.OutCond.h = PropsSI('H','T',self.OutCond.T, 'P',self.OutCond.p, self.OutCond.fluidmixture)
+                self.OutCond.Cp = PropsSI('C','T',self.OutCond.T, 'P',self.OutCond.p, self.OutCond.fluidmixture)
+                self.InEvap.h = PropsSI('H','T',self.InEvap.T, 'P',self.InEvap.p, self.InEvap.fluidmixture)
+                self.InEvap.Cp = PropsSI('C','T',self.InEvap.T, 'P',self.InEvap.p, self.InEvap.fluidmixture)
                 self.InCond.q = (self.OutCond.h - self.InCond.h)*self.InCond.m
                 self.OutCond.q = self.InCond.q
                 self.no_input = 'OutEvapT'
-            elif no_Evapm == 1:   
+            elif no_Evapm == 1:
+                self.InCond.h = PropsSI('H','T',self.InCond.T, 'P',self.InCond.p, self.InCond.fluidmixture)
+                self.InCond.Cp = PropsSI('C','T',self.InCond.T, 'P',self.InCond.p, self.InCond.fluidmixture)
+                self.OutCond.h = PropsSI('H','T',self.OutCond.T, 'P',self.OutCond.p, self.OutCond.fluidmixture)
+                self.OutCond.Cp = PropsSI('C','T',self.OutCond.T, 'P',self.OutCond.p, self.OutCond.fluidmixture)
+                self.InEvap.h = PropsSI('H','T',self.InEvap.T, 'P',self.InEvap.p, self.InEvap.fluidmixture)
+                self.InEvap.Cp = PropsSI('C','T',self.InEvap.T, 'P',self.InEvap.p, self.InEvap.fluidmixture)
+                self.OutEvap.h = PropsSI('H','T',self.OutEvap.T, 'P',self.OutEvap.p, self.OutEvap.fluidmixture)
+                self.OutEvap.Cp = PropsSI('C','T',self.OutEvap.T, 'P',self.OutEvap.p, self.OutEvap.fluidmixture)
                 self.InCond.q = (self.OutCond.h - self.InCond.h)*self.InCond.m
                 self.OutCond.q = self.InCond.q
                 self.no_input = 'Evapm'
@@ -209,17 +249,18 @@ class VCHP():
                         results_array.append([0.5*(COP_o + self.COP_heating), 0.5*(frac_o + self.inter_frac), dCOP])
                         
                         if len(results_array) > 2:
-                            if results_array[0][-2] > results_array[0][-1] and results_array[0][-2] > results_array[0][-3]:
-                                self.COP_heating = results_array[0][-2]
-                                self.inter_frac = results_array[1][-2]
+                            if results_array[-2][0] > results_array[-1][0] and results_array[-2][0] > results_array[-3][0]:
+                                self.COP_heating = results_array[-2][0]
+                                self.inter_frac = results_array[-2][0]
                                 frac_a = 0
-                            elif abs(results_array[2][-1]) < self.inputs.tol:
-                                self.COP_heating = results_array[0][-1]
-                                self.inter_frac = results_array[1][-1]
+                            elif abs(results_array[-1][2]) < self.inputs.tol:
+                                self.COP_heating = results_array[-1][0]
+                                self.inter_frac = results_array[-1][1]
                                 frac_a = 0
-                        elif inter_frac_ub - inter_frac_lb < self.inputs.tol:
-                            self.COP_heating = results_array[0][-1]
-                            self.inter_frac = results_array[1][-1]
+                        
+                        if inter_frac_ub - inter_frac_lb < self.inputs.tol:
+                            self.COP_heating = results_array[-1][0]
+                            self.inter_frac = results_array[-1][1]
                             frac_a = 0
 
     def Cycle_Solver(self):
@@ -245,7 +286,7 @@ class VCHP():
             
             self.HighPressure_Solver()
             
-            evap = HX.Heatexchanger_module(self.InEvap_REF, self.OutEvap_REF, self.InEvap, self.OutEvap)
+            evap = HX.Heatexchanger_module(self.InEvap_REF, self.OutEvap_REF, 1, self.InEvap, self.OutEvap, 0)
             
             if self.inputs.evap_type == 'fthe':
                 evap.FTHE(N_element = self.inputs.evap_N_element, N_row = self.inputs.evap_N_row)
@@ -275,18 +316,18 @@ class VCHP():
                 
     def HighPressure_Solver(self):
         if self.inputs.cycle == 'scc':
-            self.cond_p_ub = min(2*self.InCond_REF.p_crit, 3.0e7)
-            self.cond_p_lb = self.InCond_REF.p_crit
+            cond_p_ub = min(2*self.InCond_REF.p_crit, 3.0e7)
+            cond_p_lb = self.InCond_REF.p_crit
         else:
-            self.cond_p_ub = self.InCond_REF.p_crit
+            cond_p_ub = self.InCond_REF.p_crit
             if self.no_input == 'InCondT':
-                self.cond_p_lb = PropsSI('P','T',self.OutCond.T,'Q',1.0,self.OutCond_REF.fluidmixture)
+                cond_p_lb = PropsSI('P','T',self.OutCond.T,'Q',1.0,self.OutCond_REF.fluidmixture)
             else:
-                self.cond_p_lb = PropsSI('P','T',self.InCond.T,'Q',1.0,self.OutCond_REF.fluidmixture)
+                cond_p_lb = PropsSI('P','T',self.InCond.T,'Q',1.0,self.OutCond_REF.fluidmixture)
 
         cond_a = 1
         while cond_a:
-            self.InCond_REF.p = 0.5*(self.cond_p_ub+self.cond_p_lb)
+            self.InCond_REF.p = 0.5*(cond_p_ub+cond_p_lb)
             self.OutCond_REF.p = self.InCond_REF.p*(1-self.inputs.cond_dp)
             
             if self.OutCond_REF.p > self.OutCond_REF.p_crit:
@@ -318,13 +359,13 @@ class VCHP():
                 self.inter_x = (self.OutCond_REF.h - self.inter_h_liq)/(self.inter_h_vap - self.inter_h_liq)
                 
                 self.OutComp_low = deepcopy(self.OutEvap_REF)
-                self.InComp_high = deepcopy(self.OutComp_low)
-
                 self.OutComp_low.p = self.inter_p
                 
                 comp_low = CP.Compander_module(self.OutEvap_REF, self.OutComp_low)
                 comp_low.COMP(eff_isen = self.inputs.comp_eff, eff_mech = self.inputs.mech_eff)
                 self.OutComp_low = comp_low.primary_out
+                
+                self.InComp_high = deepcopy(self.OutComp_low)
                 
                 self.InComp_high.h = self.OutComp_low.h*(1.0-self.inter_x)+self.inter_h_vap*self.inter_x
                 self.InComp_high.T = PropsSI('T','P',self.InComp_high.p,'H',self.InComp_high.h, self.InComp_high.fluidmixture)
@@ -354,7 +395,7 @@ class VCHP():
                     InComp.p = InComp.p*(1.0-self.inputs.ihx_cold_dp)
                     InExpand = deepcopy(self.OutCond_REF)
                     InExpand.p = InExpand.p*(1.0-self.inputs.ihx_hot_dp)
-                    IHX = HX.Heatexchanger_module(self.OutCond_REF, InExpand, self.OutEvap_REF, InComp)
+                    IHX = HX.Heatexchanger_module(self.OutCond_REF, InExpand, 0, self.OutEvap_REF, InComp, 0)
                     IHX.SIMPHX(eff_HX = self.inputs.ihx_eff)
                 
                     InExpand = IHX.primary_out
@@ -396,9 +437,11 @@ class VCHP():
                 if self.no_input == 'InCondT':
                     self.InCond.h = self.OutCond.h - self.OutCond.q/self.OutCond.m
                     self.InCond.T = PropsSI('T','P',self.InCond.p, 'H', self.InCond.h, self.InCond.fluidmixture)
+                    self.InCond.Cp = PropsSI('C','T',self.InCond.T, 'P', self.InCond.p, self.InCond.fluidmixture)
                 elif self.no_input == 'OutCondT':
                     self.OutCond.h = self.InCond.h + self.InCond.q/self.InCond.m
                     self.OutCond.T = PropsSI('T','P',self.OutCond.p, 'H', self.OutCond.h, self.OutCond.fluidmixture)
+                    self.OutCond.Cp = PropsSI('C','T',self.OutCond.T, 'P', self.OutCond.p, self.OutCond.fluidmixture)
                 elif self.no_input == 'Condm':
                     self.InCond.m = self.InCond.q/(self.OutCond.h - self.InCond.h)
                     self.OutCond.m = self.InCond.m
@@ -428,14 +471,16 @@ class VCHP():
                 if self.no_input == 'InEvapT':
                     self.InEvap.h = self.OutEvap.h - self.OutEvap.q/self.OutEvap.m
                     self.InEvap.T = PropsSI('T','P',self.InEvap.p, 'H', self.InEvap.h, self.InEvap.fluidmixture)
+                    self.InEvap.Cp = PropsSI('C','T',self.InEvap.T, 'P', self.InEvap.p, self.InEvap.fluidmixture)
                 elif self.no_input == 'OutEvapT':
                     self.OutEvap.h = self.InEvap.h + self.InEvap.q/self.InEvap.m
                     self.OutEvap.T = PropsSI('T','P',self.OutEvap.p, 'H', self.OutEvap.h, self.OutEvap.fluidmixture)
+                    self.OutEvap.Cp = PropsSI('C','T',self.OutEvap.T, 'P', self.OutEvap.p, self.OutEvap.fluidmixture)
                 elif self.no_input == 'Evapm':
                     self.InEvap.m = self.InEvap.q/(self.OutEvap.h - self.InEvap.h)
                     self.OutEvap.m = self.InEvap.m
                 
-            cond = HX.Heatexchanger_module(self.InCond_REF, self.OutCond_REF, self.InCond, self.OutCond)
+            cond = HX.Heatexchanger_module(self.InCond_REF, self.OutCond_REF, 1, self.InCond, self.OutCond, 0)
         
             if self.inputs.cond_type == 'fthe':
                 cond.FTHE(N_element=self.inputs.cond_N_element, N_row = self.inputs.cond_N_row)
@@ -448,17 +493,17 @@ class VCHP():
             self.OutCond_REF = cond.primary_out
             
             if cond.T_rvs == 1:
-                self.cond_p_lb = self.InCond_REF.p
+                cond_p_lb = self.InCond_REF.p
             else:
                 if self.cond_err < 0:
-                    self.cond_p_ub = self.InCond_REF.p
+                    cond_p_ub = self.InCond_REF.p
                 else:
-                    self.cond_p_lb = self.InCond_REF.p
+                    cond_p_lb = self.InCond_REF.p
             
             if abs(self.cond_err) < self.inputs.tol:
                 self.cond_conv_err = 0
                 cond_a = 0
-            elif self.cond_p_ub - self.cond_p_lb < self.inputs.tol:
+            elif cond_p_ub - cond_p_lb < self.inputs.tol:
                 self.cond_conv_err = 1
                 cond_a = 0
     
@@ -489,45 +534,36 @@ class VCHP_injection(VCHP):
             super().Cycle_Solver()
             
             super().Post_Processing()
-    
+
 if __name__ == '__main__':
     
     evapfluid = 'AIR'
-    inevapT = 313.15
+    inevapT = 323.15
     inevapp = 101300.0
-    inevaph = PropsSI('H','T',inevapT, 'P', inevapp, evapfluid)
-    inevaps = PropsSI('S','T',inevapT, 'P', inevapp, evapfluid)
-    InEvap = WireObjectFluid(Y={evapfluid:1.0,},m = 1.0, T = inevapT, p = inevapp, q = 0.0, h = inevaph, s = inevaps)
+    InEvap = ProcessFluid(Y={evapfluid:1.0,},m = 1.0, T = inevapT, p = inevapp)
     
+    outevapp = 101300.0
+    OutEvap = ProcessFluid(Y={evapfluid:1.0,},p = outevapp)
     '''
+    outevapT = 295.15
     outevapp = 101300.0
-    OutEvap = WireObjectFluid(Y={evapfluid:1.0,},p = outevapp)'''
-    
-    
-    outevapT = 307.8
-    outevapp = 101300.0
-    outevaph = PropsSI('H','T',outevapT, 'P', outevapp, evapfluid)
-    outevaps = PropsSI('S','T',outevapT, 'P', outevapp, evapfluid)
-    OutEvap = WireObjectFluid(Y={evapfluid:1.0,},m = 1.0, T = outevapT, p = outevapp, q = 0.0, h = outevaph, s = outevaps)
+    OutEvap = ProcessFluid(Y={evapfluid:1.0,},m = 1.0, T = outevapT, p = outevapp)'''
     
     
     condfluid = 'AIR'
-    incondT = 323.15
+    incondT = 333.15
     incondp = 101300.0
-    incondh = PropsSI('H','T',incondT, 'P', incondp, condfluid)
-    inconds = PropsSI('S','T',incondT, 'P', incondp, condfluid)
-    InCond = WireObjectFluid(Y={condfluid:1.0,},m = 1.0, T = incondT, p = incondp, q = 0.0, h = incondh, s = inconds)
+    InCond = ProcessFluid(Y={condfluid:1.0,},m = 1.0, T = incondT, p = incondp)
     
-    '''
-    outcondT = 330.0
+    outcondT = 343.15
     outcondp = 101300.0
     outcondh = PropsSI('H','T',outcondT, 'P', outcondp, condfluid)
     outconds = PropsSI('S','T',outcondT, 'P', outcondp, condfluid)
-    OutCond = WireObjectFluid(Y={condfluid:1.0,},m = 1.0, T = outcondT, p = outcondp, q = 0.0, h = outcondh, s = outconds)'''
+    OutCond = ProcessFluid(Y={condfluid:1.0,},m = 1.0, T = outcondT, p = outcondp, q = 0.0, h = outcondh, s = outconds)
     
-    
+    '''
     outcondp = 101300.0
-    OutCond = WireObjectFluid(Y={condfluid:1.0,},p = outcondp, q = 0.0)
+    OutCond = ProcessFluid(Y={condfluid:1.0,},p = outcondp, q = 0.0)'''
     
     inputs = Settings()
     inputs.Y = {'R134A':1.0,}
@@ -535,10 +571,19 @@ if __name__ == '__main__':
     inputs.cycle = 'vcc'
     inputs.cond_type = 'fthe'
     inputs.evap_type = 'fthe'
-    inputs.layout = 'ihx'
-
-    #vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
-    #vchp_basic()
+    inputs.layout = 'bas'
     
-    vchp_inject = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
-    vchp_inject()
+    
+    vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)    
+    
+    from cProfile import Profile
+    
+    profiler = Profile()
+    profiler.run('vchp_basic()')
+    
+    from pstats import Stats
+    
+    stats = Stats(profiler)
+    stats.strip_dirs()
+    stats.sort_stats('cumulative')
+    stats.print_stats()
