@@ -98,21 +98,13 @@ class Settings:
     ihx_cold_dp: float = 0.08
     ihx_hot_dp: float = 0.01
     
-    # 케스케이드 열교환기 스펙
-    cas_type = 'phe'
-    cas_T_pp: float = 5.0
-    cas_T_lm: float = 15.0
-    cas_cold_dp: float = 0.01
-    cas_hot_dp: float = 0.01
-    cas_N_element: int = 30
-    
     # 증기 공정 조건 입력
     T_steam: float = 120.0
     T_steam = T_steam + 273.15
     m_steam: float = 0.1
     T_makeup: float = 30.0
     T_makeup = T_makeup + 273.15
-    m_makeup = 1.0
+    m_makeup = m_steam
     
     # 급탕 공정 조건 입력
     M_load: float = 100.0
@@ -122,16 +114,3 @@ class Settings:
     time_target: float = 600.0
     # 수렴오차
     tol: float = 1.0e-3
-        
-@dataclass
-class Bound:
-    # 압축기 하한 경계 조건
-    p_lb: float = 0.0
-    p_ub: float = 0.0
-    
-    # 공정 정보
-    second: str = 'process'
-    
-    # 응축기 스펙
-    cond_T_pp: float = 5.0
-    cond_T_lm: float = 15

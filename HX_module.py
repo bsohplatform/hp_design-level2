@@ -11,7 +11,7 @@ class Heatexchanger_module:
         self.secondary_out = secondary_out
         self.sph = sph
         
-    def FTHE(self, N_element: int = 30, N_row: int = 5):
+    def FTHE(self, N_element: int, N_row: int):
         self.T_rvs = 0
         h_primary = np.zeros(shape=(N_element, N_row))
         T_primary = np.zeros(shape=(N_element, N_row))
@@ -180,7 +180,7 @@ class Heatexchanger_module:
             self.primary_out.T = T_primary[0,N_row-1]
             self.primary_out.h = h_primary[0,N_row-1]
 
-    def PHE(self, N_element: int = 30):
+    def PHE(self, N_element: int):
         h_primary = np.zeros(shape=(N_element+1))
         T_primary = np.zeros(shape=(N_element+1))
         p_primary = np.zeros(shape=(N_element+1))
@@ -238,7 +238,7 @@ class Heatexchanger_module:
         self.primary_out.T = T_primary[N_element]
         self.primary_out.h = h_primary[N_element]
         
-    def SIMPHX(self, eff_HX:float = 0.9):
+    def SIMPHX(self, eff_HX:float):
         h_secondary_out_ideal = PropsSI('H','T',self.primary_in.T,'P',self.secondary_out.p,self.secondary_in.fluidmixture)
         h_primary_out_ideal = PropsSI('H','T',self.secondary_in.T,'P',self.primary_out.p,self.primary_in.fluidmixture)
         
