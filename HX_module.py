@@ -207,6 +207,9 @@ class Heatexchanger_module:
             self.T_rvs = 0
     
         for i in range(N_element):
+            if self.T_rvs == 1:
+                break
+            
             if self.pph == 0:
                 T_primary[i+1] = T_primary[i] + self.primary_in.q/N_element/self.primary_in.m/0.5/(self.primary_in.Cp + self.primary_out.Cp)
             else:    
@@ -224,7 +227,6 @@ class Heatexchanger_module:
             dT[i+1] = T_primary[i+1] - T_secondary[i+1]
             if (dT[i+1] < 0.0 and self.primary_in.q < 0.0) or (dT[i+1] > 0.0 and self.primary_in.q > 0.0):
                 self.T_rvs = 1
-                break
             else:
                 self.T_rvs = 0
                 LMTD[i] = ((T_primary[i+1]-T_secondary[i+1]) - (T_primary[i]-T_secondary[i]))\
