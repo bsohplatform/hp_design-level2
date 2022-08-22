@@ -23,16 +23,15 @@ class Compander_module:
         self.Pspecific = (self.primary_out.h - self.primary_in.h)/eff_mech
             
     def EXPAND(self, eff_isen: float, eff_mech: float):
-        h_expand_out_isen = PropsSI('H','P',self.primary_out.p,'S', self.primary_in.s, self.primary_in.fluidmixture)
-        self.primary_out.h = self.primary_in.h - (self.primary_in.h - h_expand_out_isen)*eff_isen
-        self.primary_out.T = PropsSI('T','H',self.primary_out.h,'P',self.primary_out.p,self.primary_in.fluidmixture)
-        
-        try:
-            T_expand_out_sat = PropsSI('T','P',self.primary_out.p,'Q',1.0,self.primary_in.fluidmixture)
-        except:
-            T_expand_out_sat = self.primary_out.T_crit
-        
         if eff_isen > 0.0:
+            h_expand_out_isen = PropsSI('H','P',self.primary_out.p,'S', self.primary_in.s, self.primary_in.fluidmixture)
+            self.primary_out.h = self.primary_in.h - (self.primary_in.h - h_expand_out_isen)*eff_isen
+            
+            try:
+                T_expand_out_sat = PropsSI('T','P',self.primary_out.p,'Q',1.0,self.primary_in.fluidmixture)
+            except:
+                T_expand_out_sat = self.primary_out.T_crit
+            
             if self.primary_out < T_expand_out_sat:
                 primary_out_hg = PropsSI('H','P',self.primary_out.p,'Q',1.0, self.primary_in.fluidmixture)
                 primary_out_hl = PropsSI('H','P',self.primary_out.p,'Q',0.0, self.primary_in.fluidmixture)
@@ -40,5 +39,8 @@ class Compander_module:
                 primary_out_sg = PropsSI('S','P',self.primary_out.p,'Q',1.0, self.primary_in.fluidmixture)
                 primary_out_sl = PropsSI('S','P',self.primary_out.p,'Q',0.0, self.primary_in.fluidmixture)
                 self.primary_out.s = primary_out_sg*primary_out_x + primary_out_sl*(1-primary_out_x)
-                
+        else:
+            self.primary_out.h = self.primary_in.h
+        
+        self.primary_out.T = PropsSI('T','H',self.primary_out.h,'P',self.primary_out.p,self.primary_in.fluidmixture)            
         self.Pspecific = (self.primary_in.h - self.primary_out.h)*eff_mech
