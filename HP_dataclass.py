@@ -114,3 +114,13 @@ class Settings:
     time_target: float = 600.0
     # 수렴오차
     tol: float = 1.0e-3
+    
+    
+@dataclass
+class Outputs:
+    COP_heating: float = 0.0
+    Wcomp: float = 0.0
+    Wexpand: float = 0.0
+    inter_frac: float = 0.0
+    inter_x: float = 0.0
+    qihx: float = 0.0
