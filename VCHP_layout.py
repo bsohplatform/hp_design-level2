@@ -191,7 +191,8 @@ class VCHP():
                 else: 
                     print('정의되지 않은 열교환기 타입입니다.')
         return (InCond, OutCond, InEvap, OutEvap, no_input)
-                
+    
+    '''
     def Steam_module(self, InCond, OutCond, inputs):
         p_flash = PropsSI('P','T',inputs.T_steam,'Q',1.0, InCond.fluidmixture)
         OutCond.p = PropsSI('P','T',OutCond.T+0.1, 'Q', 0.0, InCond.fluidmixture)
@@ -222,7 +223,7 @@ class VCHP():
         OutCond.T = InCond.T + inputs.dT_lift
         
         return (InCond, OutCond)
-    
+    '''
     def Injection_Solver(self, InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs, no_input, cond_ph, evap_ph):
         dfrac = 0.005
         inter_frac_lb = 0.0
@@ -285,7 +286,8 @@ class VCHP():
             OutEvap_REF.p = 0.5*(evap_p_lb+evap_p_ub)
             InEvap_REF.p = OutEvap_REF.p/(1.0-inputs.evap_dp)
             
-            OutEvap_REF.T = PropsSI('T','P',OutEvap_REF.p, 'Q', 1.0, OutEvap_REF.fluidmixture) + inputs.DSH
+            OutEvap_REF_Tvap = PropsSI('T','P',OutEvap_REF.p, 'Q', 1.0, OutEvap_REF.fluidmixture)
+            OutEvap_REF.T = OutEvap_REF_Tvap + inputs.DSH
             if inputs.DSH == 0:
                 OutEvap_REF.h = PropsSI('H','P',OutEvap_REF.p, 'Q', 1.0, OutEvap_REF.fluidmixture)
                 OutEvap_REF.s = PropsSI('S','P',OutEvap_REF.p, 'Q', 1.0, OutEvap_REF.fluidmixture)
@@ -321,6 +323,8 @@ class VCHP():
             elif evap_p_ub - evap_p_lb < inputs.tol:
                 self.evap_conv_err = 1
                 evap_a = 0
+        
+        outputs.DSH = OutEvap_REF.T - OutEvap_REF_Tvap
         
         return (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs)
         
@@ -397,7 +401,7 @@ class VCHP():
                 Flash_liq = deepcopy(OutExpand_high) # 팽창 후 2-phase 중 liq 상만 두번째 팽창기 입구로
                 Flash_liq.h = inter_h_liq
                 Flash_liq.T = PropsSI('T','P',OutExpand_high.p,'Q',0.0, OutExpand_high.fluidmixture)
-                if inputs.expand_eff:
+                if inputs.expand_eff > 0.0:
                     Flash_liq.s = PropsSI('S','P',OutExpand_high.p,'Q',0.0, OutExpand_high.fluidmixture) 
 
                 expand_low = CP.Compander_module(Flash_liq, InEvap_REF)
@@ -440,8 +444,6 @@ class VCHP():
                     OutCond_REF.m = InEvap_REF.m
                     outputs.Wcomp = comp.Pspecific*InCond_REF.m
                     outputs.Wexpand = expand.Pspecific*InEvap_REF.m
-                    if inputs.layout == 'ihx':
-                        outputs.qihx = (InComp.h - OutEvap_REF.h)*OutEvap_REF.m
                     
                 InEvap_REF.q = -InEvap.q
                 OutEvap_REF.q = -OutEvap.q
@@ -475,9 +477,6 @@ class VCHP():
                     OutEvap_REF.m = InCond_REF.m
                     outputs.Wcomp = comp.Pspecific*InCond_REF.m
                     outputs.Wexpand = expand.Pspecific*InEvap_REF.m
-                    
-                    if inputs.layout == 'ihx':
-                        outputs.qihx = (InComp.h - OutEvap_REF.h)*OutEvap_REF.m
                 
                 InCond_REF.q = -InCond.q
                 OutCond_REF.q = -InCond.q
@@ -526,57 +525,136 @@ class VCHP():
                 self.cond_conv_err = 1
                 cond_a = 0
         
+        if inputs.layout == 'ihx':
+            outputs.qihx = (InComp.h - OutEvap_REF.h)*OutEvap_REF.m
+            outputs.ihx_hot_out_T = InExpand.T
+            outputs.ihx_hot_out_p = InExpand.p
+            outputs.ihx_hot_out_h = InExpand.h
+            outputs.ihx_hot_out_s = InExpand.s
+            outputs.ihx_cold_out_T = InComp.T
+            outputs.ihx_cold_out_p = InComp.p
+            outputs.ihx_cold_out_h = InComp.h
+            outputs.ihx_cold_out_s = InComp.s
+        elif inputs.layout == 'inj':
+            outputs.outcomp_low_T = OutComp_low.T
+            outputs.outcomp_low_p = OutComp_low.p
+            outputs.outcomp_low_h = OutComp_low.h
+            outputs.outcomp_low_s = OutComp_low.s
+            outputs.incomp_high_T = InComp_high.T
+            outputs.incomp_high_p = InComp_high.p
+            outputs.incomp_high_h = InComp_high.h
+            outputs.incomp_high_s = InComp_high.s
+            outputs.outexpand_high_T = OutExpand_high.T
+            outputs.outexpand_high_p = OutExpand_high.p
+            outputs.outexpand_high_h = OutExpand_high.h
+            outputs.outexpand_high_s = OutExpand_high.s
+            outputs.flash_liq_T = Flash_liq.T
+            outputs.flash_liq_p = Flash_liq.p
+            outputs.flash_liq_h = Flash_liq.h
+            outputs.flash_liq_s = Flash_liq.s            
+        
         return (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs)
     
     def Plot_diagram(self, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs):
-        (P_array, h_array, T_array, s_array) = self.Dome_Draw(InCond_REF.fluidmixture)
+        (p_array, h_array, T_array, s_array, p_points, h_points, s_points, T_points) = self.Dome_Draw(InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs)
         fig_ph, ax_ph = PLT.subplots()
-        ax_ph.plot([i/1.0e3 for i in h_array], [i/1.0e5 for i in P_array])
+        ax_ph.plot([i/1.0e3 for i in h_array], [i/1.0e5 for i in p_array],'b--')
         ax_ph.set_xlabel('Enthalpy [kJ/kg]')
         ax_ph.set_ylabel('Pressure [bar]')
-        fig_ph.savefig('Ph_diagram.png')
+        ax_ph.set_title('Pressure-Enthalpy Diagram\nRefrigerant:{}'.format(list(inputs.Y.keys())[0]))
+        
         fig_ts, ax_ts = PLT.subplots()
-        ax_ts.plot([i/1.0e3 for i in s_array], [i-273.15 for i in T_array])
+        ax_ts.plot([i/1.0e3 for i in s_array], [i-273.15 for i in T_array],'b--')
         ax_ts.set_xlabel('Entropy [kJ/kg-K]')
         ax_ts.set_ylabel('Temperature [℃]')
-        fig_ts.savefig('Ts_diagram.png')
+        ax_ts.set_title('Temperature-Entropy Diagram\nRefrigerant:{}'.format(list(inputs.Y.keys())[0]))
         
-        OutCond_REF.s = PropsSI('S','T',OutCond_REF.T,'P',OutCond_REF.p,OutCond_REF.fluidmixture)
-        InEvap_REF.s = PropsSI('S','T',InEvap_REF.T,'P',InEvap_REF.p,InEvap_REF.fluidmixture)
+        ax_ts.plot([i/1.0e3 for i in s_points], [i-273.15 for i in T_points],'bo-')
+        ax_ph.plot([i/1.0e3 for i in h_points], [i/1.0e5 for i in p_points],'bo-')
         
-    def Dome_Draw(self, fluid):
-        P_crit = PropsSI('PCRIT','',0,'',0,fluid)
-        P_trp = PropsSI('PTRIPLE','',0,'',0,fluid)
-        T_crit = PropsSI('TCRIT','',0,'',0,fluid)
-        H_crit = 0.5*(PropsSI('H','P',P_crit*0.999,'Q',0.0,fluid)+PropsSI('H','P',P_crit*0.999,'Q',1.0,fluid))
-        S_crit = 0.5*(PropsSI('S','P',P_crit*0.999,'Q',0.0,fluid)+PropsSI('S','P',P_crit*0.999,'Q',1.0,fluid))
+        fig_ph.savefig('.\Figs\Ph_diagram.png')
+        fig_ts.savefig('.\Figs\Ts_diagram.png')
         
+    def Dome_Draw(self, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs):        
+        P_crit = PropsSI('PCRIT','',0,'',0,InCond_REF.fluidmixture)
+        P_trp = PropsSI('PTRIPLE','',0,'',0,InCond_REF.fluidmixture)
+        T_crit = PropsSI('TCRIT','',0,'',0,InCond_REF.fluidmixture)
+        H_crit = 0.5*(PropsSI('H','P',P_crit*0.999,'Q',0.0,InCond_REF.fluidmixture)+PropsSI('H','P',P_crit*0.999,'Q',1.0,InCond_REF.fluidmixture))
+        S_crit = 0.5*(PropsSI('S','P',P_crit*0.999,'Q',0.0,InCond_REF.fluidmixture)+PropsSI('S','P',P_crit*0.999,'Q',1.0,InCond_REF.fluidmixture))
         
         try:
             Pliq_array = [101300.0+(P_crit*0.99 - 101300.0)*i/49 for i in range(50)]
             Pvap_array = [P_crit*0.99 - (P_crit*0.99 - 101300.0)*i/49 for i in range(50)]
-            Tliq_array = [PropsSI('T','P',i,'Q',0.0,fluid) for i in Pliq_array]
-            Tvap_array = [PropsSI('T','P',i,'Q',1.0,fluid) for i in Pvap_array]
-            hliq_array = [PropsSI('H','P',i,'Q',0.0,fluid) for i in Pliq_array]
-            hvap_array = [PropsSI('H','P',i,'Q',1.0,fluid) for i in Pvap_array]
-            sliq_array = [PropsSI('S','P',i,'Q',0.0,fluid) for i in Pliq_array]
-            svap_array = [PropsSI('S','P',i,'Q',1.0,fluid) for i in Pvap_array]
+            Tliq_array = [PropsSI('T','P',i,'Q',0.0,InCond_REF.fluidmixture) for i in Pliq_array]
+            Tvap_array = [PropsSI('T','P',i,'Q',1.0,InCond_REF.fluidmixture) for i in Pvap_array]
+            hliq_array = [PropsSI('H','P',i,'Q',0.0,InCond_REF.fluidmixture) for i in Pliq_array]
+            hvap_array = [PropsSI('H','P',i,'Q',1.0,InCond_REF.fluidmixture) for i in Pvap_array]
+            sliq_array = [PropsSI('S','P',i,'Q',0.0,InCond_REF.fluidmixture) for i in Pliq_array]
+            svap_array = [PropsSI('S','P',i,'Q',1.0,InCond_REF.fluidmixture) for i in Pvap_array]
         except:
             Pliq_array = [P_trp*1.01+(P_crit*0.99 - P_trp*1.01)*i/49 for i in range(50)]
             Pvap_array = [P_crit*0.99 - (P_crit*0.99 - P_trp*1.01)*i/49 for i in range(50)]
-            Tliq_array = [PropsSI('T','P',i,'Q',0.0,fluid) for i in Pliq_array]
-            Tvap_array = [PropsSI('T','P',i,'Q',1.0,fluid) for i in Pvap_array]
-            hliq_array = [PropsSI('H','P',i,'Q',0.0,fluid) for i in Pliq_array]
-            hvap_array = [PropsSI('H','P',i,'Q',1.0,fluid) for i in Pvap_array]
-            sliq_array = [PropsSI('S','P',i,'Q',0.0,fluid) for i in Pliq_array]
-            svap_array = [PropsSI('S','P',i,'Q',1.0,fluid) for i in Pvap_array]
+            Tliq_array = [PropsSI('T','P',i,'Q',0.0,InCond_REF.fluidmixture) for i in Pliq_array]
+            Tvap_array = [PropsSI('T','P',i,'Q',1.0,InCond_REF.fluidmixture) for i in Pvap_array]
+            hliq_array = [PropsSI('H','P',i,'Q',0.0,InCond_REF.fluidmixture) for i in Pliq_array]
+            hvap_array = [PropsSI('H','P',i,'Q',1.0,InCond_REF.fluidmixture) for i in Pvap_array]
+            sliq_array = [PropsSI('S','P',i,'Q',0.0,InCond_REF.fluidmixture) for i in Pliq_array]
+            svap_array = [PropsSI('S','P',i,'Q',1.0,InCond_REF.fluidmixture) for i in Pvap_array]
             
-        P_array = Pliq_array+[P_crit]+Pvap_array
+        p_array = Pliq_array+[P_crit]+Pvap_array
         T_array = Tliq_array+[T_crit]+Tvap_array
         h_array = hliq_array+[H_crit]+hvap_array
         s_array = sliq_array+[S_crit]+svap_array
         
-        return (P_array, h_array, T_array, s_array)
+        OutEvap_REF_Tvap = PropsSI('T','P',OutEvap_REF.p,'Q',1.0,OutCond_REF.fluidmixture)
+        OutEvap_REF_svap = PropsSI('S','P',OutEvap_REF.p,'Q',1.0,OutCond_REF.fluidmixture)
+        
+        if inputs.cycle == 'vcc':
+            InCond_REF_Tvap = PropsSI('T','P',InCond_REF.p,'Q',1.0,OutCond_REF.fluidmixture)
+            InCond_REF_svap = PropsSI('S','P',InCond_REF.p,'Q',1.0,OutCond_REF.fluidmixture)
+            OutCond_REF_Tliq = PropsSI('T','P',OutCond_REF.p,'Q',0.0,OutCond_REF.fluidmixture)
+            OutCond_REF_sliq = PropsSI('S','P',OutCond_REF.p,'Q',0.0,OutCond_REF.fluidmixture)
+        
+        OutCond_REF.s = PropsSI('S','T',OutCond_REF.T,'P',OutCond_REF.p,OutCond_REF.fluidmixture)
+        InEvap_REF.s = PropsSI('S','H',InEvap_REF.h,'P',InEvap_REF.p,InEvap_REF.fluidmixture)
+        
+        if inputs.layout == 'ihx':
+            if inputs.cycle == 'vcc':
+                s_points = [OutEvap_REF_svap, OutEvap_REF.s, outputs.ihx_cold_out_s, InCond_REF.s, InCond_REF_svap, OutCond_REF_sliq, OutCond_REF.s, outputs.ihx_hot_out_s, InEvap_REF.s, OutEvap_REF_svap]
+                T_points = [OutEvap_REF_Tvap, OutEvap_REF.T, outputs.ihx_cold_out_T, InCond_REF.T, InCond_REF_Tvap, OutCond_REF_Tliq, OutCond_REF.T, outputs.ihx_hot_out_T, InEvap_REF.T, OutEvap_REF_Tvap]
+            else:
+                s_points = [OutEvap_REF_svap, OutEvap_REF.s, outputs.ihx_cold_out_s, InCond_REF.s, OutCond_REF.s, outputs.ihx_hot_out_s, InEvap_REF.s, OutEvap_REF_svap]
+                T_points = [OutEvap_REF_Tvap, OutEvap_REF.T, outputs.ihx_cold_out_T, InCond_REF.T, OutCond_REF.T, outputs.ihx_hot_out_T, InEvap_REF.T, OutEvap_REF_Tvap]
+            
+            h_points = [OutEvap_REF.h, outputs.ihx_cold_out_h, InCond_REF.h, OutCond_REF.h, outputs.ihx_hot_out_h, InEvap_REF.h, OutEvap_REF.h]
+            p_points = [OutEvap_REF.p, outputs.ihx_cold_out_p, InCond_REF.p, OutCond_REF.p, outputs.ihx_hot_out_p, InEvap_REF.p, OutEvap_REF.p]
+        elif inputs.layout == 'inj':
+            outcomp_low_svap = PropsSI('S','P',outputs.outcomp_low_p,'Q',1.0,InCond_REF.fluidmixture)
+            outcomp_low_Tvap = PropsSI('T','P',outputs.outcomp_low_p,'Q',1.0,InCond_REF.fluidmixture)
+            outputs.flash_liq_s = PropsSI('S','P',outputs.flash_liq_p,'Q',0.0,InCond_REF.fluidmixture)
+            outputs.outexpand_high_s = PropsSI('S','P',outputs.outexpand_high_p,'H',outputs.outexpand_high_h,InCond_REF.fluidmixture)
+            if inputs.cycle == 'vcc':    
+                s_points = [outputs.flash_liq_s, InEvap_REF.s, OutEvap_REF_svap, OutEvap_REF.s, outputs.outcomp_low_s, outcomp_low_svap, outputs.flash_liq_s, outputs.outexpand_high_s, outcomp_low_svap, outputs.incomp_high_s, InCond_REF.s, InCond_REF_svap, OutCond_REF_sliq, OutCond_REF.s, outputs.outexpand_high_s] 
+                T_points = [outputs.flash_liq_T, InEvap_REF.T, OutEvap_REF_Tvap, OutEvap_REF.T, outputs.outcomp_low_T, outcomp_low_Tvap, outputs.flash_liq_T, outputs.outexpand_high_T, outcomp_low_Tvap, outputs.incomp_high_T, InCond_REF.T, InCond_REF_Tvap, OutCond_REF_Tliq, OutCond_REF.T, outputs.outexpand_high_T] 
+            else:
+                s_points = [outputs.flash_liq_s, InEvap_REF.s, OutEvap_REF_svap, OutEvap_REF.s, outputs.outcomp_low_s, outcomp_low_svap, outputs.flash_liq_s, outputs.outexpand_high_s, outcomp_low_svap, outputs.incomp_high_s, InCond_REF.s, OutCond_REF.s, outputs.outexpand_high_s] 
+                T_points = [outputs.flash_liq_T, InEvap_REF.T, OutEvap_REF_Tvap, OutEvap_REF.T, outputs.outcomp_low_T, outcomp_low_Tvap, outputs.flash_liq_T, outputs.outexpand_high_T, outcomp_low_Tvap, outputs.incomp_high_T, InCond_REF.T, OutCond_REF.T, outputs.outexpand_high_T] 
+                
+            h_points = [outputs.flash_liq_h, InEvap_REF.h, OutEvap_REF.h, outputs.outcomp_low_h, outputs.flash_liq_h, outputs.outexpand_high_h, outputs.incomp_high_h, InCond_REF.h, OutCond_REF.h, outputs.outexpand_high_h]
+            p_points = [outputs.flash_liq_p, InEvap_REF.p, OutEvap_REF.p, outputs.outcomp_low_p, outputs.flash_liq_p, outputs.outexpand_high_p, outputs.incomp_high_p, InCond_REF.p, OutCond_REF.p, outputs.outexpand_high_p]
+        else:
+            if inputs.cycle == 'vcc':
+                s_points = [OutEvap_REF_svap, OutEvap_REF.s, InCond_REF.s, InCond_REF_svap, OutCond_REF_sliq, OutCond_REF.s, InEvap_REF.s, OutEvap_REF_svap]
+                T_points = [OutEvap_REF_Tvap, OutEvap_REF.T, InCond_REF.T, InCond_REF_Tvap, OutCond_REF_Tliq, OutCond_REF.T, InEvap_REF.T, OutEvap_REF_Tvap]
+            else:
+                s_points = [OutEvap_REF_svap, OutEvap_REF.s, InCond_REF.s, OutCond_REF.s, InEvap_REF.s, OutEvap_REF_svap]
+                T_points = [OutEvap_REF_Tvap, OutEvap_REF.T, InCond_REF.T, OutCond_REF.T, InEvap_REF.T, OutEvap_REF_Tvap]
+                
+            h_points = [OutEvap_REF.h, InCond_REF.h, OutCond_REF.h, InEvap_REF.h, OutEvap_REF.h]
+            p_points = [OutEvap_REF.p, InCond_REF.p, OutCond_REF.p, InEvap_REF.p, OutEvap_REF.p]
+        
+        
+        return (p_array, h_array, T_array, s_array, p_points, h_points, s_points, T_points)
             
             
     def Post_Processing(self, outputs):
@@ -638,7 +716,8 @@ class VCHP_cascade(VCHP):
                     
                 InEvap_REF_t.p = OutEvap_REF_t.p/(1.0 - self.inputs_t.evap_dp)
                 
-                OutEvap_REF_t.T = PropsSI('T','P',OutEvap_REF_t.p, 'Q', 1.0, OutEvap_REF_t.fluidmixture) + self.inputs_t.DSH
+                OutEvap_REF_t_Tvap = PropsSI('T','P',OutEvap_REF_t.p, 'Q', 1.0, OutEvap_REF_t.fluidmixture)
+                OutEvap_REF_t.T = OutEvap_REF_t_Tvap + self.inputs_t.DSH
                 if self.inputs_t.DSH == 0:
                     OutEvap_REF_t.h = PropsSI('H','P',OutEvap_REF_t.p, 'Q', 1.0, OutEvap_REF_t.fluidmixture)
                     OutEvap_REF_t.s = PropsSI('S','P',OutEvap_REF_t.p, 'Q', 1.0, OutEvap_REF_t.fluidmixture)
@@ -731,7 +810,7 @@ class VCHP_cascade(VCHP):
                         if len(results_array) > 2:
                             if results_array[-2][0] > results_array[-1][0] and results_array[-2][0] > results_array[-3][0]:
                                 COP_cascade = results_array[-2][0]
-                                OutEvap_REF_t.p = results_array[-2][0]
+                                OutEvap_REF_t.p = results_array[-2][1]
                                 cascade_a = 0
                             elif abs(results_array[-1][2]) < self.inputs_t.tol:
                                 COP_cascade = results_array[-1][0]
@@ -742,7 +821,11 @@ class VCHP_cascade(VCHP):
                             COP_cascade = results_array[-1][0]
                             OutEvap_REF_t.p = results_array[-1][1]
                             cascade_a = 0
-                            
+        
+        outputs_t.DSH = OutEvap_REF_t.T - OutEvap_REF_t_Tvap
+        
+        self.Plot_diagram(InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, self.inputs_t, outputs_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, self.inputs_b, outputs_b)
+        
     def TopCycle_HighPressure_solver(self, cond_p_lb, cond_p_ub, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs):
         
         InCond_REF.p = 0.5*(cond_p_ub+cond_p_lb)
@@ -788,12 +871,47 @@ class VCHP_cascade(VCHP):
         expand.EXPAND(eff_isen = inputs.expand_eff, eff_mech = inputs.mech_eff)
         InEvap_REF = expand.primary_out
             
-        outputs.qihx = InComp.h - OutEvap_REF.h
+        if inputs.layout == 'ihx':
+            outputs.qihx = (InComp.h - OutEvap_REF.h)*OutEvap_REF.m
+            outputs.ihx_hot_out_T = InExpand.T
+            outputs.ihx_hot_out_p = InExpand.p
+            outputs.ihx_hot_out_h = InExpand.h
+            outputs.ihx_hot_out_s = InExpand.s
+            outputs.ihx_cold_out_T = InComp.T
+            outputs.ihx_cold_out_p = InComp.p
+            outputs.ihx_cold_out_h = InComp.h
+            outputs.ihx_cold_out_s = InComp.s
+            
         outputs.Wcomp = comp.Pspecific
         outputs.Wexpand = expand.Pspecific
         
         return (InCond_REF, OutCond_REF, InEvap_REF, outputs)
-     
+    
+    def Plot_diagram(self, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b):
+        (p_array_t, h_array_t, T_array_t, s_array_t, p_points_t, h_points_t, s_points_t, T_points_t) = super().Dome_Draw(InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t)
+        (p_array_b, h_array_b, T_array_b, s_array_b, p_points_b, h_points_b, s_points_b, T_points_b) = super().Dome_Draw(InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b)
+        
+        fig_ph, ax_ph = PLT.subplots()
+        ax_ph.plot([i/1.0e3 for i in h_array_t], [i/1.0e5 for i in p_array_t],'r--')
+        ax_ph.plot([i/1.0e3 for i in h_array_b], [i/1.0e5 for i in p_array_b],'b--')
+        ax_ph.set_xlabel('Enthalpy [kJ/kg]')
+        ax_ph.set_ylabel('Pressure [bar]')
+        ax_ph.set_title('Pressure-Enthalpy Diagram\nRefrigerant [Top:{} / Bot:{}] )'.format(list(inputs_t.Y.keys())[0], list(inputs_b.Y.keys())[0]))
+        
+        fig_ts, ax_ts = PLT.subplots()
+        ax_ts.plot([i/1.0e3 for i in s_array_t], [i-273.15 for i in T_array_t],'r--')
+        ax_ts.plot([i/1.0e3 for i in s_array_b], [i-273.15 for i in T_array_b],'b--')
+        ax_ts.set_xlabel('Entropy [kJ/kg-K]')
+        ax_ts.set_ylabel('Temperature [℃]')
+        ax_ts.set_title('Temperature-Entropy Diagram\nRefrigerant [Top:{} / Bot:{}]'.format(list(inputs_t.Y.keys())[0], list(inputs_b.Y.keys())[0],))
+        
+        ax_ts.plot([i/1.0e3 for i in s_points_t], [i-273.15 for i in T_points_t],'ro-')
+        ax_ts.plot([i/1.0e3 for i in s_points_b], [i-273.15 for i in T_points_b],'bo-')
+        ax_ph.plot([i/1.0e3 for i in h_points_t], [i/1.0e5 for i in p_points_t],'ro-')
+        ax_ph.plot([i/1.0e3 for i in h_points_b], [i/1.0e5 for i in p_points_b],'bo-')
+        
+        fig_ph.savefig('.\Figs\Ph_diagram.png')
+        fig_ts.savefig('.\Figs\Ts_diagram.png')
                     
                         
                     
@@ -801,7 +919,7 @@ class VCHP_cascade(VCHP):
 if __name__ == '__main__':
     
     evapfluid = 'water'
-    inevapT = 323.15
+    inevapT = 333.15
     inevapp = 101300.0
     InEvap = ProcessFluid(Y={evapfluid:1.0,},m = 1.0, T = inevapT, p = inevapp)
     
@@ -809,26 +927,26 @@ if __name__ == '__main__':
     OutEvap = ProcessFluid(Y={evapfluid:1.0,},p = outevapp)
     
     condfluid = 'water'
-    incondT = 333.15
-    incondp = 101300.0
+    incondT = 323.15
+    incondp = 301300.0
     InCond = ProcessFluid(Y={condfluid:1.0,},m = 1.0, T = incondT, p = incondp)
     
-    outcondT = 343.15
-    outcondp = 101300.0
+    outcondT = 413.15
+    outcondp = 301300.0
     outcondh = PropsSI('H','T',outcondT, 'P', outcondp, condfluid)
     outconds = PropsSI('S','T',outcondT, 'P', outcondp, condfluid)
     OutCond = ProcessFluid(Y={condfluid:1.0,},m = 1.0, T = outcondT, p = outcondp, q = 0.0, h = outcondh, s = outconds)
     
     inputs = Settings()
-    inputs.Y = {'R134A':1.0,}
-    inputs.second = 'process'
+    inputs.Y = {'R245FA':1.0,}
+    inputs.second = 'steam'
     inputs.cycle = 'vcc'
     inputs.cond_type = 'phe'
     inputs.evap_type = 'phe'
     inputs.layout = 'bas'
     
     vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
-    '''    
+    '''
     evapfluid = 'water'
     inevapT = 323.15
     inevapp = 101300.0
@@ -836,7 +954,7 @@ if __name__ == '__main__':
     
     outevapT = 313.15
     outevapp = 101300.0
-    OutEvap = ProcessFluid(Y={evapfluid:1.0,}, T = outevapT)
+    OutEvap = ProcessFluid(Y={evapfluid:1.0,},T=outevapT)
     
     condfluid = 'water'
     incondT = 343.15
@@ -845,7 +963,7 @@ if __name__ == '__main__':
     
     outcondT = 353.15
     outcondp = 101300.0
-    OutCond = ProcessFluid(Y={condfluid:1.0,},)
+    OutCond = ProcessFluid(Y={condfluid:1.0,})
     
     inputs_t = Settings()
     inputs_t.Y = {'R245FA':1.0,}
@@ -864,7 +982,7 @@ if __name__ == '__main__':
     inputs_b.layout = 'bas'
     
     vchp_cascade = VCHP_cascade(InCond, OutCond, InEvap, OutEvap, inputs_t, inputs_b)'''
-    
+    '''
     from cProfile import Profile
     
     profiler = Profile()
@@ -876,3 +994,4 @@ if __name__ == '__main__':
     stats.strip_dirs()
     stats.sort_stats('cumulative')
     stats.print_stats()
+    '''

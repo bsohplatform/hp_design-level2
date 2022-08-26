@@ -31,7 +31,7 @@ class ProcessFluid:
 
     
     
-    def __init__(self,  Y: dict = field(default_factory=dict),  m: float = 0.0,  T: float = 0.0, p: float = 0.0, q: float = 0.0, h: float = 0.0, s: float = 0.0, Cp: float = 0.0):
+    def __init__(self,  Y: dict = {'':1.0},  m: float = 0.0,  T: float = 0.0, p: float = 0.0, q: float = 0.0, h: float = 0.0, s: float = 0.0, Cp: float = 0.0):
         self.fluidmixture: str = ''
         for fluids, ratio in Y.items():         
             if fluids == list(Y.keys())[-1]:
@@ -124,3 +124,28 @@ class Outputs:
     inter_frac: float = 0.0
     inter_x: float = 0.0
     qihx: float = 0.0
+    ihx_hot_out_T: float = 0.0
+    ihx_hot_out_p: float = 0.0
+    ihx_hot_out_h: float = 0.0
+    ihx_hot_out_s: float = 0.0
+    ihx_cold_out_T: float = 0.0
+    ihx_cold_out_p: float = 0.0
+    ihx_cold_out_h: float = 0.0
+    ihx_cold_out_s: float = 0.0
+    outcomp_low_T:float=0.0
+    outcomp_low_p:float=0.0
+    outcomp_low_h:float=0.0
+    outcomp_low_s:float=0.0
+    incomp_high_T:float=0.0
+    incomp_high_p:float=0.0
+    incomp_high_h:float=0.0
+    incomp_high_s:float=0.0
+    outexpand_high_T:float=0.0
+    outexpand_high_p:float=0.0
+    outexpand_high_h:float=0.0
+    outexpand_high_s:float=0.0
+    flash_liq_T:float=0.0
+    flash_liq_p:float=0.0
+    flash_liq_h:float=0.0
+    flash_liq_s:float=0.0
+    DSH:float = 0.0

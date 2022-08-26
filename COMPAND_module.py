@@ -18,6 +18,8 @@ class Compander_module:
                 T_comp_out_sat = self.primary_out.T_crit
             if (self.primary_out.T - T_comp_out_sat) > 0.01: # Overhanging problem protection
                 break
+            else:
+                self.primary_out.T = self.primary_out.T+1.0
                     
             
         self.Pspecific = (self.primary_out.h - self.primary_in.h)/eff_mech
