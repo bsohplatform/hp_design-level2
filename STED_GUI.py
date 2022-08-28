@@ -73,14 +73,14 @@ class WindowClass(QMainWindow, form_class):
         # 저온/고온 유체 선택
         self.evap_row_add_btn.clicked.connect(self.EvapRowAdd)
         self.evap_row_delete_btn.clicked.connect(self.EvapDeleteAdd)
-        self.evap_fluid_table.setColumnWidth(0, 0.08*self.width())
-        self.evap_fluid_table.setColumnWidth(1, 0.08*self.width())
+        #self.evap_fluid_table.setColumnWidth(0, 0.08*self.width())
+        #self.evap_fluid_table.setColumnWidth(1, 0.08*self.width())
         self.evap_fluid_list.currentIndexChanged.connect(self.EvapFluidAdd)
         
         self.cond_row_add_btn.clicked.connect(self.CondRowAdd)
         self.cond_row_delete_btn.clicked.connect(self.CondDeleteAdd)
-        self.cond_fluid_table.setColumnWidth(0, 0.08*self.width())
-        self.cond_fluid_table.setColumnWidth(1, 0.08*self.width())
+        #self.cond_fluid_table.setColumnWidth(0, 0.08*self.width())
+        #self.cond_fluid_table.setColumnWidth(1, 0.08*self.width())
         self.cond_fluid_list.currentIndexChanged.connect(self.CondFluidAdd)
         
         # 열교환기 타입 선택
@@ -203,6 +203,12 @@ class WindowClass(QMainWindow, form_class):
         self.evap_fluid_table.setItem(self.evap_fluid_table.rowCount()-1, 0, QTableWidgetItem(self.evap_fluid_list.currentText()))
         self.evap_fluid_table.setItem(self.evap_fluid_table.rowCount()-1, 1, QTableWidgetItem('1.0'))
     
+    def EvapFluidRatio(self): 
+        self.evapY = {}
+        for i in range(self.evap_fluid_table.rowCount()):
+            self.condY[self.evap_fluid_table.item(i, 0).text()]=float(self.evap_fluid_table.item(i, 1).text())
+    
+    
     def CondRowAdd(self):
         self.cond_fluid_table.insertRow(self.cond_fluid_table.rowCount())
         
@@ -212,11 +218,12 @@ class WindowClass(QMainWindow, form_class):
     def CondFluidAdd(self):
         self.cond_fluid_table.setItem(self.cond_fluid_table.rowCount()-1, 0, QTableWidgetItem(self.cond_fluid_list.currentText()))
         self.cond_fluid_table.setItem(self.cond_fluid_table.rowCount()-1, 1, QTableWidgetItem('1.0'))
-    
-    def CondTabletoDictionary(self):
+        
+    def CondFluidRatio(self): 
         self.condY = {}
-        {studen}
         for i in range(self.cond_fluid_table.rowCount()):
+            self.condY[self.cond_fluid_table.item(i, 0).text()]=float(self.cond_fluid_table.item(i, 1).text())
+    
             
     
     def AllHidden_ProTab(self):
@@ -367,8 +374,20 @@ class WindowClass(QMainWindow, form_class):
             self.outputs = Settings()
             self.inputs.DSH = float(self.DSH_edit.text())
             self.inputs.DSC = float(self.DSC_edit.text())
+            self.inputs.cond_N_element = float(self.cond_N_row_edit.text())
+            
+            if self.cond_phe_radio.isChecked():
+                self.inputs.cond_N_row = float(self.cond_N_row_edit.text())
+            elif self.cond_fthe_radio.isChecked():
+                
+            if self.layout_type == 'bas':
+                self.inputs.comp_eff = float(self.comp_eff_edit.text())    
+            elif self.layout_type == 'ihx':
+                self.inputs.comp_eff = float(self.comp_eff_top_edit.text())
+            elif self.layout_type == 'inj':
+                self.inputs.comp_eff = float(self.comp_eff_edit.text())    
         
-        
+    
     
     def Steam_module(self, InCond, OutCond, inputs):
         p_flash = PropsSI('P','T',inputs.T_steam,'Q',1.0, InCond.fluidmixture)
