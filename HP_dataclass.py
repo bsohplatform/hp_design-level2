@@ -31,7 +31,7 @@ class ProcessFluid:
 
     
     
-    def __init__(self,  Y: dict = {'':1.0},  m: float = 0.0,  T: float = 0.0, p: float = 0.0, q: float = 0.0, h: float = 0.0, s: float = 0.0, Cp: float = 0.0):
+    def __init__(self,  Y: dict = field(default_factory=dict),  m: float = 0.0,  T: float = 0.0, p: float = 0.0, q: float = 0.0, h: float = 0.0, s: float = 0.0, Cp: float = 0.0):
         self.fluidmixture: str = ''
         for fluids, ratio in Y.items():         
             if fluids == list(Y.keys())[-1]:
@@ -49,11 +49,11 @@ class ProcessFluid:
         try:
             self.p_crit = PropsSI('PCRIT','',0,'',0,self.fluidmixture)
         except:
-            return print('해당 유체는 임계압력을 구할 수 없습니다.')
+            print('해당 유체는 임계압력을 구할 수 없습니다.')
         try:
             self.T_crit = PropsSI('TCRIT','',0,'',0,self.fluidmixture)
         except:
-            return print('해당 유체는 임계온도를 구할 수 없습니다.')
+            print('해당 유체는 임계온도를 구할 수 없습니다.')
         
         
 @dataclass
@@ -89,8 +89,10 @@ class Settings:
     evap_UA = 0.0
     
     # 터보기기 스펙
+    comp_top_eff: float = 0.7
     comp_eff: float = 0.7
     expand_eff: float = 0.0
+    expand_bot_eff: float = 0.0
     mech_eff: float = 1.0
     
     # 중간열교환기 스펙
@@ -120,7 +122,9 @@ class Settings:
 class Outputs:
     COP_heating: float = 0.0
     Wcomp: float = 0.0
+    Wcomp_top: float = 0.0
     Wexpand: float = 0.0
+    Wexpand_bot: float = 0.0
     inter_frac: float = 0.0
     inter_x: float = 0.0
     qihx: float = 0.0
@@ -148,4 +152,5 @@ class Outputs:
     flash_liq_p:float=0.0
     flash_liq_h:float=0.0
     flash_liq_s:float=0.0
+    inter_h_vap:float=0.0
     DSH:float = 0.0
