@@ -37,7 +37,7 @@ class ProcessFluid:
             if fluids == list(Y.keys())[-1]:
                 self.fluidmixture = self.fluidmixture+fluids+'['+str(ratio)+']'
             else:
-                self.fluidmixture = self.fluidmixture+fluids+'['+str(ratio)+']'+'&'
+                self.fluidmixture = self.fluidmixture+'SRK::'+fluids+'['+str(ratio)+']'+'&'
                     
         self.m = m
         self.T = T
