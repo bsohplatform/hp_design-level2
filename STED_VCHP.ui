@@ -3167,7 +3167,7 @@
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
         <weight>50</weight>
-        <italic>true</italic>
+        <italic>false</italic>
         <bold>false</bold>
        </font>
       </property>
@@ -3747,7 +3747,7 @@
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
         <weight>50</weight>
-        <italic>true</italic>
+        <italic>false</italic>
         <bold>false</bold>
        </font>
       </property>
@@ -3877,7 +3877,7 @@
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
         <weight>50</weight>
-        <italic>true</italic>
+        <italic>false</italic>
         <bold>false</bold>
        </font>
       </property>
@@ -4894,7 +4894,7 @@
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
         <weight>50</weight>
-        <italic>true</italic>
+        <italic>false</italic>
         <bold>false</bold>
        </font>
       </property>
