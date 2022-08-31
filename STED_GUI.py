@@ -222,16 +222,43 @@ class WindowClass(QMainWindow, form_class):
     def EvapFluidAdd(self):
         self.evap_fluid_table.setItem(self.evap_fluid_table.rowCount()-1, 0, QTableWidgetItem(self.evap_fluid_list.currentText()))
         self.evap_fluid_table.setItem(self.evap_fluid_table.rowCount()-1, 1, QTableWidgetItem('1.0'))
+        if self.evap_fluid_list.currentText() == 'Air':
+            self.evap_row_add_btn.setEnabled(False)
+        else:
+            self.evap_row_add_btn.setEnabled(True)
+            
     
     def EvapFluidRatio(self):
         self.evapY = {}
-        for i in range(self.evap_fluid_table.rowCount()):
-            if self.evap_fluid_table.item(self.evap_fluid_table.rowCount()-1,0):
-                self.evapY[self.evap_fluid_table.item(i, 0).text()]=float(self.evap_fluid_table.item(i, 1).text())
-            else:
-                QMessageBox.information(self, '입력문 검토', '저온 유체 종류를 정의하세요.', QMessageBox.Yes)
-                self.message_chk = self.message_chk+1
-                
+        frac_total = 0.0
+        
+        if self.evap_fluid_table.rowCount() == 0:
+            QMessageBox.information(self, '입력문 검토', '저온 유체 행을 추가하세요.', QMessageBox.Yes)
+            self.message_chk = self.message_chk+1
+        else:
+            for i in range(self.evap_fluid_table.rowCount()):
+                if self.evap_fluid_table.item(self.evap_fluid_table.rowCount()-1,1) is not None:
+                    if self.evap_fluid_table.item(self.evap_fluid_table.rowCount()-1,1).text() != '':
+                        frac_total = frac_total + float(self.evap_fluid_table.item(i, 1).text())
+                    else:
+                        QMessageBox.information(self, '입력문 검토', '저온 유체 조성비를 정의하세요.', QMessageBox.Yes)
+                        self.message_chk = self.message_chk+1    
+                else:
+                    QMessageBox.information(self, '입력문 검토', '저온 유체 조성비를 정의하세요.', QMessageBox.Yes)
+                    self.message_chk = self.message_chk+1    
+
+            if frac_total != 0:
+                for i in range(self.evap_fluid_table.rowCount()):
+                    if self.evap_fluid_table.item(self.evap_fluid_table.rowCount()-1,0) is not None:
+                        if self.evap_fluid_table.item(self.evap_fluid_table.rowCount()-1,0).text() != '':        
+                            self.evapY[self.evap_fluid_table.item(i, 0).text()]=float(self.evap_fluid_table.item(i, 1).text())/frac_total
+                        else:
+                            QMessageBox.information(self, '입력문 검토', '저온 유체 종류를 정의하세요.', QMessageBox.Yes)
+                            self.message_chk = self.message_chk+1
+                    else:
+                        QMessageBox.information(self, '입력문 검토', '저온 유체 종류를 정의하세요.', QMessageBox.Yes)
+                        self.message_chk = self.message_chk+1
+                    
 
     def CondRowAdd(self):
         self.cond_fluid_table.insertRow(self.cond_fluid_table.rowCount())
@@ -242,14 +269,40 @@ class WindowClass(QMainWindow, form_class):
     def CondFluidAdd(self):
         self.cond_fluid_table.setItem(self.cond_fluid_table.rowCount()-1, 0, QTableWidgetItem(self.cond_fluid_list.currentText()))
         self.cond_fluid_table.setItem(self.cond_fluid_table.rowCount()-1, 1, QTableWidgetItem('1.0'))
+        if self.cond_fluid_list.currentText() == 'Air':
+            self.cond_row_add_btn.setEnabled(False)
+        else:
+            self.cond_row_add_btn.setEnabled(True)
 
     def CondFluidRatio(self):
         self.condY = {}
-        for i in range(self.cond_fluid_table.rowCount()):
-            if self.cond_fluid_table.item(self.cond_fluid_table.rowCount()-1,0):
-                self.condY[self.cond_fluid_table.item(i, 0).text()]=float(self.cond_fluid_table.item(i, 1).text())
-            else:
-                QMessageBox.information(self, '입력문 검토', '고온 유체 종류를 정의하세요.', QMessageBox.Yes)
+        frac_total = 0.0
+        if self.cond_fluid_table.rowCount() == 0:
+            QMessageBox.information(self, '입력문 검토', '고온 유체 행을 추가하세요.', QMessageBox.Yes)
+            self.message_chk = self.message_chk+1
+        else:
+            for i in range(self.cond_fluid_table.rowCount()):
+                if self.cond_fluid_table.item(self.cond_fluid_table.rowCount()-1,1) is not None:
+                    if self.cond_fluid_table.item(self.cond_fluid_table.rowCount()-1,1).text() != '':                        
+                        frac_total = frac_total + float(self.cond_fluid_table.item(i, 1).text())
+                    else:
+                        QMessageBox.information(self, '입력문 검토', '고온 유체 조성비를 정의하세요.', QMessageBox.Yes)
+                        self.message_chk = self.message_chk+1
+                else:
+                    QMessageBox.information(self, '입력문 검토', '고온 유체 조성비를 정의하세요.', QMessageBox.Yes)
+                    self.message_chk = self.message_chk+1
+            
+            if frac_total != 0:
+                for i in range(self.cond_fluid_table.rowCount()):
+                    if self.cond_fluid_table.item(self.cond_fluid_table.rowCount()-1,0) is not None:
+                        if self.cond_fluid_table.item(self.cond_fluid_table.rowCount()-1,0).text() != '':
+                            self.condY[self.cond_fluid_table.item(i, 0).text()]=float(self.cond_fluid_table.item(i, 1).text())/frac_total
+                        else:
+                            QMessageBox.information(self, '입력문 검토', '고온 유체 종류를 정의하세요.', QMessageBox.Yes)
+                            self.message_chk = self.message_chk+1
+                    else:
+                        QMessageBox.information(self, '입력문 검토', '고온 유체 종류를 정의하세요.', QMessageBox.Yes)
+                        self.message_chk = self.message_chk+1
         
     def Inspection_action(self):
         self.message_chk = 0
@@ -874,7 +927,7 @@ class WindowClass(QMainWindow, form_class):
             if self.message_chk == 0:
                 self.vchp_cascade = VCHP_cascade(self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.inputs_t, self.inputs_b)
                 (self.InCond, self.OutCond, self.InEvap, self.OutEvap, no_input) = self.vchp_cascade.Input_Processing(self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.inputs_t)
-                self.no_input = no_input
+
         else:
             if self.ref_list_b.currentText() == '':
                 QMessageBox.information(self, '입력문 검토', '냉매 종류를 입력하세요', QMessageBox.Yes)
@@ -885,31 +938,32 @@ class WindowClass(QMainWindow, form_class):
             if self.message_chk == 0:
                 self.vchp = VCHP(self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.inputs)
                 (self.InCond, self.OutCond, self.InEvap, self.OutEvap, no_input) = self.vchp.Input_Processing(self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.inputs)
-                self.no_input = no_input
-        
-        if no_input == 'InEvapT':
-            if self.nbp_bottom > self.OutEvap.T - float(self.evap_T_pp_edit.text()):
-                QMessageBox.information(self, '입력문 검토', '냉매의 NBP가 공정 온도 보다 높습니다. 다른 냉매를 선택하세요.', QMessageBox.Yes)
-                self.message_chk = self.message_chk+1
-        else:
-            if self.nbp_bottom > self.InEvap.T - float(self.evap_T_pp_edit.text()):
-                QMessageBox.information(self, '입력문 검토', '냉매의 NBP가 공정 온도 보다 높습니다. 다른 냉매를 선택하세요.', QMessageBox.Yes)
-                self.message_chk = self.message_chk+1
-        
-        if self.cycle_type == 'vcc':
-            if self.layout_type == 'cas':
-                Tcrit = self.Tcrit_top
-            else:
-                Tcrit = self.Tcrit_bottom                
                 
-            if no_input == 'OutCondT':
-                if Tcrit < self.InCond.T + float(self.cond_T_pp_edit.text()):
-                    QMessageBox.information(self, '입력문 검토', '냉매의 임계온도가 공정 온도 보다 낮습니다. 다른 냉매를 선택하세요.', QMessageBox.Yes)
+        if self.message_chk == 0:
+            self.no_input = no_input
+            if no_input == 'InEvapT':
+                if self.nbp_bottom > self.OutEvap.T - float(self.evap_T_pp_edit.text()):
+                    QMessageBox.information(self, '입력문 검토', '냉매의 NBP가 공정 온도 보다 높습니다. 다른 냉매를 선택하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
             else:
-                if Tcrit < self.OutCond.T + float(self.cond_T_pp_edit.text()):
-                    QMessageBox.information(self, '입력문 검토', '냉매의 임계온도가 공정 온도 보다 낮습니다. 다른 냉매를 선택하세요.', QMessageBox.Yes)
+                if self.nbp_bottom > self.InEvap.T - float(self.evap_T_pp_edit.text()):
+                    QMessageBox.information(self, '입력문 검토', '냉매의 NBP가 공정 온도 보다 높습니다. 다른 냉매를 선택하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
+            
+            if self.cycle_type == 'vcc':
+                if self.layout_type == 'cas':
+                    Tcrit = self.Tcrit_top
+                else:
+                    Tcrit = self.Tcrit_bottom                
+                    
+                if no_input == 'OutCondT':
+                    if Tcrit < self.InCond.T + float(self.cond_T_pp_edit.text()):
+                        QMessageBox.information(self, '입력문 검토', '냉매의 임계온도가 공정 온도 보다 낮습니다. 다른 냉매를 선택하세요.', QMessageBox.Yes)
+                        self.message_chk = self.message_chk+1
+                else:
+                    if Tcrit < self.OutCond.T + float(self.cond_T_pp_edit.text()):
+                        QMessageBox.information(self, '입력문 검토', '냉매의 임계온도가 공정 온도 보다 낮습니다. 다른 냉매를 선택하세요.', QMessageBox.Yes)
+                        self.message_chk = self.message_chk+1
         
         if self.message_chk == 0:
             if no_input == 'Overdefine':
@@ -920,8 +974,8 @@ class WindowClass(QMainWindow, form_class):
                 self.message_chk = self.message_chk+1
             else:
                 if no_input == 'OutCondT' or no_input == 'InCondT':
-                    if self.OutCond.T - self.InCond.T < 0:
-                        QMessageBox.information(self, '입력문 검토', '응축기 출구 온도를 입구 온도보다 높게 설정하세요.', QMessageBox.Yes)
+                    if self.InEvap.T - self.OutEvap.T < 0:
+                        QMessageBox.information(self, '입력문 검토', '증발기 출구 온도를 입구 온도보다 낮게 설정하세요.', QMessageBox.Yes)
                         self.message_chk = self.message_chk+1
                     else:
                         self.message_chk = 0
@@ -937,11 +991,12 @@ class WindowClass(QMainWindow, form_class):
                         self.message_chk = self.message_chk+1
                             
                 elif no_input == 'OutEvapT' or no_input == 'InEvapT':
-                    if self.InEvap.T - self.OutEvap.T < 0:
-                        QMessageBox.information(self, '입력문 검토', '증발기 출구 온도를 입구 온도보다 낮게 설정하세요.', QMessageBox.Yes)
+                    if self.OutCond.T - self.InCond.T < 0:
+                        QMessageBox.information(self, '입력문 검토', '응축기 출구 온도를 입구 온도보다 높게 설정하세요.', QMessageBox.Yes)
                         self.message_chk = self.message_chk+1
                     else:
                         self.message_chk = 0
+                        
                     
         if self.message_chk == 0:
             if self.process_type == 'steam':
@@ -1028,6 +1083,7 @@ class WindowClass(QMainWindow, form_class):
         self.ts_diagram.setPixmap(QPixmap(".\Figs\Ts_diagram.png").scaledToWidth(400))        
     
     def AllHidden_ResultTab(self):
+        self.REF_table.clearContents()
         self.expand_group_2.setHidden(True)
         self.expand_top_group_2.setHidden(True)
         self.expand_bot_group_2.setHidden(True)
@@ -1305,9 +1361,9 @@ class WindowClass(QMainWindow, form_class):
         self.evap_fluid_table.setItem(0, 0, QTableWidgetItem('Water'))
         self.evap_fluid_table.setItem(0, 1, QTableWidgetItem('1.0'))
         self.evap_in_T_edit.setText('50.0')
-        self.evap_in_p_edit.setText('1.0')
+        self.evap_in_p_edit.setText('1.5')
         self.evap_in_m_edit.setText('1.0')
-        self.evap_out_p_edit.setText('1.0')
+        self.evap_out_p_edit.setText('1.5')
         
         if self.process_type == 'steam':
             self.dT_lift_edit.setText('110.0')
@@ -1334,10 +1390,10 @@ class WindowClass(QMainWindow, form_class):
             self.cond_fluid_table.setItem(0, 0, QTableWidgetItem('Water'))
             self.cond_fluid_table.setItem(0, 1, QTableWidgetItem('1.0'))
             self.cond_in_T_edit.setText('70.0')
-            self.cond_in_p_edit.setText('1.0')
+            self.cond_in_p_edit.setText('1.5')
             self.cond_in_m_edit.setText('1.0')
             self.cond_out_T_edit.setText('80.0')
-            self.cond_out_p_edit.setText('1.0')
+            self.cond_out_p_edit.setText('1.5')
         
         self.DSH_top_edit.setText('10.0')
         self.DSC_edit.setText('5.0')
