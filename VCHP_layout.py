@@ -442,12 +442,32 @@ class VCHP():
                 OutCond.q = -InCond_REF.q
                 if no_input == 'InCondT':
                     InCond.h = OutCond.h - OutCond.q/OutCond.m
-                    InCond.T = PropsSI('T','P',InCond.p, 'H', InCond.h, InCond.fluidmixture)
-                    InCond.Cp = PropsSI('C','T',InCond.T, 'P', InCond.p, InCond.fluidmixture)
+                    try:    
+                        InCond.T = PropsSI('T','P',InCond.p, 'H', InCond.h, InCond.fluidmixture)
+                        InCond.Cp = PropsSI('C','T',InCond.T, 'P', InCond.p, InCond.fluidmixture)
+                    except:    
+                        InCond.T = OutCond.T
+                        while 1:
+                            H_virtual = PropsSI('H','T', InCond.T, 'P', InCond.p, InCond.fluidmixture)
+                            InCond.Cp = PropsSI('C','T',InCond.T, 'P', InCond.p, InCond.fluidmixture)
+                            err_h = abs(InCond.h - H_virtual)
+                            InCond.T = InCond.T - err_h/InCond.Cp
+                            if err_h/InCond.h < 1.0e-5:
+                                break
                 elif no_input == 'OutCondT':
                     OutCond.h = InCond.h + InCond.q/InCond.m
-                    OutCond.T = PropsSI('T','P',OutCond.p, 'H', OutCond.h, OutCond.fluidmixture)
-                    OutCond.Cp = PropsSI('C','T',OutCond.T, 'P', OutCond.p, OutCond.fluidmixture)
+                    try:    
+                        OutCond.T = PropsSI('T','P',OutCond.p, 'H', OutCond.h, OutCond.fluidmixture)
+                        OutCond.Cp = PropsSI('C','T',OutCond.T, 'P', OutCond.p, OutCond.fluidmixture)
+                    except:
+                        OutCond.T = InCond.T
+                        while 1:
+                            H_virtual = PropsSI('H','T', OutCond.T, 'P', OutCond.p, OutCond.fluidmixture)
+                            OutCond.Cp = PropsSI('C','T',OutCond.T, 'P', OutCond.p, OutCond.fluidmixture)
+                            err_h = abs(OutCond.h - H_virtual)
+                            OutCond.T = OutCond.T - err_h/OutCond.Cp
+                            if err_h/OutCond.h < 1.0e-5:
+                                break
                 elif no_input == 'Condm':
                     InCond.m = InCond.q/(OutCond.h - InCond.h)
                     OutCond.m = InCond.m
@@ -478,12 +498,34 @@ class VCHP():
                 
                 if no_input == 'InEvapT':
                     InEvap.h = OutEvap.h - OutEvap.q/OutEvap.m
-                    InEvap.T = PropsSI('T','P',InEvap.p, 'H', InEvap.h, InEvap.fluidmixture)
-                    InEvap.Cp = PropsSI('C','T',InEvap.T, 'P', InEvap.p, InEvap.fluidmixture)
+                    try:    
+                        InEvap.T = PropsSI('T','P',InEvap.p, 'H', InEvap.h, InEvap.fluidmixture)
+                        InEvap.Cp = PropsSI('C','T',InEvap.T, 'P', InEvap.p, InEvap.fluidmixture)
+                    except:    
+                        InEvap.T = OutEvap.T
+                        while 1:
+                            H_virtual = PropsSI('H','T', InEvap.T, 'P', InEvap.p, InEvap.fluidmixture)
+                            InEvap.Cp = PropsSI('C','T',InEvap.T, 'P', InEvap.p, InEvap.fluidmixture)
+                            err_h = abs(InEvap.h - H_virtual)
+                            InEvap.T = InEvap.T - err_h/InEvap.Cp
+                            if err_h/InEvap.h < 1.0e-5:
+                                break
+                            
                 elif no_input == 'OutEvapT':
                     OutEvap.h = InEvap.h + InEvap.q/InEvap.m
-                    OutEvap.T = PropsSI('T','P',OutEvap.p, 'H', OutEvap.h, OutEvap.fluidmixture)
-                    OutEvap.Cp = PropsSI('C','T',OutEvap.T, 'P', OutEvap.p, OutEvap.fluidmixture)
+                    try:
+                        OutEvap.T = PropsSI('T','P',OutEvap.p, 'H', OutEvap.h, OutEvap.fluidmixture)
+                        OutEvap.Cp = PropsSI('C','T',OutEvap.T, 'P', OutEvap.p, OutEvap.fluidmixture)
+                    except:
+                        OutEvap.T = InEvap.T
+                        while 1:
+                            H_virtual = PropsSI('H','T', OutEvap.T, 'P', OutEvap.p, OutEvap.fluidmixture)
+                            OutEvap.Cp = PropsSI('C','T',OutEvap.T, 'P', OutEvap.p, OutEvap.fluidmixture)
+                            err_h = abs(OutEvap.h - H_virtual)
+                            OutEvap.T = OutEvap.T - err_h/OutEvap.Cp
+                            if err_h/OutEvap.h < 1.0e-5:
+                                break
+                    
                 elif no_input == 'Evapm':
                     InEvap.m = InEvap.q/(OutEvap.h - InEvap.h)
                     OutEvap.m = InEvap.m
