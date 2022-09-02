@@ -533,11 +533,11 @@ class VCHP():
             cond = HX.Heatexchanger_module(InCond_REF, OutCond_REF, 1, InCond, OutCond, cond_ph)
         
             if inputs.cond_type == 'fthe':
-                cond.FTHE(N_element=inputs.cond_N_element, N_row = inputs.cond_N_row)
+                (outputs.cond_Tarray, outputs.cond_parray) = cond.FTHE(N_element=inputs.cond_N_element, N_row = inputs.cond_N_row)
                 self.cond_err = (inputs.cond_T_lm - cond.T_lm)/inputs.cond_T_lm
                 
             elif inputs.cond_type == 'phe':
-                cond.PHE(N_element=inputs.cond_N_element)
+                (outputs.cond_Tarray, outputs.cond_parray) = cond.PHE(N_element=inputs.cond_N_element)
                 self.cond_err = (inputs.cond_T_pp - cond.T_pp)/inputs.cond_T_pp
             
             OutCond_REF = cond.primary_out
@@ -650,7 +650,12 @@ class VCHP():
             InCond_REF_svap = PropsSI('S','P',InCond_REF.p,'Q',1.0,OutCond_REF.fluidmixture)
             OutCond_REF_Tliq = PropsSI('T','P',OutCond_REF.p,'Q',0.0,OutCond_REF.fluidmixture)
             OutCond_REF_sliq = PropsSI('S','P',OutCond_REF.p,'Q',0.0,OutCond_REF.fluidmixture)
-        
+        else:
+            outputs.cond_Tarray
+            outputs.cond_parray
+            cond_harray = [PropsSI('H','T',i,'P',j,OutCond_REF.fluidmixture) for i,j in zip(outputs.cond_Tarray, outputs.cond_parray)]
+            cond_sarray = [PropsSI('S','T',i,'P',j,OutCond_REF.fluidmixture) for i,j in zip(outputs.cond_Tarray, outputs.cond_parray)]
+            
         OutCond_REF.s = PropsSI('S','T',OutCond_REF.T,'P',OutCond_REF.p,OutCond_REF.fluidmixture)
         InEvap_REF.s = PropsSI('S','H',InEvap_REF.h,'P',InEvap_REF.p,InEvap_REF.fluidmixture)
         
@@ -658,12 +663,14 @@ class VCHP():
             if inputs.cycle == 'vcc':
                 s_points = [OutEvap_REF_svap, OutEvap_REF.s, outputs.ihx_cold_out_s, InCond_REF.s, InCond_REF_svap, OutCond_REF_sliq, OutCond_REF.s, outputs.ihx_hot_out_s, InEvap_REF.s, OutEvap_REF_svap]
                 T_points = [OutEvap_REF_Tvap, OutEvap_REF.T, outputs.ihx_cold_out_T, InCond_REF.T, InCond_REF_Tvap, OutCond_REF_Tliq, OutCond_REF.T, outputs.ihx_hot_out_T, InEvap_REF.T, OutEvap_REF_Tvap]
+                h_points = [OutEvap_REF.h, outputs.ihx_cold_out_h, InCond_REF.h, OutCond_REF.h, outputs.ihx_hot_out_h, InEvap_REF.h, OutEvap_REF.h]
+                p_points = [OutEvap_REF.p, outputs.ihx_cold_out_p, InCond_REF.p, OutCond_REF.p, outputs.ihx_hot_out_p, InEvap_REF.p, OutEvap_REF.p]
             else:
-                s_points = [OutEvap_REF_svap, OutEvap_REF.s, outputs.ihx_cold_out_s, InCond_REF.s, OutCond_REF.s, outputs.ihx_hot_out_s, InEvap_REF.s, OutEvap_REF_svap]
-                T_points = [OutEvap_REF_Tvap, OutEvap_REF.T, outputs.ihx_cold_out_T, InCond_REF.T, OutCond_REF.T, outputs.ihx_hot_out_T, InEvap_REF.T, OutEvap_REF_Tvap]
+                s_points = [OutEvap_REF_svap, OutEvap_REF.s, outputs.ihx_cold_out_s, InCond_REF.s]+cond_sarray+[OutCond_REF.s, outputs.ihx_hot_out_s, InEvap_REF.s, OutEvap_REF_svap]
+                T_points = [OutEvap_REF_Tvap, OutEvap_REF.T, outputs.ihx_cold_out_T, InCond_REF.T]+outputs.cond_Tarray+[OutCond_REF.T, outputs.ihx_hot_out_T, InEvap_REF.T, OutEvap_REF_Tvap]
+                h_points = [OutEvap_REF.h, outputs.ihx_cold_out_h, InCond_REF.h]+cond_harray+[OutCond_REF.h, outputs.ihx_hot_out_h, InEvap_REF.h, OutEvap_REF.h]
+                p_points = [OutEvap_REF.p, outputs.ihx_cold_out_p, InCond_REF.p]+outputs.cond_parray+[OutCond_REF.p, outputs.ihx_hot_out_p, InEvap_REF.p, OutEvap_REF.p]
             
-            h_points = [OutEvap_REF.h, outputs.ihx_cold_out_h, InCond_REF.h, OutCond_REF.h, outputs.ihx_hot_out_h, InEvap_REF.h, OutEvap_REF.h]
-            p_points = [OutEvap_REF.p, outputs.ihx_cold_out_p, InCond_REF.p, OutCond_REF.p, outputs.ihx_hot_out_p, InEvap_REF.p, OutEvap_REF.p]
         elif inputs.layout == 'inj':
             outcomp_low_svap = PropsSI('S','P',outputs.outcomp_low_p,'Q',1.0,InCond_REF.fluidmixture)
             outcomp_low_Tvap = PropsSI('T','P',outputs.outcomp_low_p,'Q',1.0,InCond_REF.fluidmixture)
@@ -672,22 +679,25 @@ class VCHP():
             if inputs.cycle == 'vcc':    
                 s_points = [outputs.flash_liq_s, InEvap_REF.s, OutEvap_REF_svap, OutEvap_REF.s, outputs.outcomp_low_s, outcomp_low_svap, outputs.flash_liq_s, outputs.outexpand_high_s, outcomp_low_svap, outputs.incomp_high_s, InCond_REF.s, InCond_REF_svap, OutCond_REF_sliq, OutCond_REF.s, outputs.outexpand_high_s] 
                 T_points = [outputs.flash_liq_T, InEvap_REF.T, OutEvap_REF_Tvap, OutEvap_REF.T, outputs.outcomp_low_T, outcomp_low_Tvap, outputs.flash_liq_T, outputs.outexpand_high_T, outcomp_low_Tvap, outputs.incomp_high_T, InCond_REF.T, InCond_REF_Tvap, OutCond_REF_Tliq, OutCond_REF.T, outputs.outexpand_high_T] 
+                h_points = [outputs.flash_liq_h, InEvap_REF.h, OutEvap_REF.h, outputs.outcomp_low_h, outputs.flash_liq_h, outputs.outexpand_high_h, outputs.incomp_high_h, InCond_REF.h, OutCond_REF.h, outputs.outexpand_high_h]
+                p_points = [outputs.flash_liq_p, InEvap_REF.p, OutEvap_REF.p, outputs.outcomp_low_p, outputs.flash_liq_p, outputs.outexpand_high_p, outputs.incomp_high_p, InCond_REF.p, OutCond_REF.p, outputs.outexpand_high_p]
             else:
-                s_points = [outputs.flash_liq_s, InEvap_REF.s, OutEvap_REF_svap, OutEvap_REF.s, outputs.outcomp_low_s, outcomp_low_svap, outputs.flash_liq_s, outputs.outexpand_high_s, outcomp_low_svap, outputs.incomp_high_s, InCond_REF.s, OutCond_REF.s, outputs.outexpand_high_s] 
-                T_points = [outputs.flash_liq_T, InEvap_REF.T, OutEvap_REF_Tvap, OutEvap_REF.T, outputs.outcomp_low_T, outcomp_low_Tvap, outputs.flash_liq_T, outputs.outexpand_high_T, outcomp_low_Tvap, outputs.incomp_high_T, InCond_REF.T, OutCond_REF.T, outputs.outexpand_high_T] 
-                
-            h_points = [outputs.flash_liq_h, InEvap_REF.h, OutEvap_REF.h, outputs.outcomp_low_h, outputs.flash_liq_h, outputs.outexpand_high_h, outputs.incomp_high_h, InCond_REF.h, OutCond_REF.h, outputs.outexpand_high_h]
-            p_points = [outputs.flash_liq_p, InEvap_REF.p, OutEvap_REF.p, outputs.outcomp_low_p, outputs.flash_liq_p, outputs.outexpand_high_p, outputs.incomp_high_p, InCond_REF.p, OutCond_REF.p, outputs.outexpand_high_p]
+                s_points = [outputs.flash_liq_s, InEvap_REF.s, OutEvap_REF_svap, OutEvap_REF.s, outputs.outcomp_low_s, outcomp_low_svap, outputs.flash_liq_s, outputs.outexpand_high_s, outcomp_low_svap, outputs.incomp_high_s, InCond_REF.s]+cond_sarray+[OutCond_REF.s, outputs.outexpand_high_s] 
+                T_points = [outputs.flash_liq_T, InEvap_REF.T, OutEvap_REF_Tvap, OutEvap_REF.T, outputs.outcomp_low_T, outcomp_low_Tvap, outputs.flash_liq_T, outputs.outexpand_high_T, outcomp_low_Tvap, outputs.incomp_high_T, InCond_REF.T]+outputs.cond_Tarray+[OutCond_REF.T, outputs.outexpand_high_T] 
+                h_points = [outputs.flash_liq_h, InEvap_REF.h, OutEvap_REF.h, outputs.outcomp_low_h, outputs.flash_liq_h, outputs.outexpand_high_h, outputs.incomp_high_h, InCond_REF.h]+cond_harray+[OutCond_REF.h, outputs.outexpand_high_h]
+                p_points = [outputs.flash_liq_p, InEvap_REF.p, OutEvap_REF.p, outputs.outcomp_low_p, outputs.flash_liq_p, outputs.outexpand_high_p, outputs.incomp_high_p, InCond_REF.p]+outputs.cond_parray+[OutCond_REF.p, outputs.outexpand_high_p]
         else:
             if inputs.cycle == 'vcc':
                 s_points = [OutEvap_REF_svap, OutEvap_REF.s, InCond_REF.s, InCond_REF_svap, OutCond_REF_sliq, OutCond_REF.s, InEvap_REF.s, OutEvap_REF_svap]
                 T_points = [OutEvap_REF_Tvap, OutEvap_REF.T, InCond_REF.T, InCond_REF_Tvap, OutCond_REF_Tliq, OutCond_REF.T, InEvap_REF.T, OutEvap_REF_Tvap]
+                h_points = [OutEvap_REF.h, InCond_REF.h, OutCond_REF.h, InEvap_REF.h, OutEvap_REF.h]
+                p_points = [OutEvap_REF.p, InCond_REF.p, OutCond_REF.p, InEvap_REF.p, OutEvap_REF.p]
             else:
-                s_points = [OutEvap_REF_svap, OutEvap_REF.s, InCond_REF.s, OutCond_REF.s, InEvap_REF.s, OutEvap_REF_svap]
-                T_points = [OutEvap_REF_Tvap, OutEvap_REF.T, InCond_REF.T, OutCond_REF.T, InEvap_REF.T, OutEvap_REF_Tvap]
-                
-            h_points = [OutEvap_REF.h, InCond_REF.h, OutCond_REF.h, InEvap_REF.h, OutEvap_REF.h]
-            p_points = [OutEvap_REF.p, InCond_REF.p, OutCond_REF.p, InEvap_REF.p, OutEvap_REF.p]
+                s_points = [OutEvap_REF_svap, OutEvap_REF.s, InCond_REF.s]+cond_sarray+[OutCond_REF.s, InEvap_REF.s, OutEvap_REF_svap]
+                T_points = [OutEvap_REF_Tvap, OutEvap_REF.T, InCond_REF.T]+outputs.cond_Tarray+[OutCond_REF.T, InEvap_REF.T, OutEvap_REF_Tvap]
+                h_points = [OutEvap_REF.h, InCond_REF.h]+cond_harray+[OutCond_REF.h, InEvap_REF.h, OutEvap_REF.h]
+                p_points = [OutEvap_REF.p, InCond_REF.p]+outputs.cond_parray+[OutCond_REF.p, InEvap_REF.p, OutEvap_REF.p]
+            
         
         
         return (p_array, h_array, T_array, s_array, p_points, h_points, s_points, T_points)
@@ -812,11 +822,11 @@ class VCHP_cascade(VCHP):
                         cond_t = HX.Heatexchanger_module(InCond_REF_t, OutCond_REF_t, 1, InCond, OutCond, cond_t_ph)
                         
                         if inputs_t.cond_type == 'fthe':
-                            cond_t.FTHE(N_element=inputs_t.cond_N_element, N_row = inputs_t.cond_N_row)
+                            (outputs_t.cond_Tarray, outputs_t.cond_parray) = cond_t.FTHE(N_element=inputs_t.cond_N_element, N_row = inputs_t.cond_N_row)
                             cond_err = (inputs_t.cond_T_lm - cond_t.T_lm)/inputs_t.cond_T_lm
                             
                         elif inputs_t.cond_type == 'phe':
-                            cond_t.PHE(N_element=inputs_t.cond_N_element)
+                            (outputs_t.cond_Tarray, outputs_t.cond_parray) = cond_t.PHE(N_element=inputs_t.cond_N_element)
                             cond_err = (inputs_t.cond_T_pp - cond_t.T_pp)/inputs_t.cond_T_pp
                         
                         OutCond_REF_t = cond_t.primary_out
@@ -961,37 +971,38 @@ class VCHP_cascade(VCHP):
                     
                                     
 if __name__ == '__main__':
-    '''
+    
     evapfluid = 'water'
     inevapT = 333.15
     inevapp = 101300.0
     InEvap = ProcessFluid(Y={evapfluid:1.0,},m = 1.0, T = inevapT, p = inevapp)
     
+    outevapT = 280.15
     outevapp = 101300.0
     OutEvap = ProcessFluid(Y={evapfluid:1.0,},p = outevapp)
     
     condfluid = 'water'
-    incondT = 323.15
-    incondp = 301300.0
+    incondT = 305.15
+    incondp = 101300.0
     InCond = ProcessFluid(Y={condfluid:1.0,},m = 1.0, T = incondT, p = incondp)
     
-    outcondT = 413.15
-    outcondp = 301300.0
-    outcondh = PropsSI('H','T',outcondT, 'P', outcondp, condfluid)
-    outconds = PropsSI('S','T',outcondT, 'P', outcondp, condfluid)
-    OutCond = ProcessFluid(Y={condfluid:1.0,},m = 1.0, T = outcondT, p = outcondp, q = 0.0, h = outcondh, s = outconds)
+    outcondT = 311.15
+    outcondp = 101300.0
+    OutCond = ProcessFluid(Y={condfluid:1.0,},m = 1.0, T =outcondT, p = outcondp)
     
     inputs = Settings()
-    inputs.Y = {'R245FA':1.0,}
-    inputs.second = 'steam'
+    inputs.Y = {'R410A':1.0,}
+    inputs.second = 'process'
     inputs.cycle = 'vcc'
+    inputs.DSC = 5.0
     inputs.cond_type = 'phe'
     inputs.evap_type = 'phe'
-    inputs.layout = 'bas'
+    inputs.layout = 'inj'
+    
     
     vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
+    vchp_basic()
     '''
-    
     evapfluid = 'water'
     inevapT = 323.15
     inevapp = 101300.0
@@ -1021,17 +1032,18 @@ if __name__ == '__main__':
     inputs_b = Settings()
     inputs_b.Y = {'R134A':1.0,}
     inputs_b.second = 'process'
-    inputs_b.cycle = 'vcc'
+    inputs_b.cycle = 'scc'
     inputs_b.cond_type = 'phe'
     inputs_b.evap_type = 'phe'
     inputs_b.layout = 'bas'
     
     vchp_cascade = VCHP_cascade(InCond, OutCond, InEvap, OutEvap, inputs_t, inputs_b)
-    
+    '''
+    '''
     from cProfile import Profile
     
     profiler = Profile()
-    profiler.run('vchp_cascade()')
+    profiler.run('vchp_basic()')
     
     from pstats import Stats
     
@@ -1039,4 +1051,4 @@ if __name__ == '__main__':
     stats.strip_dirs()
     stats.sort_stats('cumulative')
     stats.print_stats()
-    
+    '''
