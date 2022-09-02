@@ -173,13 +173,25 @@ class Heatexchanger_module:
         self.UA = np.sum(np.sum(UA_element))
         self.T_lm = abs(self.primary_in.q)/self.UA
         
-        if np.round(N_row/2) != N_row/2: # 짝수
+        if np.round(N_row/2) != N_row/2:
             self.primary_out.T = T_primary[N_element-1,N_row-1]
             self.primary_out.h = h_primary[N_element-1,N_row-1]
-        else: # 홀수
+        else:
             self.primary_out.T = T_primary[0,N_row-1]
             self.primary_out.h = h_primary[0,N_row-1]
-
+        
+        T_array = []
+        p_array = []
+        for i in np.arange(N_row):
+            if np.round(i/2) == i/2:
+                np.append(T_array, T_primary[N_element-1,i])
+                np.append(p_array, p_primary[N_element-1,i])
+            else:
+                np.append(T_array, T_primary[0,i])
+                np.append(p_array, p_primary[0,i])
+                        
+        return(T_array, p_array)
+        
     def PHE(self, N_element: int):
         h_primary = np.zeros(shape=(N_element+1))
         T_primary = np.zeros(shape=(N_element+1))
@@ -239,6 +251,10 @@ class Heatexchanger_module:
         
         self.primary_out.T = T_primary[N_element]
         self.primary_out.h = h_primary[N_element]
+        
+        T_array = [T_primary[round(N_element/6)], T_primary[round(N_element/3)], T_primary[round(N_element/2)], T_primary[round(N_element*2/3)], T_primary[round(N_element*5/6)]]
+        p_array = [p_primary[round(N_element/6)], p_primary[round(N_element/3)], p_primary[round(N_element/2)], p_primary[round(N_element*2/3)], p_primary[round(N_element*5/6)]]
+        return(T_array, p_array)
         
     def SIMPHX(self, eff_HX:float):
         h_secondary_out_ideal = PropsSI('H','T',self.primary_in.T,'P',self.secondary_out.p,self.secondary_in.fluidmixture)
