@@ -154,3 +154,7 @@ class Outputs:
     flash_liq_s:float=0.0
     inter_h_vap:float=0.0
     DSH:float = 0.0
+    cond_Tarray:list = field(default_factory=list)
+    cond_parray:list = field(default_factory=list)
+    
+    
