@@ -13,7 +13,6 @@ form_class = uic.loadUiType("STED_VCHP.ui")[0]
 class WindowClass(QMainWindow, form_class):
     def __init__(self):
         super().__init__()
-        
         self.ref_list = ['','1-Butene','Acetone','Air','Ammonia','Argon','Benzene','CO2','CarbonMonoxide','CarbonylSulfide','CycloHexane','CycloPropane','Cyclopentane','D4','D5','D6',
             'Deuterium','Dichloroethane','DiethylEther','DimethylCarbonate','DimethylEther','Ethane','Ethanol','EthylBenzene','Ethylene','EthyleneOxide','Fluorine','HFE143m','HeavyWater','Helium',
             'Hydrogen','HydrogenChloride','HydrogenSulfide','IsoButane','IsoButene','Isohexane','Isopentane','Krypton','MD2M','MD3M','MD4M','MDM','MM','Methane','Methanol','MethylLinoleate','MethylLinolenate',
@@ -41,11 +40,15 @@ class WindowClass(QMainWindow, form_class):
             self.evap_fluid_list.addItem(i)
         
         # 초기화
+        self.cycleGroupRad()
         self.layoutGroupRad()
         self.processGroupRad()
-        self.cycleGroupRad()
         self.AllHidden_ProTab()
         self.phe_fthe_judge()
+        
+        # 사이클 선택
+        self.vcc_radio.clicked.connect(self.cycleGroupRad)
+        self.scc_radio.clicked.connect(self.cycleGroupRad)
         
         # 레이아웃 선택
         self.bas_radio.clicked.connect(self.layoutGroupRad)
@@ -57,10 +60,6 @@ class WindowClass(QMainWindow, form_class):
         self.process_radio.clicked.connect(self.processGroupRad)
         self.steam_radio.clicked.connect(self.processGroupRad)
         self.hot_radio.clicked.connect(self.processGroupRad)
-        
-        # 사이클 선택
-        self.vcc_radio.clicked.connect(self.cycleGroupRad)
-        self.scc_radio.clicked.connect(self.cycleGroupRad)
         
         # 탭간 이동 버튼
         self.LaytoPro_btn.clicked.connect(self.MoveToProcessTab)
@@ -233,30 +232,34 @@ class WindowClass(QMainWindow, form_class):
         frac_total = 0.0
         
         if self.evap_fluid_table.rowCount() == 0:
-            QMessageBox.information(self, '입력문 검토', '저온 유체 행을 추가하세요.', QMessageBox.Yes)
+            QMessageBox.warning(self, '입력문 검토', '저온 유체 행을 추가하세요.', QMessageBox.Yes)
             self.message_chk = self.message_chk+1
         else:
             for i in range(self.evap_fluid_table.rowCount()):
-                if self.evap_fluid_table.item(self.evap_fluid_table.rowCount()-1,1) is not None:
-                    if self.evap_fluid_table.item(self.evap_fluid_table.rowCount()-1,1).text() != '':
+                if self.evap_fluid_table.item(i,1) is not None:
+                    if self.evap_fluid_table.item(i,1).text() != '':
                         frac_total = frac_total + float(self.evap_fluid_table.item(i, 1).text())
                     else:
-                        QMessageBox.information(self, '입력문 검토', '저온 유체 조성비를 정의하세요.', QMessageBox.Yes)
+                        QMessageBox.warning(self, '입력문 검토', '저온 유체 조성비를 정의하세요.', QMessageBox.Yes)
                         self.message_chk = self.message_chk+1    
                 else:
-                    QMessageBox.information(self, '입력문 검토', '저온 유체 조성비를 정의하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '저온 유체 조성비를 정의하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1    
 
             if frac_total != 0:
                 for i in range(self.evap_fluid_table.rowCount()):
-                    if self.evap_fluid_table.item(self.evap_fluid_table.rowCount()-1,0) is not None:
-                        if self.evap_fluid_table.item(self.evap_fluid_table.rowCount()-1,0).text() != '':        
-                            self.evapY[self.evap_fluid_table.item(i, 0).text()]=float(self.evap_fluid_table.item(i, 1).text())/frac_total
+                    if self.evap_fluid_table.item(i,0) is not None:
+                        if self.evap_fluid_table.item(i,0).text() != '':        
+                            if self.evap_fluid_table.item(i,0).text() == 'Air' and self.evap_fluid_table.rowCount() != 1:
+                                QMessageBox.warning(self, '입력문 검토', '저온 유체에 Air Mixture는 계산할 수 없습니다.', QMessageBox.Yes)
+                                self.message_chk = self.message_chk+1
+                            else:
+                                self.evapY[self.evap_fluid_table.item(i, 0).text()]=float(self.evap_fluid_table.item(i, 1).text())/frac_total
                         else:
-                            QMessageBox.information(self, '입력문 검토', '저온 유체 종류를 정의하세요.', QMessageBox.Yes)
+                            QMessageBox.warning(self, '입력문 검토', '저온 유체 종류를 정의하세요.', QMessageBox.Yes)
                             self.message_chk = self.message_chk+1
                     else:
-                        QMessageBox.information(self, '입력문 검토', '저온 유체 종류를 정의하세요.', QMessageBox.Yes)
+                        QMessageBox.warning(self, '입력문 검토', '저온 유체 종류를 정의하세요.', QMessageBox.Yes)
                         self.message_chk = self.message_chk+1
                     
 
@@ -278,30 +281,34 @@ class WindowClass(QMainWindow, form_class):
         self.condY = {}
         frac_total = 0.0
         if self.cond_fluid_table.rowCount() == 0:
-            QMessageBox.information(self, '입력문 검토', '고온 유체 행을 추가하세요.', QMessageBox.Yes)
+            QMessageBox.warning(self, '입력문 검토', '고온 유체 행을 추가하세요.', QMessageBox.Yes)
             self.message_chk = self.message_chk+1
         else:
             for i in range(self.cond_fluid_table.rowCount()):
-                if self.cond_fluid_table.item(self.cond_fluid_table.rowCount()-1,1) is not None:
-                    if self.cond_fluid_table.item(self.cond_fluid_table.rowCount()-1,1).text() != '':                        
+                if self.cond_fluid_table.item(i,1) is not None:
+                    if self.cond_fluid_table.item(i,1).text() != '':                        
                         frac_total = frac_total + float(self.cond_fluid_table.item(i, 1).text())
                     else:
-                        QMessageBox.information(self, '입력문 검토', '고온 유체 조성비를 정의하세요.', QMessageBox.Yes)
+                        QMessageBox.warning(self, '입력문 검토', '고온 유체 조성비를 정의하세요.', QMessageBox.Yes)
                         self.message_chk = self.message_chk+1
                 else:
-                    QMessageBox.information(self, '입력문 검토', '고온 유체 조성비를 정의하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '고온 유체 조성비를 정의하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
             
             if frac_total != 0:
                 for i in range(self.cond_fluid_table.rowCount()):
-                    if self.cond_fluid_table.item(self.cond_fluid_table.rowCount()-1,0) is not None:
-                        if self.cond_fluid_table.item(self.cond_fluid_table.rowCount()-1,0).text() != '':
-                            self.condY[self.cond_fluid_table.item(i, 0).text()]=float(self.cond_fluid_table.item(i, 1).text())/frac_total
+                    if self.cond_fluid_table.item(i,0) is not None:
+                        if self.cond_fluid_table.item(i,0).text() != '':
+                            if self.cond_fluid_table.item(i,0).text() == 'Air' and self.cond_fluid_table.rowCount() != 1:
+                                QMessageBox.warning(self, '입력문 검토', '고온 유체에 Air Mixture는 계산할 수 없습니다.', QMessageBox.Yes)
+                                self.message_chk = self.message_chk+1
+                            else:
+                                self.condY[self.cond_fluid_table.item(i, 0).text()]=float(self.cond_fluid_table.item(i, 1).text())/frac_total
                         else:
-                            QMessageBox.information(self, '입력문 검토', '고온 유체 종류를 정의하세요.', QMessageBox.Yes)
+                            QMessageBox.warning(self, '입력문 검토', '고온 유체 종류를 정의하세요.', QMessageBox.Yes)
                             self.message_chk = self.message_chk+1
                     else:
-                        QMessageBox.information(self, '입력문 검토', '고온 유체 종류를 정의하세요.', QMessageBox.Yes)
+                        QMessageBox.warning(self, '입력문 검토', '고온 유체 종류를 정의하세요.', QMessageBox.Yes)
                         self.message_chk = self.message_chk+1
         
     def Inspection_action(self):
@@ -338,7 +345,6 @@ class WindowClass(QMainWindow, form_class):
         self.DSH_label.setText('과열도 [℃]')
         self.DSC_bot_label.setText('과냉도 [℃]')
         
-        
     def Bas_batch(self):
         self.comp_group.setHidden(False)
         self.expand_group.setHidden(False)
@@ -349,7 +355,8 @@ class WindowClass(QMainWindow, form_class):
         self.evap_in_group.setHidden(False)
         self.evap_out_group.setHidden(False)
         self.DSH_group.setHidden(False)
-        self.DSC_group.setHidden(False)
+        if self.cycle_type == 'vcc':
+            self.DSC_group.setHidden(False)
         
         
     def IHX_batch(self):
@@ -362,7 +369,8 @@ class WindowClass(QMainWindow, form_class):
         self.evap_in_group.setHidden(False)
         self.evap_out_group.setHidden(False)
         self.DSH_group.setHidden(False)
-        self.DSC_group.setHidden(False)
+        if self.cycle_type == 'vcc':
+            self.DSC_group.setHidden(False)
         self.IHX_group.setHidden(False)
         
     def Inj_batch(self):
@@ -377,7 +385,8 @@ class WindowClass(QMainWindow, form_class):
         self.evap_in_group.setHidden(False)
         self.evap_out_group.setHidden(False)
         self.DSH_group.setHidden(False)
-        self.DSC_group.setHidden(False)
+        if self.cycle_type == 'vcc':
+            self.DSC_group.setHidden(False)
         self.comp_top_eff_label.setText('압축기 효율 (Top) [%]')
         self.comp_bot_eff_label.setText('압축기 효율 (Bot) [%]')
         self.expand_top_eff_label.setText('팽창기 효율 (Top) [%]')
@@ -397,7 +406,8 @@ class WindowClass(QMainWindow, form_class):
         self.evap_in_group.setHidden(False)
         self.evap_out_group.setHidden(False)
         self.DSH_group.setHidden(False)
-        self.DSC_group.setHidden(False)
+        if self.cycle_type == 'vcc':
+            self.DSC_group.setHidden(False)
         self.DSH_top_group.setHidden(False)
         self.DSC_bot_group.setHidden(False)
         self.cas_group.setHidden(False)
@@ -524,35 +534,36 @@ class WindowClass(QMainWindow, form_class):
                 self.inputs_t.second = 'steam'
                 self.mmakeup_edit.setText(self.m_load_edit.text())
                 if self.dT_lift_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '목표 증기 온도를 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '목표 증기 온도를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs_t.T_steam = float(self.dT_lift_edit.text())+273.15
                 if self.m_load_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '증기 유량을 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '증기 유량을 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs_t.m_steam = float(self.m_load_edit.text())
-                self.inputs_t.m_makeup = self.inputs.m_steam
+                    
+                self.inputs_t.m_makeup = self.inputs_t.m_steam
             elif self.process_type == 'hotwater':
                 self.inputs_t.second = 'hotwater'
                 if self.Thot_target_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '목표 급탕 온도를 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '목표 급탕 온도를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs_t.T_target = float(self.Thot_target_edit.text())+273.15
                 if self.time_target_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '급탕조 가열 시간을 입력하세요', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '급탕조 가열 시간을 입력하세요', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs_t.time_target = float(self.time_target_edit.text())*60.0
                 if self.dT_lift_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '응축기 내에서 가열하고자하는 상승온도를 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '응축기 내에서 가열하고자하는 상승온도를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs_t.dT_lift = float(self.dT_lift_edit.text())
                 if self.m_load_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '급탕조 용량을 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '급탕조 용량을 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs_t.M_load = float(self.m_load_edit.text())
@@ -565,22 +576,25 @@ class WindowClass(QMainWindow, form_class):
                 self.inputs_t.cycle = 'vcc'
             
             if self.DSH_top_edit.text() == '':
-                QMessageBox.information(self, '입력문 검토', '과열도를 입력하세요. (Top)', QMessageBox.Yes)
+                QMessageBox.warning(self, '입력문 검토', '과열도를 입력하세요. (Top)', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
                 self.inputs_t.DSH = float(self.DSH_top_edit.text())
-            if self.DSC_edit.text() == '':
-                QMessageBox.information(self, '입력문 검토', '과냉도를 입력하세요. (Top)', QMessageBox.Yes)
+            if self.DSC_edit.text() == ''  and self.cycle_type == 'vcc':
+                QMessageBox.warning(self, '입력문 검토', '과냉도를 입력하세요. (Top)', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
-                self.inputs_t.DSC = float(self.DSC_edit.text())
+                if self.cycle_type == 'scc':
+                    self.inputs_t.DSC = (self.Tcrit_top - self.nbp_top)/5
+                else:
+                    self.inputs_t.DSC = float(self.DSC_edit.text())
             if self.DSH_edit.text() == '':
-                QMessageBox.information(self, '입력문 검토', '과열도를 입력하세요. (Bottom)', QMessageBox.Yes)
+                QMessageBox.warning(self, '입력문 검토', '과열도를 입력하세요. (Bottom)', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
                 self.inputs_b.DSH = float(self.DSH_edit.text())
             if self.DSC_bot_edit.text() == '':
-                QMessageBox.information(self, '입력문 검토', '과냉도를 입력하세요 (Bottom).', QMessageBox.Yes)
+                QMessageBox.warning(self, '입력문 검토', '과냉도를 입력하세요 (Bottom).', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
                 self.inputs_b.DSC = float(self.DSC_bot_edit.text())
@@ -591,60 +605,60 @@ class WindowClass(QMainWindow, form_class):
             self.inputs_b.evap_N_element = 30
             
             if self.cond_dp_edit.text() == '':
-                QMessageBox.information(self, '입력문 검토', '응축기 압력강하를 입력하세요.', QMessageBox.Yes)
+                QMessageBox.warning(self, '입력문 검토', '응축기 압력강하를 입력하세요.', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
                 self.inputs_t.cond_dp = float(self.cond_dp_edit.text())/100.0
             if self.cas_cold_dp_edit.text() == '':
-                QMessageBox.information(self, '입력문 검토', '캐스케이드 열교환기 저온측 압력강하를 입력하세요.', QMessageBox.Yes)
+                QMessageBox.warning(self, '입력문 검토', '캐스케이드 열교환기 저온측 압력강하를 입력하세요.', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
                 self.inputs_t.evap_dp = float(self.cas_cold_dp_edit.text())/100.0
             if self.cas_hot_dp_edit.text() == '':
-                QMessageBox.information(self, '입력문 검토', '캐스케이드 열교환기 고온측 압력강하를 입력하세요.', QMessageBox.Yes)
+                QMessageBox.warning(self, '입력문 검토', '캐스케이드 열교환기 고온측 압력강하를 입력하세요.', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
                 self.inputs_b.cond_dp = float(self.cas_hot_dp_edit.text())/100.0
             if self.evap_dp_edit.text() == '':
-                QMessageBox.information(self, '입력문 검토', '증발기 압력강하를 입력하세요.', QMessageBox.Yes)
+                QMessageBox.warning(self, '입력문 검토', '증발기 압력강하를 입력하세요.', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:                
                 self.inputs_b.evap_dp = float(self.evap_dp_edit.text())/100.0
             
             if self.cond_phe_radio.isChecked():
                 if self.cond_T_pp_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '판형 응축기 접근온도를 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '판형 응축기 접근온도를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs_t.cond_T_pp = float(self.cond_T_pp_edit.text())
             elif self.cond_fthe_radio.isChecked():
                 if self.cond_T_pp_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '핀튜브형 응축기 LMTD를 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '핀튜브형 응축기 LMTD를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs_t.cond_T_lm = float(self.cond_T_pp_edit.text())
                 if self.cond_N_row_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '핀튜브형 응축기 전열관 열 개수를 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '핀튜브형 응축기 전열관 열 개수를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs_t.cond_N_row = int(self.cond_N_row_edit.text())
             
             if self.cas_phe_radio.isChecked():
                 if self.cas_T_pp_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '판형 캐스케이드 열교환기 접근온도를 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '판형 캐스케이드 열교환기 접근온도를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs_t.evap_T_pp = float(self.cas_T_pp_edit.text())
                     self.inputs_b.cond_T_pp = float(self.cas_T_pp_edit.text())
             elif self.cond_fthe_radio.isChecked():
                 if self.cas_T_pp_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '핀튜브형 캐스케이드 열교환기 LMTD를 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '핀튜브형 캐스케이드 열교환기 LMTD를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs_t.cond_T_lm = float(self.cas_T_pp_edit.text())
                     self.inputs_b.evap_T_lm = float(self.cas_T_pp_edit.text())
                 if self.cas_N_row_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '핀튜브형 캐스케이드 열교환기 전열관 열 개수를 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '핀튜브형 캐스케이드 열교환기 전열관 열 개수를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:    
                     self.inputs_t.cond_N_row = int(self.cas_N_row_edit.text())
@@ -652,39 +666,39 @@ class WindowClass(QMainWindow, form_class):
             
             if self.evap_phe_radio.isChecked():
                 if self.evap_T_pp_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '판형 증발기 접근온도를 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '판형 증발기 접근온도를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs_b.evap_T_pp = float(self.evap_T_pp_edit.text())
             elif self.evap_fthe_radio.isChecked():
                 if self.evap_T_pp_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '핀튜브형 증발기 LMTD를 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '핀튜브형 증발기 LMTD를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs_b.evap_T_lm = float(self.evap_T_pp_edit.text())
                 if self.evap_N_row_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '핀튜브형 증발기 전열관 열 개수를 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '핀튜브형 증발기 전열관 열 개수를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs_b.evap_N_row = int(self.evap_N_row_edit.text())
                     
             if self.comp_top_eff_edit.text() == '':
-                QMessageBox.information(self, '입력문 검토', '압축기 등엔트로피 효율을 입력하세요 (Top).', QMessageBox.Yes)
+                QMessageBox.warning(self, '입력문 검토', '압축기 등엔트로피 효율을 입력하세요 (Top).', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
                 self.inputs_t.comp_eff = float(self.comp_top_eff_edit.text())/100.0
             if self.comp_bot_eff_edit.text() == '':
-                QMessageBox.information(self, '입력문 검토', '압축기 등엔트로피 효율을 입력하세요 (Bottom).', QMessageBox.Yes)
+                QMessageBox.warning(self, '입력문 검토', '압축기 등엔트로피 효율을 입력하세요 (Bottom).', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
                 self.inputs_b.comp_eff = float(self.comp_bot_eff_edit.text())/100.0
             if self.expand_top_eff_edit.text() == '':
-                QMessageBox.information(self, '입력문 검토', '팽창기 등엔트로피 효율을 입력하세요 (Top).', QMessageBox.Yes)
+                QMessageBox.warning(self, '입력문 검토', '팽창기 등엔트로피 효율을 입력하세요 (Top).', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
                 self.inputs_t.expand_eff = float(self.expand_top_eff_edit.text())/100.0
             if self.expand_bot_eff_edit.text() == '':
-                QMessageBox.information(self, '입력문 검토', '팽창기 등엔트로피 효율을 입력하세요 (Bottom).', QMessageBox.Yes)
+                QMessageBox.warning(self, '입력문 검토', '팽창기 등엔트로피 효율을 입력하세요 (Bottom).', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
                 self.inputs_b.expand_eff = float(self.expand_bot_eff_edit.text())/100.0
@@ -713,22 +727,25 @@ class WindowClass(QMainWindow, form_class):
                 self.inputs.cycle = 'vcc'
             
             if self.DSH_edit.text() == '':
-                QMessageBox.information(self, '입력문 검토', '과열도를 입력하세요.', QMessageBox.Yes)
+                QMessageBox.warning(self, '입력문 검토', '과열도를 입력하세요.', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
                 self.inputs.DSH = float(self.DSH_edit.text())
-            if self.DSC_edit.text() == '':
-                 QMessageBox.information(self, '입력문 검토', '과냉도를 입력하세요.', QMessageBox.Yes)
+            if self.DSC_edit.text() == '' and self.cycle_type == 'vcc':
+                 QMessageBox.warning(self, '입력문 검토', '과냉도를 입력하세요.', QMessageBox.Yes)
                  self.message_chk = self.message_chk+1
             else:
-                self.inputs.DSC = float(self.DSC_edit.text())
+                if self.cycle_type == 'scc':
+                    self.inputs.DSC = (self.Tcrit_bottom - self.nbp_bottom)/5
+                else:
+                    self.inputs.DSC = float(self.DSC_edit.text())
             if self.cond_dp_edit.text() == '':
-                QMessageBox.information(self, '입력문 검토', '응축기 압력강하를 입력하세요.', QMessageBox.Yes)
+                QMessageBox.warning(self, '입력문 검토', '응축기 압력강하를 입력하세요.', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
                 self.inputs.cond_dp = float(self.cond_dp_edit.text())/100.0
             if self.evap_dp_edit.text() == '':
-                QMessageBox.information(self, '입력문 검토', '증발기 압력강하를 입력하세요.', QMessageBox.Yes)
+                QMessageBox.warning(self, '입력문 검토', '증발기 압력강하를 입력하세요.', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
                 self.inputs.evap_dp = float(self.evap_dp_edit.text())/100.0
@@ -737,35 +754,35 @@ class WindowClass(QMainWindow, form_class):
             self.inputs.evap_N_element = 30
             if self.cond_phe_radio.isChecked():
                 if self.cond_T_pp_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '판형 응축기 접근온도를 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '판형 응축기 접근온도를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs.cond_T_pp = float(self.cond_T_pp_edit.text())
             elif self.cond_fthe_radio.isChecked():
                 if self.cond_T_pp_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '핀튜브형 응축기 LMTD를 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '핀튜브형 응축기 LMTD를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs.cond_T_lm = float(self.cond_T_pp_edit.text())
                 if self.cond_N_row_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '핀튜브형 응축기 전열관 열 개수를 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '핀튜브형 응축기 전열관 열 개수를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs.cond_N_row = int(self.cond_N_row_edit.text())
             if self.evap_phe_radio.isChecked():
                 if self.evap_T_pp_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '판형 증발기 접근온도를 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '판형 증발기 접근온도를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs.evap_T_pp = float(self.evap_T_pp_edit.text())
             elif self.evap_fthe_radio.isChecked():
                 if self.evap_T_pp_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '핀튜브형 증발기 LMTD를 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '핀튜브형 증발기 LMTD를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs.evap_T_lm = float(self.evap_T_pp_edit.text())
                 if self.evap_N_row_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '핀튜브형 증발기 전열관 열 개수를 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '핀튜브형 증발기 전열관 열 개수를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs.evap_N_row = int(self.evap_N_row_edit.text())
@@ -773,61 +790,61 @@ class WindowClass(QMainWindow, form_class):
             if self.layout_type == 'bas':
                 self.inputs.layout = 'bas'
                 if self.comp_eff_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '압축기 등엔트로피 효율을 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '압축기 등엔트로피 효율을 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs.comp_eff = float(self.comp_eff_edit.text())/100.0
                 if self.expand_eff_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '팽창기 등엔트로피 효율을 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '팽창기 등엔트로피 효율을 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs.expand_eff = float(self.expand_eff_edit.text())/100.0
             elif self.layout_type == 'ihx':
                 self.inputs.layout = 'ihx'
                 if self.comp_top_eff_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '압축기 등엔트로피 효율을 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '압축기 등엔트로피 효율을 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs.comp_eff = float(self.comp_top_eff_edit.text())/100.0
                 if self.expand_bot_eff_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '팽창기 등엔트로피 효율을 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '팽창기 등엔트로피 효율을 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs.expand_eff = float(self.expand_bot_eff_edit.text())/100.0
                 if self.IHX_eff_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '내부열교환기 유용도를 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '내부열교환기 유용도를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs.ihx_eff = float(self.IHX_eff_edit.text())/100.0
                 if self.IHX_hot_dp_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '내부열교환기 고온측 압력강하를 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '내부열교환기 고온측 압력강하를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs.ihx_hot_dp = float(self.IHX_hot_dp_edit.text())/100.0
                 if self.IHX_cold_dp_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '내부열교환기 저온측 압력강하를 입력하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '내부열교환기 저온측 압력강하를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs.ihx_cold_dp = float(self.IHX_cold_dp_edit.text())/100.0
             elif self.layout_type == 'inj':
                 self.inputs.layout = 'inj'
                 if self.comp_top_eff_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '압축기 등엔트로피 효율을 입력하세요. (Top)', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '압축기 등엔트로피 효율을 입력하세요. (Top)', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs.comp_top_eff = float(self.comp_top_eff_edit.text())/100.0
                 if self.comp_bot_eff_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '압축기 등엔트로피 효율을 입력하세요. (Bottom)', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '압축기 등엔트로피 효율을 입력하세요. (Bottom)', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs.comp_eff = float(self.comp_bot_eff_edit.text())/100.0
                 if self.expand_top_eff_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '팽창기 등엔트로피 효율을 입력하세요. (Top)', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '팽창기 등엔트로피 효율을 입력하세요. (Top)', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs.expand_eff = float(self.expand_top_eff_edit.text())/100.0
                 if self.expand_bot_eff_edit.text() == '':
-                    QMessageBox.information(self, '입력문 검토', '팽창기 등엔트로피 효율을 입력하세요. (Bottom)', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '팽창기 등엔트로피 효율을 입력하세요. (Bottom)', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs.expand_bot_eff = float(self.expand_bot_eff_edit.text())/100.0
@@ -890,7 +907,7 @@ class WindowClass(QMainWindow, form_class):
             self.OutCond.m = self.InCond.m
         elif self.process_type == 'steam':
             if self.cond_out_T_edit.text() == '':
-                QMessageBox.information(self, '입력문 검토', '응축기 출구 온도를 입력하세요', QMessageBox.Yes)
+                QMessageBox.warning(self, '입력문 검토', '응축기 출구 온도를 입력하세요', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
                 if self.layout_type == 'cas':
@@ -899,27 +916,27 @@ class WindowClass(QMainWindow, form_class):
                     steamT = self.inputs.T_steam
                         
                 if  steamT < float(self.cond_out_T_edit.text()):
-                    QMessageBox.information(self, '입력문 검토', '응축기 출구 온도는 타겟 증기 온도보다 높게 설정해야합니다.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '응축기 출구 온도는 타겟 증기 온도보다 높게 설정해야합니다.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 elif steamT < 100.0:
-                    QMessageBox.information(self, '입력문 검토', '증기 온도는 100℃보다 높게 설정해야합니다.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '증기 온도는 100℃보다 높게 설정해야합니다.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
                     self.OutCond.T = float(self.cond_out_T_edit.text())+273.15
         
         elif self.process_type == 'hotwater':
             if float(self.Thot_target_edit.text()) > 100.0:
-                QMessageBox.information(self, '입력문 검토', '급탕온도는 100℃보다 낮게 설정해야합니다.', QMessageBox.Yes)
+                QMessageBox.warning(self, '입력문 검토', '급탕온도는 100℃보다 낮게 설정해야합니다.', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
 
         if self.layout_type == 'cas':
             if self.ref_list_t.currentText() == '':
-                QMessageBox.information(self, '입력문 검토', '냉매 종류를 입력하세요 (Top)', QMessageBox.Yes)
+                QMessageBox.warning(self, '입력문 검토', '냉매 종류를 입력하세요 (Top)', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
                 self.inputs_t.Y = {self.Y_t:1.0,}
             if self.ref_list_b.currentText() == '':
-                QMessageBox.information(self, '입력문 검토', '냉매 종류를 입력하세요 (Bottom)', QMessageBox.Yes)
+                QMessageBox.warning(self, '입력문 검토', '냉매 종류를 입력하세요 (Bottom)', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
                 self.inputs_b.Y = {self.Y_b:1.0,}
@@ -930,7 +947,7 @@ class WindowClass(QMainWindow, form_class):
 
         else:
             if self.ref_list_b.currentText() == '':
-                QMessageBox.information(self, '입력문 검토', '냉매 종류를 입력하세요', QMessageBox.Yes)
+                QMessageBox.warning(self, '입력문 검토', '냉매 종류를 입력하세요', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
                 self.inputs.Y = {self.Y_b:1.0,}
@@ -943,39 +960,48 @@ class WindowClass(QMainWindow, form_class):
             self.no_input = no_input
             if no_input == 'InEvapT':
                 if self.nbp_bottom > self.OutEvap.T - float(self.evap_T_pp_edit.text()):
-                    QMessageBox.information(self, '입력문 검토', '냉매의 NBP가 공정 온도 보다 높습니다. 다른 냉매를 선택하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '냉매의 NBP가 공정 온도 보다 높습니다. 다른 냉매를 선택하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
             else:
                 if self.nbp_bottom > self.InEvap.T - float(self.evap_T_pp_edit.text()):
-                    QMessageBox.information(self, '입력문 검토', '냉매의 NBP가 공정 온도 보다 높습니다. 다른 냉매를 선택하세요.', QMessageBox.Yes)
+                    QMessageBox.warning(self, '입력문 검토', '냉매의 NBP가 공정 온도 보다 높습니다. 다른 냉매를 선택하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
             
-            if self.cycle_type == 'vcc':
-                if self.layout_type == 'cas':
-                    Tcrit = self.Tcrit_top
-                else:
-                    Tcrit = self.Tcrit_bottom                
-                    
+            if self.layout_type == 'cas':
+                Tcrit = self.Tcrit_top
+            else:
+                Tcrit = self.Tcrit_bottom
+            
+            if self.cycle_type == 'vcc':                
                 if no_input == 'OutCondT':
                     if Tcrit < self.InCond.T + float(self.cond_T_pp_edit.text()):
-                        QMessageBox.information(self, '입력문 검토', '냉매의 임계온도가 공정 온도 보다 낮습니다. 다른 냉매를 선택하세요.', QMessageBox.Yes)
+                        QMessageBox.warning(self, '입력문 검토', '아임계 사이클은 공정 온도가 임계온도보다 낮아야합니다. 다른 냉매를 선택하세요.', QMessageBox.Yes)
                         self.message_chk = self.message_chk+1
                 else:
                     if Tcrit < self.OutCond.T + float(self.cond_T_pp_edit.text()):
-                        QMessageBox.information(self, '입력문 검토', '냉매의 임계온도가 공정 온도 보다 낮습니다. 다른 냉매를 선택하세요.', QMessageBox.Yes)
+                        QMessageBox.warning(self, '입력문 검토', '아임계 사이클은 공정 온도가 임계온도보다 낮아야합니다. 다른 냉매를 선택하세요.', QMessageBox.Yes)
+                        self.message_chk = self.message_chk+1
+            else:
+                if no_input == 'OutCondT':
+                    if Tcrit > self.InCond.T + float(self.cond_T_pp_edit.text()):
+                        QMessageBox.warning(self, '입력문 검토', '초월임계 사이클은 공정 온도가 임계온도보다 높아야합니다. 다른 냉매를 선택하세요.', QMessageBox.Yes)
+                        self.message_chk = self.message_chk+1
+                else:
+                    if Tcrit > self.OutCond.T + float(self.cond_T_pp_edit.text()):
+                        QMessageBox.warning(self, '입력문 검토', '초월임계 사이클은 공정 온도가 임계온도보다 높아야합니다. 다른 냉매를 선택하세요.', QMessageBox.Yes)
                         self.message_chk = self.message_chk+1
         
         if self.message_chk == 0:
             if no_input == 'Overdefine':
-                QMessageBox.information(self, '입력문 검토', 'OverDefine: 고온 입구 온도, 고온 출구 온도, 고온 유량, 저온 입구 온도, 저온 출구 온도, 저온 유량 중 하나를 미지수로 설정하세요. (5개 입력)', QMessageBox.Yes)
+                QMessageBox.warning(self, '입력문 검토', 'OverDefine: 고온 입구 온도, 고온 출구 온도, 고온 유량, 저온 입구 온도, 저온 출구 온도, 저온 유량 중 하나를 미지수로 설정하세요. (5개 입력)', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             elif no_input == 'Underdefine':
-                QMessageBox.information(self, '입력문 검토', 'UnderDefine: 미지수가 너무 적게 입력됐습니다. (5개 입력)', QMessageBox.Yes)
+                QMessageBox.warning(self, '입력문 검토', 'UnderDefine: 미지수가 너무 적게 입력됐습니다. (5개 입력)', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
                 if no_input == 'OutCondT' or no_input == 'InCondT':
                     if self.InEvap.T - self.OutEvap.T < 0:
-                        QMessageBox.information(self, '입력문 검토', '증발기 출구 온도를 입구 온도보다 낮게 설정하세요.', QMessageBox.Yes)
+                        QMessageBox.warning(self, '입력문 검토', '증발기 출구 온도를 입구 온도보다 낮게 설정하세요.', QMessageBox.Yes)
                         self.message_chk = self.message_chk+1
                     else:
                         self.message_chk = 0
@@ -985,14 +1011,14 @@ class WindowClass(QMainWindow, form_class):
                         self.message_chk = 0
                     else:
                         if self.OutCond.T - self.InCond.T < 0:
-                            QMessageBox.information(self, '입력문 검토', '응축기 출구 온도를 입구 온도보다 높게 설정하세요.', QMessageBox.Yes)
+                            QMessageBox.warning(self, '입력문 검토', '응축기 출구 온도를 입구 온도보다 높게 설정하세요.', QMessageBox.Yes)
                         elif self.InEvap.T - self.OutEvap.T < 0:
-                            QMessageBox.information(self, '입력문 검토', '증발기 출구 온도를 입구 온도보다 낮게 설정하세요.', QMessageBox.Yes)
+                            QMessageBox.warning(self, '입력문 검토', '증발기 출구 온도를 입구 온도보다 낮게 설정하세요.', QMessageBox.Yes)
                         self.message_chk = self.message_chk+1
                             
                 elif no_input == 'OutEvapT' or no_input == 'InEvapT':
                     if self.OutCond.T - self.InCond.T < 0:
-                        QMessageBox.information(self, '입력문 검토', '응축기 출구 온도를 입구 온도보다 높게 설정하세요.', QMessageBox.Yes)
+                        QMessageBox.warning(self, '입력문 검토', '응축기 출구 온도를 입구 온도보다 높게 설정하세요.', QMessageBox.Yes)
                         self.message_chk = self.message_chk+1
                     else:
                         self.message_chk = 0
@@ -1020,67 +1046,74 @@ class WindowClass(QMainWindow, form_class):
                 self.cond_out_T_edit.setEnabled(False)
                 self.cond_out_p_edit.setEnabled(False)
                 
-            QMessageBox.information(self, '입력문 검토', '입력문이 적절하게 입력됐습니다.', QMessageBox.Yes)
+            QMessageBox.information(self, '입력문 검토 완료!', '입력문이 적절하게 입력됐습니다.', QMessageBox.Yes)
             self.Calcstart_btn.setEnabled(True)
             
     def Calcstart_action(self):
-        if self.layout_type == 'cas':
-            self.outputs_t = Outputs()
-            self.outputs_b = Outputs()
+        try:
             
-            self.InCond_REF_t = ProcessFluid(Y=self.inputs_t.Y)
-            self.OutCond_REF_t = ProcessFluid(Y=self.inputs_t.Y)
-            self.InEvap_REF_t = ProcessFluid(Y=self.inputs_t.Y)
-            self.OutEvap_REF_t = ProcessFluid(Y=self.inputs_t.Y)
-            self.InCond_REF_b = ProcessFluid(Y=self.inputs_b.Y)
-            self.OutCond_REF_b = ProcessFluid(Y=self.inputs_b.Y)
-            self.InEvap_REF_b = ProcessFluid(Y=self.inputs_b.Y)
-            self.OutEvap_REF_b = ProcessFluid(Y=self.inputs_b.Y)
-            cond_t_ph = 0
-            evap_b_ph = 0
-            (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF_t, self.OutCond_REF_t, self.InEvap_REF_t, self.OutEvap_REF_t, self.InCond_REF_b, self.OutCond_REF_b, self.InEvap_REF_b, self.OutEvap_REF_b, self.outputs_t, self.outputs_b)\
-                = self.vchp_cascade.Cascade_solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF_t, self.OutCond_REF_t, self.InEvap_REF_t, self.OutEvap_REF_t, self.InCond_REF_b, self.OutCond_REF_b, self.InEvap_REF_b, self.OutEvap_REF_b, self.inputs_t, self.inputs_b, self.outputs_t, self.outputs_b, self.no_input, cond_t_ph, evap_b_ph)
-            self.vchp_cascade.Plot_diagram(self.InCond_REF_t, self.OutCond_REF_t, self.InEvap_REF_t, self.OutEvap_REF_t, self.inputs_t, self.outputs_t, self.InCond_REF_b, self.OutCond_REF_b, self.InEvap_REF_b, self.OutEvap_REF_b, self.inputs_b, self.outputs_b)
-        else:
-            self.outputs = Outputs()
-            
-            self.InCond_REF = ProcessFluid(Y=self.inputs.Y)
-            self.OutCond_REF = ProcessFluid(Y=self.inputs.Y)
-            self.InEvap_REF = ProcessFluid(Y=self.inputs.Y)
-            self.OutEvap_REF = ProcessFluid(Y=self.inputs.Y)
-            evap_ph = 0
-            cond_ph = 0
-            if self.layout_type == 'inj':    
-                (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.outputs) = self.vchp.Injection_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, self.outputs, self.no_input, cond_ph, evap_ph)
+            if self.layout_type == 'cas':
+                self.outputs_t = Outputs()
+                self.outputs_b = Outputs()
+                
+                self.InCond_REF_t = ProcessFluid(Y=self.inputs_t.Y)
+                self.OutCond_REF_t = ProcessFluid(Y=self.inputs_t.Y)
+                self.InEvap_REF_t = ProcessFluid(Y=self.inputs_t.Y)
+                self.OutEvap_REF_t = ProcessFluid(Y=self.inputs_t.Y)
+                self.InCond_REF_b = ProcessFluid(Y=self.inputs_b.Y)
+                self.OutCond_REF_b = ProcessFluid(Y=self.inputs_b.Y)
+                self.InEvap_REF_b = ProcessFluid(Y=self.inputs_b.Y)
+                self.OutEvap_REF_b = ProcessFluid(Y=self.inputs_b.Y)
+                cond_t_ph = 0
+                evap_b_ph = 0
+                (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF_t, self.OutCond_REF_t, self.InEvap_REF_t, self.OutEvap_REF_t, self.InCond_REF_b, self.OutCond_REF_b, self.InEvap_REF_b, self.OutEvap_REF_b, self.outputs_t, self.outputs_b)\
+                    = self.vchp_cascade.Cascade_solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF_t, self.OutCond_REF_t, self.InEvap_REF_t, self.OutEvap_REF_t, self.InCond_REF_b, self.OutCond_REF_b, self.InEvap_REF_b, self.OutEvap_REF_b, self.inputs_t, self.inputs_b, self.outputs_t, self.outputs_b, self.no_input, cond_t_ph, evap_b_ph)
+                self.vchp_cascade.Plot_diagram(self.InCond_REF_t, self.OutCond_REF_t, self.InEvap_REF_t, self.OutEvap_REF_t, self.inputs_t, self.outputs_t, self.InCond_REF_b, self.OutCond_REF_b, self.InEvap_REF_b, self.OutEvap_REF_b, self.inputs_b, self.outputs_b)
             else:
-                (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.outputs) = self.vchp.Cycle_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, self.outputs, self.no_input, cond_ph, evap_ph)
-        
-            self.vchp.Plot_diagram(self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, self.outputs)
-        
-        self.MoveToResultsTab()
-        self.AllHidden_ResultTab()
-        if self.layout_type == 'bas':
-            self.Bas_batch_result()
-            self.layout_fig_tab3.setPixmap(QPixmap(".\Figs\Basic_result.png").scaledToHeight(500))
-        elif self.layout_type == 'ihx':
-            self.IHX_batch_result()
-            self.layout_fig_tab3.setPixmap(QPixmap(".\Figs\IHX_result.png").scaledToHeight(500))    
-        elif self.layout_type == 'inj':
-            self.Inj_batch_result()
-            self.layout_fig_tab3.setPixmap(QPixmap(".\Figs\Injection_result.png").scaledToHeight(500))    
-        elif self.layout_type == 'cas':
-            self.Cas_batch_result()
-            self.layout_fig_tab3.setPixmap(QPixmap(".\Figs\Cascade_result.png").scaledToHeight(500))
+                self.outputs = Outputs()
+                
+                self.InCond_REF = ProcessFluid(Y=self.inputs.Y)
+                self.OutCond_REF = ProcessFluid(Y=self.inputs.Y)
+                self.InEvap_REF = ProcessFluid(Y=self.inputs.Y)
+                self.OutEvap_REF = ProcessFluid(Y=self.inputs.Y)
+                evap_ph = 0
+                cond_ph = 0
+                if self.layout_type == 'inj':    
+                    (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.outputs) = self.vchp.Injection_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, self.outputs, self.no_input, cond_ph, evap_ph)
+                else:
+                    (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.outputs) = self.vchp.Cycle_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, self.outputs, self.no_input, cond_ph, evap_ph)
             
-        if self.process_type == 'process':
-            self.process_fig_tab3.setPixmap(QPixmap(".\Figs\Process.png").scaledToWidth(300))
-        elif self.process_type == 'steam':
-            self.process_fig_tab3.setPixmap(QPixmap(".\Figs\Steam.png").scaledToWidth(300))            
-        elif self.process_type == 'hotwater':
-            self.process_fig_tab3.setPixmap(QPixmap(".\Figs\Hotwater.png").scaledToWidth(300))            
-            
-        self.ph_diagram.setPixmap(QPixmap(".\Figs\Ph_diagram.png").scaledToWidth(400))
-        self.ts_diagram.setPixmap(QPixmap(".\Figs\Ts_diagram.png").scaledToWidth(400))        
+                self.vchp.Plot_diagram(self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, self.outputs)
+        
+            self.MoveToResultsTab()
+            self.AllHidden_ResultTab()
+            if self.layout_type == 'bas':
+                self.Bas_batch_result()
+                self.layout_fig_tab3.setPixmap(QPixmap(".\Figs\Basic_result.png").scaledToHeight(500))
+            elif self.layout_type == 'ihx':
+                self.IHX_batch_result()
+                self.layout_fig_tab3.setPixmap(QPixmap(".\Figs\IHX_result.png").scaledToHeight(500))    
+            elif self.layout_type == 'inj':
+                self.Inj_batch_result()
+                self.layout_fig_tab3.setPixmap(QPixmap(".\Figs\Injection_result.png").scaledToHeight(500))    
+            elif self.layout_type == 'cas':
+                self.Cas_batch_result()
+                self.layout_fig_tab3.setPixmap(QPixmap(".\Figs\Cascade_result.png").scaledToHeight(500))
+                
+            if self.process_type == 'process':
+                self.process_fig_tab3.setPixmap(QPixmap(".\Figs\Process.png").scaledToWidth(300))
+            elif self.process_type == 'steam':
+                self.process_fig_tab3.setPixmap(QPixmap(".\Figs\Steam.png").scaledToWidth(300))            
+            elif self.process_type == 'hotwater':
+                self.process_fig_tab3.setPixmap(QPixmap(".\Figs\Hotwater.png").scaledToWidth(300))            
+                
+            self.ph_diagram.setPixmap(QPixmap(".\Figs\Ph_diagram.png").scaledToWidth(400))
+            self.ts_diagram.setPixmap(QPixmap(".\Figs\Ts_diagram.png").scaledToWidth(400))
+        except:
+            import traceback
+            QMessageBox.warning(self, '계산 error', '입력문을 재검토하세요.', QMessageBox.Yes)
+            QMessageBox.warning(self, '계산 error', traceback.format_exc(), QMessageBox.Yes)
+            self.message_chk = self.message_chk+1
     
     def AllHidden_ResultTab(self):
         self.REF_table.clearContents()
@@ -1360,22 +1393,31 @@ class WindowClass(QMainWindow, form_class):
     def InputExample(self):
         self.evap_fluid_table.setItem(0, 0, QTableWidgetItem('Water'))
         self.evap_fluid_table.setItem(0, 1, QTableWidgetItem('1.0'))
+        
         self.evap_in_T_edit.setText('50.0')
+        
         self.evap_in_p_edit.setText('1.5')
         self.evap_in_m_edit.setText('1.0')
         self.evap_out_p_edit.setText('1.5')
         
+        
         if self.process_type == 'steam':
-            self.dT_lift_edit.setText('110.0')
+            if self.cycle_type == 'vcc':
+                self.dT_lift_edit.setText('110.0')
+                self.cond_out_T_edit.setText('120.0')
+            else:
+                self.dT_lift_edit.setText('140.0')
+                self.cond_out_T_edit.setText('150.0')
+                
             self.m_load_edit.setText('0.02')
             self.Tmakeup_edit.setText('25.0')
-            self.cond_out_T_edit.setText('120.0')
             self.cond_in_T_edit.setEnabled(False)
             self.cond_in_p_edit.setEnabled(False)
             self.cond_in_m_edit.setEnabled(False)
             self.cond_out_p_edit.setEnabled(False)
+            
         elif self.process_type == 'hotwater':
-            self.Thot_target_edit.setText('80.0')
+            self.Thot_target_edit.setText('90.0')
             self.time_target_edit.setText('10.0')
             self.dT_lift_edit.setText('10.0')
             self.m_load_edit.setText('10.0')
@@ -1387,16 +1429,26 @@ class WindowClass(QMainWindow, form_class):
             self.cond_out_p_edit.setEnabled(False)
         else:
             self.process_type = 'process'
-            self.cond_fluid_table.setItem(0, 0, QTableWidgetItem('Water'))
+            if self.cycle_type == 'vcc':
+                self.cond_fluid_table.setItem(0, 0, QTableWidgetItem('Water'))
+                self.cond_in_T_edit.setText('70.0')
+                self.cond_out_T_edit.setText('80.0')
+            else:
+                self.cond_fluid_table.setItem(0, 0, QTableWidgetItem('air'))
+                self.cond_in_T_edit.setText('120.0')
+                self.cond_out_T_edit.setText('160.0')
+            
             self.cond_fluid_table.setItem(0, 1, QTableWidgetItem('1.0'))
-            self.cond_in_T_edit.setText('70.0')
             self.cond_in_p_edit.setText('1.5')
             self.cond_in_m_edit.setText('1.0')
-            self.cond_out_T_edit.setText('80.0')
             self.cond_out_p_edit.setText('1.5')
         
         self.DSH_top_edit.setText('10.0')
-        self.DSC_edit.setText('5.0')
+        if self.cycle_type == 'vcc':
+            self.DSC_edit.setText('5.0')
+        else:
+            self.DSC_edit.setText('')
+            
         self.DSH_edit.setText('10.0')
         self.DSC_bot_edit.setText('5.0')
         
@@ -1435,7 +1487,7 @@ class WindowClass(QMainWindow, form_class):
         self.expand_bot_eff_edit.setText('0.0')
     
         if self.layout_type == 'cas': 
-            self.ref_list_b.setCurrentIndex(77)
+            self.ref_list_b.setCurrentIndex(1)
             self.ref_list_t.setCurrentIndex(93)
         else:
             self.ref_list_b.setCurrentIndex(93)
