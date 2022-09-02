@@ -34,7 +34,7 @@ class Compander_module:
             except:
                 T_expand_out_sat = self.primary_out.T_crit
             
-            if self.primary_out < T_expand_out_sat:
+            if self.primary_out.T < T_expand_out_sat:
                 primary_out_hg = PropsSI('H','P',self.primary_out.p,'Q',1.0, self.primary_in.fluidmixture)
                 primary_out_hl = PropsSI('H','P',self.primary_out.p,'Q',0.0, self.primary_in.fluidmixture)
                 primary_out_x = (self.primary_out.h - primary_out_hl)/(primary_out_hg - primary_out_hl)
