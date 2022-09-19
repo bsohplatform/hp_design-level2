@@ -707,11 +707,11 @@ class VCHP():
     def Post_Processing(self, outputs):
         print('Heating COP:{:.3f}, Cooling COP:{:.3f}'.format(outputs.COP_heating, outputs.COP_heating-1))
         print('Refrigerant:{}'.format(self.OutCond_REF.fluidmixture))
-        print('Q heating: {:.2f} [kW] ({:.2f} [usRT])'.format(self.OutCond.q/1000, self.OutCond.q/3516.8525))
-        print('Q cooling: {:.2f} [kW] ({:.2f} [usRT])'.format(self.OutEvap_REF.q/1000, self.OutEvap_REF.q/3516.8525))
-        print('Hot fluid Inlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]:   -------> Hot fluid Outlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]'.format(self.InCond.T, self.InCond.p/1.0e5, self.InCond.m, self.OutCond.T, self.OutCond.p, self.OutCond.m))
-        print('Cold fluid Outlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]: <------- Cold fluid Inlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]'.format(self.OutEvap.T, self.OutEvap.p/1.0e5, self.OutEvap.m, self.InEvap.T, self.InEvap.p, self.InEvap.m))
-        print('Plow: {:.2f} [bar], Phigh: {:.2f} [bar], mdot: {:.2f}[kg/s]'.format(self.OutEvap_REF.p/1.0e5, self.InCond_REF.p/1.0e5, self.OutEvap_REF.m))
+        print('Q heating: {:.3f} [kW] ({:.3f} [usRT])'.format(self.OutCond.q/1000, self.OutCond.q/3516.8525))
+        print('Q cooling: {:.3f} [kW] ({:.3f} [usRT])'.format(self.OutEvap_REF.q/1000, self.OutEvap_REF.q/3516.8525))
+        print('Hot fluid Inlet T:{:.3f}[℃]/P:{:.3f}[bar]/m:{:.3f}[kg/s]:   -------> Hot fluid Outlet T:{:.3f}[℃]/P:{:.3f}[bar]/m:{:.3f}[kg/s]'.format(self.InCond.T, self.InCond.p/1.0e5, self.InCond.m, self.OutCond.T, self.OutCond.p, self.OutCond.m))
+        print('Cold fluid Outlet T:{:.3f}[℃]/P:{:.3f}[bar]/m:{:.3f}[kg/s]: <------- Cold fluid Inlet T:{:.3f}[℃]/P:{:.3f}[bar]/m:{:.3f}[kg/s]'.format(self.OutEvap.T, self.OutEvap.p/1.0e5, self.OutEvap.m, self.InEvap.T, self.InEvap.p, self.InEvap.m))
+        print('Plow: {:.3f} [bar], Phigh: {:.3f} [bar], mdot: {:.3f}[kg/s]'.format(self.OutEvap_REF.p/1.0e5, self.InCond_REF.p/1.0e5, self.OutEvap_REF.m))
       
 class VCHP_cascade(VCHP):
     def __init__(self, InCond, OutCond, InEvap, OutEvap, inputs_t, inputs_b):
@@ -1008,20 +1008,20 @@ class HandoCycle(VCHP):
         outputs_t_COP_heating = self.OutCond_water.q/outputs_t.Wcomp
         print('Heating COP:{:.3f}, Cooling COP:{:.3f}'.format(outputs_t_COP_heating, outputs_t_COP_heating-1))
         print('Refrigerant:{}'.format(OutCond_REF_t.fluidmixture))
-        print('Q 급탕: {:.2f} [kW] ({:.2f} [usRT])'.format(-OutCond_REF_t.q/1000, -OutCond_REF_t.q/3516.8525))
-        print('Q 압축기: {:.2f} [kW]'.format(outputs_t.Wcomp/1000))
-        print('Hot fluid Inlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]:   -------> Hot fluid Outlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]'.format(self.InCond_water.T, self.InCond_water.p/1.0e5, self.InCond_water.m, self.OutCond_water.T, self.OutCond_water.p, self.OutCond_water.m))
-        print('Plow: {:.2f} [bar], Phigh: {:.2f} [bar], mdot: {:.2f}[kg/s]'.format(OutEvap_REF_t.p/1.0e5, InCond_REF_t.p/1.0e5, OutEvap_REF_t.m))
+        print('Q 급탕: {:.3f} [kW] ({:.3f} [usRT])'.format(-OutCond_REF_t.q/1000, -OutCond_REF_t.q/3516.8525))
+        print('Q 압축기: {:.3f} [kW]'.format(outputs_t.Wcomp/1000))
+        print('Hot fluid Inlet T:{:.3f}[℃]/P:{:.3f}[bar]/m:{:.3f}[kg/s]:   -------> Hot fluid Outlet T:{:.3f}[℃]/P:{:.3f}[bar]/m:{:.3f}[kg/s]'.format(self.InCond_water.T, self.InCond_water.p/1.0e5, self.InCond_water.m, self.OutCond_water.T, self.OutCond_water.p, self.OutCond_water.m))
+        print('Plow: {:.3f} [bar], Phigh: {:.3f} [bar], mdot: {:.3f}[kg/s]'.format(OutEvap_REF_t.p/1.0e5, InCond_REF_t.p/1.0e5, OutEvap_REF_t.m))
         
         print('------Bottom Cycle------')
         print('Heating COP:{:.3f}, Cooling COP:{:.3f}'.format(outputs_b.COP_heating, outputs_b.COP_heating-1))
         print('Refrigerant:{}'.format(OutCond_REF_water_b.fluidmixture))
-        print('Q 난방: {:.2f} [kW] ({:.2f} [usRT])'.format(-OutCond_REF_space_b.q/1000, -OutCond_REF_space_b.q/3516.8525))
-        print('Q 냉방: {:.2f} [kW] ({:.2f} [usRT])'.format(OutEvap_REF_b.q/1000, OutEvap_REF_b.q/3516.8525))
-        print('Q 압축기: {:.2f} [kW]'.format(outputs_b.Wcomp/1000))
-        print('Hot fluid Inlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]:   -------> Hot fluid Outlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]'.format(self.InCond_space.T, self.InCond_space.p/1.0e5, self.InCond_space.m, self.OutCond_space.T, self.OutCond_space.p, self.OutCond_space.m))
-        print('Cold fluid Outlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]: <------- Cold fluid Inlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]'.format(self.OutEvap.T, self.OutEvap.p/1.0e5, self.OutEvap.m, self.InEvap.T, self.InEvap.p, self.InEvap.m))
-        print('Plow: {:.2f} [bar], Phigh: {:.2f} [bar], mdot: {:.2f}[kg/s]'.format(OutEvap_REF_b.p/1.0e5, InCond_REF_water_b.p/1.0e5, OutEvap_REF_b.m))
+        print('Q 난방: {:.3f} [kW] ({:.3f} [usRT])'.format(-OutCond_REF_space_b.q/1000, -OutCond_REF_space_b.q/3516.8525))
+        print('Q 냉방: {:.3f} [kW] ({:.3f} [usRT])'.format(OutEvap_REF_b.q/1000, OutEvap_REF_b.q/3516.8525))
+        print('Q 압축기: {:.3f} [kW]'.format(outputs_b.Wcomp/1000))
+        print('Hot fluid Inlet T:{:.3f}[℃]/P:{:.3f}[bar]/m:{:.3f}[kg/s]:   -------> Hot fluid Outlet T:{:.3f}[℃]/P:{:.3f}[bar]/m:{:.3f}[kg/s]'.format(self.InCond_space.T, self.InCond_space.p/1.0e5, self.InCond_space.m, self.OutCond_space.T, self.OutCond_space.p, self.OutCond_space.m))
+        print('Cold fluid Outlet T:{:.3f}[℃]/P:{:.3f}[bar]/m:{:.3f}[kg/s]: <------- Cold fluid Inlet T:{:.3f}[℃]/P:{:.3f}[bar]/m:{:.3f}[kg/s]'.format(self.OutEvap.T, self.OutEvap.p/1.0e5, self.OutEvap.m, self.InEvap.T, self.InEvap.p, self.InEvap.m))
+        print('Plow: {:.3f} [bar], Phigh: {:.3f} [bar], mdot: {:.3f}[kg/s]'.format(OutEvap_REF_b.p/1.0e5, InCond_REF_water_b.p/1.0e5, OutEvap_REF_b.m))
         
         if self.purpose == 'summer':
             COP_cascade = (self.OutCond_water.q-self.OutEvap.q)/(outputs_t.Wcomp - outputs_t.Wexpand + outputs_b.Wcomp - outputs_b.Wexpand)
@@ -1454,6 +1454,7 @@ if __name__ == '__main__':
     
     hotwater_frac = 0.292969    
     '''
+    
     '''
     purpose = 'summer'
     
@@ -1484,10 +1485,10 @@ if __name__ == '__main__':
     outcondp_water = 101300.0
     OutCond_water = ProcessFluid(Y={condfluid:1.0,},m = m_water, T=outcondT_water, p=outcondp_water)
     
-    hotwater_frac = 0.279
+    hotwater_frac = 0.2785
     
     inputs_t = Settings()
-    inputs_t.Y = {'R1234ze(Z)':1.0,}
+    inputs_t.Y = {'R1234ze(E)':1.0,}
     inputs_t.second = 'process'
     inputs_t.cycle = 'vcc'
     inputs_t.cond_type = 'phe'
@@ -1495,7 +1496,7 @@ if __name__ == '__main__':
     inputs_t.layout = 'bas'
     
     inputs_b = Settings()
-    inputs_b.Y = {'R1234yf':1.0,}
+    inputs_b.Y = {'R1243zf':1.0,}
     inputs_b.second = 'process'
     inputs_b.cycle = 'vcc'
     inputs_b.cond_type = 'phe'
@@ -1505,9 +1506,11 @@ if __name__ == '__main__':
     vchp_hando = HandoCycle(InCond_water, OutCond_water, InCond_space, OutCond_space, InEvap, OutEvap, inputs_t, inputs_b, hotwater_frac, purpose)
     vchp_hando()
     '''
+    
+    
     weather_list = [254.55, 262.55, 282.15, 287.35, 290.25,	304.75,	309.65,	306.85,	295.75,	288.75, 269.45, 257.65]
     inputs = Settings()
-    inputs.Y = {'Ammonia':1.0,}
+    inputs.Y = {'R1234yf':1.0,}
     inputs.second = 'process'
     inputs.cycle = 'vcc'
     inputs.DSC = 5.0
@@ -1533,7 +1536,7 @@ if __name__ == '__main__':
             condfluid = 'water'
             incondT = 293.0
             incondp = 101300.0
-            incondm = 0.19 # 분산 히트펌프 증발유량이 메인 히트펌프 응축 유량이 됨
+            incondm = 0.191 # 분산 히트펌프 증발유량이 메인 히트펌프 응축 유량이 됨
             InCond = ProcessFluid(Y={condfluid:1.0,}, m = incondm, T = incondT, p = incondp)
             
             outcondT = incondT+5.0
@@ -1549,7 +1552,7 @@ if __name__ == '__main__':
         elif i > 298.0: # 하절기
             evapfluid = 'water'
             inevapT = 303.0
-            inevapm = 0.18 # 분산 히트펌프 응축유량이 메인 히트펌프 증발 유량이 됨
+            inevapm = 0.181 # 분산 히트펌프 응축유량이 메인 히트펌프 증발 유량이 됨
             inevapp = 101300.0
             InEvap = ProcessFluid(Y={evapfluid:1.0,},m = inevapm, T = inevapT, p = inevapp)
             
@@ -1579,4 +1582,3 @@ if __name__ == '__main__':
     
     df = pd.DataFrame(results_array)
     print(df)
-        
