@@ -1,4 +1,4 @@
-from re import L
+from cmath import sqrt
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -108,9 +108,14 @@ class WindowClass(QMainWindow, form_class):
         self.Example_btn.clicked.connect(self.InputExample)
         self.Input_delete_btn.clicked.connect(self.InputClear)
         
+        # 밸브 추천 버튼
+        self.valve_recommand.clicked.connect(self.Valve_Recommand)
+        
     def MoveToLayoutTab(self):
         self.STED_tab.setCurrentWidget(self.layout_tab)
         self.Calcstart_btn.setEnabled(False)
+        self.valve_recommand.setEnabled(False)
+        self.compressor_recommand.setEnabled(False)
         self.InputClear()
         
     def MoveToProcessTab(self):
@@ -119,6 +124,10 @@ class WindowClass(QMainWindow, form_class):
         self.AllHidden_ProTab()
         self.processGroupRad()
         self.layoutGroupRad()
+        self.cycleGroupRad()
+        self.Calcstart_btn.setEnabled(False)
+        self.valve_recommand.setEnabled(False)
+        self.compressor_recommand.setEnabled(False)
         
     def MoveToResultsTab(self):
         self.STED_tab.setCurrentWidget(self.results_tab)
@@ -141,7 +150,7 @@ class WindowClass(QMainWindow, form_class):
             self.cond_fluid_table.setItem(0, 1, QTableWidgetItem('1.0'))
             self.Hotwater_batch()
         
-        self.Calcstart_btn.setEnabled(False)
+        
         
     def layoutGroupRad(self):
         if self.bas_radio.isChecked():
@@ -160,14 +169,13 @@ class WindowClass(QMainWindow, form_class):
             self.layout_fig_tab2.setPixmap(QPixmap(".\Figs\Cascade.png").scaledToHeight(500))
             self.layout_type = 'cas'
             self.Cas_batch()
-        
-        self.Calcstart_btn.setEnabled(False)
             
     def cycleGroupRad(self):
         if self.vcc_radio.isChecked():
             self.cycle_type = 'vcc'
         elif self.scc_radio.isChecked():
             self.cycle_type = 'scc'
+        
         
     def ref_list_Indication(self):
         if self.layout_type == 'cas':
@@ -1086,6 +1094,8 @@ class WindowClass(QMainWindow, form_class):
                 self.vchp.Plot_diagram(self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, self.outputs)
         
             self.MoveToResultsTab()
+            self.valve_recommand.setEnabled(True)
+            self.compressor_recommand.setEnabled(True)
             self.AllHidden_ResultTab()
             if self.layout_type == 'bas':
                 self.Bas_batch_result()
@@ -1546,6 +1556,61 @@ class WindowClass(QMainWindow, form_class):
         self.ref_list_b.setCurrentIndex(0)
         self.ref_list_t.setCurrentIndex(0)
             
+    def Valve_Recommand(self):
+        from VALVE_GUI import valveWindow
+        if self.layout_type == 'cas':
+            maxdP_bot = (self.OutCond_REF_b.p - self.InEvap_REF_b.p)
+            maxP_bot = self.OutCond_REF_b.p
+            maxT_bot = self.OutCond_REF_b.T
+            minT_bot = self.InEvap_REF_b.T
+            maxD_bot = PropsSI('D','T',maxT_bot,'P',maxP_bot,self.OutCond_REF_b.fluidmixture)
+            Q_bot = self.OutCond_REF_b.m/maxD_bot*3600.0
+            Kv_bot = Q_bot*sqrt(maxD_bot*10/maxdP_bot)
+            maxdP_top = self.OutCond_REF_t.p - self.InEvap_REF_t.p
+            maxP_top = self.OutCond_REF_t.p
+            maxT_top = self.OutCond_REF_t.T
+            minT_top = self.InEvap_REF_t.T
+            maxD_top = PropsSI('D','T',maxT_top,'P',maxP_top,self.OutCond_REF_t.fluidmixture)
+            Q_top = self.OutCond_REF_t.m/maxD_top*3600.0
+            Kv_top = Q_top*sqrt(maxD_top*10/maxdP_top)
+            self.valve = valveWindow(maxdP_bot, maxP_bot, maxT_bot, minT_bot, Kv_bot, maxdP_top, maxP_top, maxT_top, minT_top, Kv_top, self.layout_type)
+        elif self.layout_type == 'inj':
+            maxdP_bot = (self.outputs.flash_liq_p - self.InEvap_REF.p)
+            maxP_bot = self.outputs.flash_liq_p
+            maxT_bot = self.outputs.flash_liq_T
+            minT_bot = self.InEvap_REF.p
+            maxD_bot = PropsSI('D','T',maxT_bot,'Q',0.0, self.OutCond_REF.fluidmixture)
+            Q_bot = self.InEvap_REF.m/maxD_bot*3600.0
+            Kv_bot = Q_bot*sqrt(maxD_bot*10/maxdP_bot)
+            maxdP_top = (self.OutCond_REF.p - self.outputs.outexpand_high_p)
+            maxP_top = self.OutCond_REF.p
+            maxT_top = self.OutCond_REF.T
+            minT_top = self.outputs.outexpand_high_T
+            maxD_top = PropsSI('D','T',maxT_top,'P',maxP_top,self.OutCond_REF.fluidmixture)
+            Q_top = self.OutCond_REF.m/maxD_top*3600.0
+            Kv_top = Q_top*sqrt(maxD_top*10/maxdP_top)
+            self.valve = valveWindow(maxdP_bot, maxP_bot, maxT_bot, minT_bot, Kv_bot, maxdP_top, maxP_top, maxT_top, minT_top, Kv_top, self.layout_type)
+        elif self.layout_type == 'ihx':
+            maxdP_bot = (self.outputs.ihx_cold_out_p - self.InEvap_REF.p)
+            maxP_bot = self.outputs.ihx_cold_out_p
+            maxT_bot = self.outputs.ihx_cold_out_T
+            minT_bot = self.InEvap_REF.T
+            maxD_bot = PropsSI('D','T',maxT_bot,'P',maxP_bot, self.OutCond_REF.fluidmixture)
+            Q_bot = self.OutCond_REF.m/maxD_bot*3600.0
+            Kv_bot = Q_bot*sqrt(maxD_bot*10/maxdP_bot)
+            self.valve = valveWindow(maxdP_bot, maxP_bot, maxT_bot, minT_bot, Kv_bot, maxdP_bot, maxP_bot, maxT_bot, minT_bot, Kv_bot, self.layout_type)
+        else:
+            maxdP_bot = (self.OutCond_REF.p - self.InEvap_REF.p)
+            maxP_bot = self.OutCond_REF.p
+            maxT_bot = self.OutCond_REF.T
+            minT_bot = self.InEvap_REF.T
+            maxD_bot = PropsSI('D','T',maxT_bot,'P',maxP_bot, self.OutCond_REF.fluidmixture)
+            Q_bot = self.OutCond_REF.m/maxD_bot*3600.0
+            Kv_bot = Q_bot*sqrt(maxD_bot*10/maxdP_bot)
+            self.valve = valveWindow(maxdP_bot, maxP_bot, maxT_bot, minT_bot, Kv_bot, maxdP_bot, maxP_bot, maxT_bot, minT_bot, Kv_bot, self.layout_type)
+                
+        self.valve.show()
+    
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     
