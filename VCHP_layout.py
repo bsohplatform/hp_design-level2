@@ -39,6 +39,7 @@ class VCHP():
         self.Post_Processing(outputs)
         self.Plot_diagram(self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, outputs)
         
+        return (self.InCond, self.OutCond, self.InEvap, self.OutEvap, outputs)
         
     def Input_Processing(self, InCond, OutCond, InEvap, OutEvap, inputs):
         no_InCondT = 0
@@ -738,12 +739,9 @@ class VCHP_cascade(VCHP):
         cond_t_ph = 0
         evap_b_ph = 0
         
-        (self.InCond, self.OutCond, self.InEvap, self.OutEvap, no_input) = self.Input_Processing(self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.inputs_t)
+        (self.InCond, self.OutCond, self.InEvap, self.OutEvap, no_input) = super().Input_Processing(self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.inputs_t)
         (self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, outputs_t, outputs_b) = self.Cascade_solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, self.inputs_t, self.inputs_b, outputs_t, outputs_b, no_input, cond_t_ph, evap_b_ph)
         self.Plot_diagram(InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, self.inputs_t, outputs_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, self.inputs_b, outputs_b)        
-    
-    def Input_Processing(self, InCond, OutCond, InEvap, OutEvap, inputs):
-        return super().Input_Processing(InCond, OutCond, InEvap, OutEvap, inputs)
     
     def Cascade_solver(self, InCond, OutCond, InEvap, OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_t, inputs_b, outputs_t, outputs_b, no_input, cond_t_ph, evap_b_ph):
         devap = 0.005
@@ -968,12 +966,382 @@ class VCHP_cascade(VCHP):
         
         fig_ph.savefig('.\Figs\Ph_diagram.png',dpi=300)
         fig_ts.savefig('.\Figs\Ts_diagram.png',dpi=300)  
-                    
-                                    
-if __name__ == '__main__':
+
+class HandoCycle(VCHP):
+    def __init__(self, InCond_water, OutCond_water, InCond_space, OutCond_space, InEvap, OutEvap, inputs_t, inputs_b, hotwater_frac, purpose):
+        self.InCond_water = InCond_water
+        self.OutCond_water = OutCond_water
+        self.InCond_space = InCond_space
+        self.OutCond_space = OutCond_space
+        self.InEvap = InEvap
+        self.OutEvap = OutEvap
+        self.inputs_t = inputs_t
+        self.inputs_b = inputs_b
+        self.hotwater_frac = hotwater_frac
+        self.purpose = purpose
     
+    def __call__(self):
+        outputs_t = Outputs()
+        outputs_b = Outputs()
+        
+        InCond_REF_t = ProcessFluid(Y=self.inputs_t.Y)
+        OutCond_REF_t = ProcessFluid(Y=self.inputs_t.Y)
+        InEvap_REF_t = ProcessFluid(Y=self.inputs_t.Y)
+        OutEvap_REF_t = ProcessFluid(Y=self.inputs_t.Y)
+        InCond_REF_water_b = ProcessFluid(Y=self.inputs_b.Y)
+        OutCond_REF_water_b = ProcessFluid(Y=self.inputs_b.Y)
+        InCond_REF_space_b = ProcessFluid(Y=self.inputs_b.Y)
+        OutCond_REF_space_b = ProcessFluid(Y=self.inputs_b.Y)
+        InEvap_REF_b = ProcessFluid(Y=self.inputs_b.Y)
+        OutEvap_REF_b = ProcessFluid(Y=self.inputs_b.Y)
+        
+        self.nbp = 0.0
+        cond_t_ph = 0
+        evap_b_ph = 0
+        
+        (self.InCond_water, self.OutCond_water, self.InCond_space, self.OutCond_space, self.InEvap, self.OutEvap, no_input) = self.Input_Processing(self.InCond_water, self.OutCond_water, self.InCond_space, self.OutCond_space, self.InEvap, self.OutEvap, self.hotwater_frac)
+        
+        (self.InCond_water, self.OutCond_water, self.InCond_space, self.OutCond_space, self.InEvap, self.OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, InCond_REF_water_b, OutCond_REF_water_b, InCond_REF_space_b, OutCond_REF_space_b, InEvap_REF_b, OutEvap_REF_b, outputs_t, outputs_b)\
+            = self.Hando_solver(self.InCond_water, self.OutCond_water, self.InCond_space, self.OutCond_space, self.InEvap, self.OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, InCond_REF_water_b, OutCond_REF_water_b, InCond_REF_space_b, OutCond_REF_space_b, InEvap_REF_b, OutEvap_REF_b, self.inputs_t, self.inputs_b, outputs_t, outputs_b, no_input, cond_t_ph, evap_b_ph, self.purpose)
+        
+        print('------Top Cycle------')
+        outputs_t_COP_heating = self.OutCond_water.q/outputs_t.Wcomp
+        print('Heating COP:{:.3f}, Cooling COP:{:.3f}'.format(outputs_t_COP_heating, outputs_t_COP_heating-1))
+        print('Refrigerant:{}'.format(OutCond_REF_t.fluidmixture))
+        print('Q 급탕: {:.2f} [kW] ({:.2f} [usRT])'.format(-OutCond_REF_t.q/1000, -OutCond_REF_t.q/3516.8525))
+        print('Q 압축기: {:.2f} [kW]'.format(outputs_t.Wcomp/1000))
+        print('Hot fluid Inlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]:   -------> Hot fluid Outlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]'.format(self.InCond_water.T, self.InCond_water.p/1.0e5, self.InCond_water.m, self.OutCond_water.T, self.OutCond_water.p, self.OutCond_water.m))
+        print('Plow: {:.2f} [bar], Phigh: {:.2f} [bar], mdot: {:.2f}[kg/s]'.format(OutEvap_REF_t.p/1.0e5, InCond_REF_t.p/1.0e5, OutEvap_REF_t.m))
+        
+        print('------Bottom Cycle------')
+        print('Heating COP:{:.3f}, Cooling COP:{:.3f}'.format(outputs_b.COP_heating, outputs_b.COP_heating-1))
+        print('Refrigerant:{}'.format(OutCond_REF_water_b.fluidmixture))
+        print('Q 난방: {:.2f} [kW] ({:.2f} [usRT])'.format(-OutCond_REF_space_b.q/1000, -OutCond_REF_space_b.q/3516.8525))
+        print('Q 냉방: {:.2f} [kW] ({:.2f} [usRT])'.format(OutEvap_REF_b.q/1000, OutEvap_REF_b.q/3516.8525))
+        print('Q 압축기: {:.2f} [kW]'.format(outputs_b.Wcomp/1000))
+        print('Hot fluid Inlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]:   -------> Hot fluid Outlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]'.format(self.InCond_space.T, self.InCond_space.p/1.0e5, self.InCond_space.m, self.OutCond_space.T, self.OutCond_space.p, self.OutCond_space.m))
+        print('Cold fluid Outlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]: <------- Cold fluid Inlet T:{:.2f}[℃]/P:{:.2f}[bar]/m:{:.2f}[kg/s]'.format(self.OutEvap.T, self.OutEvap.p/1.0e5, self.OutEvap.m, self.InEvap.T, self.InEvap.p, self.InEvap.m))
+        print('Plow: {:.2f} [bar], Phigh: {:.2f} [bar], mdot: {:.2f}[kg/s]'.format(OutEvap_REF_b.p/1.0e5, InCond_REF_water_b.p/1.0e5, OutEvap_REF_b.m))
+        
+        if self.purpose == 'summer':
+            COP_cascade = (self.OutCond_water.q-self.OutEvap.q)/(outputs_t.Wcomp - outputs_t.Wexpand + outputs_b.Wcomp - outputs_b.Wexpand)
+        else:
+            COP_cascade = (self.OutCond_water.q+self.OutCond_space.q)/(outputs_t.Wcomp - outputs_t.Wexpand + outputs_b.Wcomp - outputs_b.Wexpand)
+            
+        print('Combination COP:{:.3f}'.format(COP_cascade))
+        
+    def Input_Processing(self, InCond_water, OutCond_water, InCond_space, OutCond_space, InEvap, OutEvap, hotwater_frac):
+        
+        if InCond_water.m == 0:
+            InCond_water.m = OutCond_water.m # shallow copy
+        else:
+            OutCond_water.m = InCond_water.m 
+    
+        InCond_water.h = PropsSI('H','T',InCond_water.T, 'P',InCond_water.p, InCond_water.fluidmixture)
+        InCond_water.Cp = PropsSI('C','T',InCond_water.T, 'P',InCond_water.p, InCond_water.fluidmixture)
+        OutCond_water.h = PropsSI('H','T',OutCond_water.T, 'P',OutCond_water.p, OutCond_water.fluidmixture)
+        OutCond_water.Cp = PropsSI('C','T',OutCond_water.T, 'P',OutCond_water.p, OutCond_water.fluidmixture)
+        InCond_space.h = PropsSI('H','T',InCond_space.T, 'P',InCond_space.p, InCond_space.fluidmixture)
+        InCond_space.Cp = PropsSI('C','T',InCond_space.T, 'P',InCond_space.p, InCond_space.fluidmixture)
+        OutCond_space.h = PropsSI('H','T',OutCond_space.T, 'P',OutCond_space.p, OutCond_space.fluidmixture)
+        OutCond_space.Cp = PropsSI('C','T',OutCond_space.T, 'P',OutCond_space.p, OutCond_space.fluidmixture)
+        InEvap.h = PropsSI('H','T',InEvap.T, 'P',InEvap.p, InEvap.fluidmixture)
+        InEvap.Cp = PropsSI('C','T',InEvap.T, 'P',InEvap.p, InEvap.fluidmixture)
+        OutEvap.h = PropsSI('H','T',OutEvap.T, 'P',OutEvap.p, OutEvap.fluidmixture)
+        OutEvap.Cp = PropsSI('C','T',OutEvap.T, 'P',OutEvap.p, OutEvap.fluidmixture)
+        
+        InCond_water.q = (OutCond_water.h - InCond_water.h)*InCond_water.m
+        OutCond_water.q = InCond_water.q
+        OutCond_space.q = InCond_water.q*(1-hotwater_frac)/hotwater_frac
+        InCond_space.q = OutCond_space.q
+        OutCond_space.m = OutCond_space.q/(OutCond_space.h - InCond_space.h)
+        InCond_space.m = OutCond_space.m
+        
+        no_input = 'Evapm'
+        
+        return (InCond_water, OutCond_water, InCond_space, OutCond_space, InEvap, OutEvap, no_input)
+    
+    def HighPressure_Solver(self, InCond_hot, OutCond_hot, InCond_cold, OutCond_cold, InEvap, OutEvap, InCond_REF_hot, OutCond_REF_hot, InCond_REF_cold, OutCond_REF_cold, InEvap_REF, OutEvap_REF, inputs, outputs, no_input, cond_ph):
+        
+        cond_p_ub = InCond_REF_hot.p_crit
+        if no_input == 'InCondT':
+            cond_p_lb = PropsSI('P','T',OutCond_cold.T,'Q',1.0,OutCond_REF_cold.fluidmixture)
+        else:
+            cond_p_lb = PropsSI('P','T',InCond_cold.T,'Q',1.0,OutCond_REF_cold.fluidmixture)
+
+        cond_a = 1
+        
+        while cond_a:
+            InCond_REF_hot.p = 0.5*(cond_p_ub+cond_p_lb)
+            OutCond_REF_hot.p = InCond_REF_hot.p*(1-inputs.cond_dp)
+            InCond_REF_cold.p = OutCond_REF_hot.p
+            OutCond_REF_cold.p = InCond_REF_cold.p*(1-inputs.cond_dp)
+            
+            OutCond_REF_cold.T = PropsSI('T','P',OutCond_REF_cold.p,'Q',0.0,OutCond_REF_cold.fluidmixture) - inputs.DSC
+            if inputs.DSC == 0:
+                OutCond_REF_cold.h = PropsSI('H','P',OutCond_REF_cold.p,'Q',0.0,OutCond_REF_cold.fluidmixture)
+                if inputs.expand_eff > 0.0:
+                    OutCond_REF_cold.s = PropsSI('S','P',OutCond_REF_cold.p,'Q',0.0,OutCond_REF_cold.fluidmixture)
+            else:
+                OutCond_REF_cold.h = PropsSI('H','T',OutCond_REF_cold.T,'P',OutCond_REF_cold.p, OutCond_REF_cold.fluidmixture)
+                if inputs.expand_eff > 0.0:
+                    OutCond_REF_cold.s = PropsSI('S','T',OutCond_REF_cold.T,'P',OutCond_REF_cold.p, OutCond_REF_cold.fluidmixture)
+            
+            
+            if InCond_REF_hot.p > InCond_REF_hot.p_crit*0.98:
+                self.cond_p_err = 1
+                break
+            else:
+                self.cond_p_err = 0 
+    
+            InComp = OutEvap_REF
+            InExpand = OutCond_REF_cold
+            
+            comp = CP.Compander_module(InComp, InCond_REF_hot)
+            comp.COMP(eff_isen = inputs.comp_eff, eff_mech = inputs.mech_eff)
+            InCond_REF_hot = comp.primary_out
+            
+            expand = CP.Compander_module(InExpand, InEvap_REF)
+            expand.EXPAND(eff_isen = inputs.expand_eff, eff_mech = inputs.mech_eff)
+            InEvap_REF = expand.primary_out
+                
+            if (no_input == 'InEvapT') or (no_input == 'OutEvapT') or (no_input == 'Evapm'):   
+                InCond_REF_hot.m = (InCond_cold.q+InCond_hot.q)/(InCond_REF_hot.h - OutCond_REF_cold.h)
+                OutCond_REF_hot.m = InCond_REF_hot.m
+                InCond_REF_cold.m = InCond_REF_hot.m
+                OutCond_REF_cold.m = InCond_REF_hot.m
+                InEvap_REF.m = InCond_REF_hot.m
+                OutEvap_REF.m = InCond_REF_hot.m
+                outputs.Wcomp = comp.Pspecific*InCond_REF_hot.m
+                outputs.Wexpand = expand.Pspecific*InCond_REF_cold.m
+                
+                InCond_REF_hot.q = -InCond_hot.q
+                OutCond_REF_hot.q = -InCond_hot.q
+                OutCond_REF_hot.h = InCond_REF_hot.h + OutCond_REF_hot.q/OutCond_REF_hot.m
+                OutCond_REF_hot.T = PropsSI('T','H',OutCond_REF_hot.h, 'P', OutCond_REF_hot.p, OutCond_REF_hot.fluidmixture)
+                InCond_REF_cold.q = -InCond_cold.q
+                InCond_REF_cold.h = OutCond_REF_cold.h - InCond_REF_cold.q/InCond_REF_cold.m
+                InCond_REF_cold.T = PropsSI('T','H',InCond_REF_cold.h, 'P', InCond_REF_cold.p, InCond_REF_cold.fluidmixture)
+                OutCond_REF_cold.q = -InCond_cold.q
+                
+                InEvap_REF.q = (OutEvap_REF.h - InEvap_REF.h)*InEvap_REF.m
+                OutEvap_REF.q = InEvap_REF.q
+                InEvap.q = -InEvap_REF.q
+                OutEvap.q = -InEvap_REF.q
+                
+                if no_input == 'InEvapT':
+                    InEvap.h = OutEvap.h - OutEvap.q/OutEvap.m
+                    try:    
+                        InEvap.T = PropsSI('T','P',InEvap.p, 'H', InEvap.h, InEvap.fluidmixture)
+                        InEvap.Cp = PropsSI('C','T',InEvap.T, 'P', InEvap.p, InEvap.fluidmixture)
+                    except:    
+                        InEvap.T = OutEvap.T
+                        while 1:
+                            H_virtual = PropsSI('H','T', InEvap.T, 'P', InEvap.p, InEvap.fluidmixture)
+                            InEvap.Cp = PropsSI('C','T',InEvap.T, 'P', InEvap.p, InEvap.fluidmixture)
+                            err_h = abs(InEvap.h - H_virtual)
+                            InEvap.T = InEvap.T - err_h/InEvap.Cp
+                            if err_h/InEvap.h < 1.0e-5:
+                                break
+                            
+                elif no_input == 'OutEvapT':
+                    OutEvap.h = InEvap.h + InEvap.q/InEvap.m
+                    try:
+                        OutEvap.T = PropsSI('T','P',OutEvap.p, 'H', OutEvap.h, OutEvap.fluidmixture)
+                        OutEvap.Cp = PropsSI('C','T',OutEvap.T, 'P', OutEvap.p, OutEvap.fluidmixture)
+                    except:
+                        OutEvap.T = InEvap.T
+                        while 1:
+                            H_virtual = PropsSI('H','T', OutEvap.T, 'P', OutEvap.p, OutEvap.fluidmixture)
+                            OutEvap.Cp = PropsSI('C','T',OutEvap.T, 'P', OutEvap.p, OutEvap.fluidmixture)
+                            err_h = abs(OutEvap.h - H_virtual)
+                            OutEvap.T = OutEvap.T - err_h/OutEvap.Cp
+                            if err_h/OutEvap.h < 1.0e-5:
+                                break
+                    
+                elif no_input == 'Evapm':
+                    InEvap.m = InEvap.q/(OutEvap.h - InEvap.h)
+                    OutEvap.m = InEvap.m
+                
+            cond_hot = HX.Heatexchanger_module(InCond_REF_hot, OutCond_REF_hot, 1, InCond_hot, OutCond_hot, cond_ph)
+        
+            if inputs.cond_type == 'fthe':
+                cond_hot.FTHE(N_element=inputs.cond_N_element, N_row = inputs.cond_N_row)
+                
+            elif inputs.cond_type == 'phe':
+                cond_hot.PHE(N_element=inputs.cond_N_element)
+            
+            OutCond_REF_hot = cond_hot.primary_out
+            InCond_REF_cold = OutCond_REF_hot
+            
+            cond_cold = HX.Heatexchanger_module(InCond_REF_cold, OutCond_REF_cold, 1, InCond_cold, OutCond_cold, cond_ph)
+            
+            if inputs.cond_type == 'fthe':
+                cond_cold.FTHE(N_element=inputs.cond_N_element, N_row = inputs.cond_N_row)
+                
+            elif inputs.cond_type == 'phe':
+                cond_cold.PHE(N_element=inputs.cond_N_element)
+            
+            OutCond_REF_cold = cond_cold.primary_out
+            
+            
+            if inputs.cond_type == 'fthe':
+                cond_T_lm = min(cond_hot.T_lm, cond_cold.T_lm)
+                self.cond_err = (inputs.cond_T_lm - cond_T_lm)/inputs.cond_T_lm
+            else:
+                cond_T_pp = min(cond_hot.T_pp, cond_cold.T_pp)
+                self.cond_err = (inputs.cond_T_pp - cond_T_pp)/inputs.cond_T_pp            
+            
+            if cond_hot.T_rvs == 1 or cond_cold.T_rvs == 1:
+                cond_p_lb = InCond_REF_hot.p
+            else:
+                if self.cond_err < 0:
+                    cond_p_ub = InCond_REF_hot.p
+                else:
+                    cond_p_lb = InCond_REF_hot.p
+            
+            if abs(self.cond_err) < inputs.tol:
+                self.cond_conv_err = 0
+                cond_a = 0
+            elif cond_p_ub - cond_p_lb < inputs.tol:
+                self.cond_conv_err = 1
+                cond_a = 0
+        
+        return (InCond_hot, OutCond_hot, InCond_cold, OutCond_cold, InEvap, OutEvap, InCond_REF_hot, OutCond_REF_hot, InCond_REF_cold, OutCond_REF_cold, InEvap_REF, OutEvap_REF, outputs)
+    
+    def Cycle_Solver(self, InCond_hot, OutCond_hot, InCond_cold, OutCond_cold, InEvap, OutEvap, InCond_REF_hot, OutCond_REF_hot, InCond_REF_cold, OutCond_REF_cold, InEvap_REF, OutEvap_REF, inputs, outputs, no_input, cond_ph, evap_ph):
+        if no_input == 'InEvapT':
+            evap_p_ub = PropsSI('P','T',OutEvap.T, 'Q', 1.0, InEvap_REF.fluidmixture)        
+        else:
+            evap_p_ub = PropsSI('P','T',InEvap.T, 'Q', 1.0, InEvap_REF.fluidmixture)
+            
+        evap_p_lb = 101300.0
+        evap_a = 1
+        
+        while evap_a: 
+            OutEvap_REF.p = 0.5*(evap_p_lb+evap_p_ub)
+            InEvap_REF.p = OutEvap_REF.p/(1.0-inputs.evap_dp)
+            
+            OutEvap_REF_Tvap = PropsSI('T','P',OutEvap_REF.p, 'Q', 1.0, OutEvap_REF.fluidmixture)
+            OutEvap_REF.T = OutEvap_REF_Tvap + inputs.DSH
+            if inputs.DSH == 0:
+                OutEvap_REF.h = PropsSI('H','P',OutEvap_REF.p, 'Q', 1.0, OutEvap_REF.fluidmixture)
+                OutEvap_REF.s = PropsSI('S','P',OutEvap_REF.p, 'Q', 1.0, OutEvap_REF.fluidmixture)
+            else:
+                OutEvap_REF.h = PropsSI('H','T',OutEvap_REF.T, 'P', OutEvap_REF.p ,OutEvap_REF.fluidmixture)
+                OutEvap_REF.s = PropsSI('S','T',OutEvap_REF.T, 'P', OutEvap_REF.p ,OutEvap_REF.fluidmixture)
+            
+            (InCond_hot, OutCond_hot, InCond_cold, OutCond_cold, InEvap, OutEvap, InCond_REF_hot, OutCond_REF_hot, InCond_REF_cold, OutCond_REF_cold, InEvap_REF, OutEvap_REF, outputs)\
+                = self.HighPressure_Solver(InCond_hot, OutCond_hot, InCond_cold, OutCond_cold, InEvap, OutEvap, InCond_REF_hot, OutCond_REF_hot, InCond_REF_cold, OutCond_REF_cold, InEvap_REF, OutEvap_REF, inputs, outputs, no_input, cond_ph)
+            
+            evap = HX.Heatexchanger_module(InEvap_REF, OutEvap_REF, 1, InEvap, OutEvap, evap_ph)
+            
+            if inputs.evap_type == 'fthe':
+                evap.FTHE(N_element = inputs.evap_N_element, N_row = inputs.evap_N_row)
+                self.evap_err = (inputs.evap_T_lm - evap.T_lm)/inputs.evap_T_lm
+            elif inputs.evap_type == 'phe':
+                evap.PHE(N_element= inputs.evap_N_element)
+                self.evap_err = (inputs.evap_T_pp - evap.T_pp)/inputs.evap_T_pp
+            
+            OutEvap_REF = evap.primary_out
+            
+            if evap.T_rvs == 1:
+                evap_p_ub = OutEvap_REF.p                    
+            else:
+                if self.evap_err < 0:
+                    evap_p_lb = OutEvap_REF.p
+                else:
+                    evap_p_ub = OutEvap_REF.p
+                    
+            if abs(self.evap_err) < inputs.tol:
+                self.evap_conv_err = 0
+                outputs.COP_heating = abs(OutCond_water.q+OutCond_space.q)/(outputs.Wcomp - outputs.Wexpand)
+                evap_a = 0
+            elif evap_p_ub - evap_p_lb < inputs.tol:
+                self.evap_conv_err = 1
+                evap_a = 0
+        
+        outputs.DSH = OutEvap_REF.T - OutEvap_REF_Tvap
+        
+        return (InCond_hot, OutCond_hot, InCond_cold, OutCond_cold, InEvap, OutEvap, InCond_REF_hot, OutCond_REF_hot,  InCond_REF_cold, OutCond_REF_cold, InEvap_REF, OutEvap_REF, outputs)
+    
+    def Hando_solver(self, InCond_hot, OutCond_hot, InCond_cold, OutCond_cold, InEvap, OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, InCond_REF_hot_b, OutCond_REF_hot_b, InCond_REF_cold_b, OutCond_REF_cold_b, InEvap_REF_b, OutEvap_REF_b, inputs_t, inputs_b, outputs_t, outputs_b, no_input, cond_t_ph, evap_b_ph, purpose):
+        devap = 0.005
+        cascade_a = 1
+        evap_t_p_lb = 101300.0
+        cond_b_ph = 1
+        results_array = []
+    
+        if no_input == 'InCondT':
+            evap_t_p_ub = PropsSI('P','T',OutCond_hot.T,'Q',1.0, OutEvap_REF_t.fluidmixture) 
+        else:
+            evap_t_p_ub = PropsSI('P','T',InCond_hot.T,'Q',1.0, OutEvap_REF_t.fluidmixture)
+    
+        evap_t_p_ub = min(evap_t_p_ub, OutEvap_REF_t.p_crit)
+    
+        while cascade_a:
+            for ii in range(2):
+                if ii == 0:
+                    OutEvap_REF_t.p = 0.5*(evap_t_p_lb + evap_t_p_ub)*(1-devap)
+                else:
+                    OutEvap_REF_t.p = 0.5*(evap_t_p_lb + evap_t_p_ub)*(1+devap)
+                    
+                InEvap_REF_t.p = OutEvap_REF_t.p/(1.0 - inputs_t.evap_dp)
+                
+                OutEvap_REF_t_Tvap = PropsSI('T','P',OutEvap_REF_t.p, 'Q', 1.0, OutEvap_REF_t.fluidmixture)
+                OutEvap_REF_t.T = OutEvap_REF_t_Tvap + inputs_t.DSH
+                if inputs_t.DSH == 0:
+                    OutEvap_REF_t.h = PropsSI('H','P',OutEvap_REF_t.p, 'Q', 1.0, OutEvap_REF_t.fluidmixture)
+                    OutEvap_REF_t.s = PropsSI('S','P',OutEvap_REF_t.p, 'Q', 1.0, OutEvap_REF_t.fluidmixture)
+                else:
+                    OutEvap_REF_t.h = PropsSI('H','T',OutEvap_REF_t.T, 'P', OutEvap_REF_t.p ,OutEvap_REF_t.fluidmixture)
+                    OutEvap_REF_t.s = PropsSI('S','T',OutEvap_REF_t.T, 'P', OutEvap_REF_t.p ,OutEvap_REF_t.fluidmixture)
+                    
+                if (no_input == 'InEvapT') or (no_input == 'OutEvapT') or (no_input == 'Evapm'):
+                    (InCond_hot, OutCond_hot, InEvap_dummy, OutEvap_dummy, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, outputs_t) = super().HighPressure_Solver(InCond_hot, OutCond_hot, InEvap, OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t, no_input, cond_t_ph)
+                    (InEvap_REF_t, OutEvap_REF_t, InCond_cold, OutCond_cold, InEvap, OutEvap, InCond_REF_hot_b, OutCond_REF_hot_b, InCond_REF_cold_b, OutCond_REF_cold_b, InEvap_REF_b, OutEvap_REF_b, outputs_b) = self.Cycle_Solver(InEvap_REF_t, OutEvap_REF_t, InCond_cold, OutCond_cold, InEvap, OutEvap, InCond_REF_hot_b, OutCond_REF_hot_b, InCond_REF_cold_b, OutCond_REF_cold_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b, no_input, cond_b_ph, evap_b_ph)
+                
+                outputs_t.COP_heating = OutCond_hot.q/(outputs_t.Wcomp - outputs_t.Wexpand)
+                if purpose == 'summer':
+                    COP_cascade = (OutCond_hot.q-OutEvap.q)/(outputs_t.Wcomp - outputs_t.Wexpand + outputs_b.Wcomp - outputs_b.Wexpand)
+                else:
+                    COP_cascade = (OutCond_hot.q+OutCond_cold.q)/(outputs_t.Wcomp - outputs_t.Wexpand + outputs_b.Wcomp - outputs_b.Wexpand)
+                    
+                if ii == 0:
+                    COP_o = COP_cascade
+                    OutEvap_REF_t_po = OutEvap_REF_t.p
+                else:
+                    dCOP = ((COP_cascade - COP_o)/COP_cascade)/((OutEvap_REF_t.p - OutEvap_REF_t_po)/OutEvap_REF_t.p)
+                    if dCOP > 0:
+                        evap_t_p_lb = OutEvap_REF_t.p
+                    else:
+                        evap_t_p_ub = OutEvap_REF_t.p
+                        results_array.append([0.5*(COP_o + COP_cascade), 0.5*(OutEvap_REF_t_po + OutEvap_REF_t.p), dCOP])
+                        
+                        if len(results_array) > 2:
+                            if results_array[-2][0] > results_array[-1][0] and results_array[-2][0] > results_array[-3][0]:
+                                COP_cascade = results_array[-2][0]
+                                OutEvap_REF_t.p = results_array[-2][1]
+                                cascade_a = 0
+                            elif abs(results_array[-1][2]) < inputs_t.tol:
+                                COP_cascade = results_array[-1][0]
+                                OutEvap_REF_t.p = results_array[-1][1]
+                                cascade_a = 0
+                        
+                        if evap_t_p_ub - evap_t_p_lb < inputs_t.tol: 
+                            COP_cascade = results_array[-1][0]
+                            OutEvap_REF_t.p = results_array[-1][1]
+                            cascade_a = 0
+        
+        outputs_t.DSH = OutEvap_REF_t.T - OutEvap_REF_t_Tvap
+        
+        return(InCond_hot, OutCond_hot, InCond_cold, OutCond_cold, InEvap, OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, InCond_REF_hot_b, OutCond_REF_hot_b, InCond_REF_cold_b, OutCond_REF_cold_b, InEvap_REF_b, OutEvap_REF_b, outputs_t, outputs_b)
+    
+        
+if __name__ == '__main__':
+    '''
     evapfluid = 'water'
-    inevapT = 333.15
+    inevapT = 285.15
     inevapp = 101300.0
     InEvap = ProcessFluid(Y={evapfluid:1.0,},m = 1.0, T = inevapT, p = inevapp)
     
@@ -1002,7 +1370,7 @@ if __name__ == '__main__':
     
     vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
     vchp_basic()
-    '''
+    
     evapfluid = 'water'
     inevapT = 323.15
     inevapp = 101300.0
@@ -1038,8 +1406,7 @@ if __name__ == '__main__':
     inputs_b.layout = 'bas'
     
     vchp_cascade = VCHP_cascade(InCond, OutCond, InEvap, OutEvap, inputs_t, inputs_b)
-    '''
-    '''
+
     from cProfile import Profile
     
     profiler = Profile()
@@ -1052,3 +1419,164 @@ if __name__ == '__main__':
     stats.sort_stats('cumulative')
     stats.print_stats()
     '''
+    
+    # 한도외 사이클 입력
+    '''
+    purpose = 'winter'
+    
+    evapfluid = 'water'
+    inevapT = 298.15
+    inevapp = 101300.0
+    InEvap = ProcessFluid(Y={evapfluid:1.0,}, T = inevapT, p = inevapp)
+    
+    outevapT = 293.15
+    outevapp = 101300.0
+    OutEvap = ProcessFluid(Y={evapfluid:1.0,}, T = outevapT, p = outevapp)
+    
+    condfluid = 'water'
+    incondT_space = 313.15
+    incondp_space = 101300.0
+    m_space = 0.169105688
+    InCond_space = ProcessFluid(Y={condfluid:1.0,},m = m_space, T = incondT_space, p = incondp_space)
+    
+    outcondT_space = 318.15
+    outcondp_space = 101300.0
+    OutCond_space = ProcessFluid(Y={condfluid:1.0,},m = m_space, T=outcondT_space, p=outcondp_space)
+    
+    incondT_water = 338.15
+    incondp_water = 101300.0
+    m_water = 0.069922077
+    InCond_water = ProcessFluid(Y={condfluid:1.0,},m = m_water, T = incondT_water, p = incondp_water)
+    
+    outcondT_water = 343.15
+    outcondp_water = 101300.0
+    OutCond_water = ProcessFluid(Y={condfluid:1.0,},m = m_water, T=outcondT_water, p=outcondp_water)
+    
+    hotwater_frac = 0.292969    
+    '''
+    '''
+    purpose = 'summer'
+    
+    evapfluid = 'water'
+    inevapT = 285.15
+    inevapp = 101300.0
+    InEvap = ProcessFluid(Y={evapfluid:1.0,}, T = inevapT, p = inevapp)
+    
+    outevapT = 280.15
+    outevapp = 101300.0
+    OutEvap = ProcessFluid(Y={evapfluid:1.0,}, T = outevapT, p = outevapp)
+    
+    condfluid = 'water'
+    incondT_space = 298.15
+    incondp_space = 101300.0
+    InCond_space = ProcessFluid(Y={condfluid:1.0,},T = incondT_space, p = incondp_space)
+    
+    outcondT_space = 303.15
+    outcondp_space = 101300.0
+    OutCond_space = ProcessFluid(Y={condfluid:1.0,},T=outcondT_space, p=outcondp_space)
+    
+    incondT_water = 338.15
+    incondp_water = 101300.0
+    m_water = 0.069922077
+    InCond_water = ProcessFluid(Y={condfluid:1.0,},m = m_water, T = incondT_water, p = incondp_water)
+    
+    outcondT_water = 343.15
+    outcondp_water = 101300.0
+    OutCond_water = ProcessFluid(Y={condfluid:1.0,},m = m_water, T=outcondT_water, p=outcondp_water)
+    
+    hotwater_frac = 0.279
+    
+    inputs_t = Settings()
+    inputs_t.Y = {'R1234ze(Z)':1.0,}
+    inputs_t.second = 'process'
+    inputs_t.cycle = 'vcc'
+    inputs_t.cond_type = 'phe'
+    inputs_t.evap_type = 'phe'
+    inputs_t.layout = 'bas'
+    
+    inputs_b = Settings()
+    inputs_b.Y = {'R1234yf':1.0,}
+    inputs_b.second = 'process'
+    inputs_b.cycle = 'vcc'
+    inputs_b.cond_type = 'phe'
+    inputs_b.evap_type = 'phe'
+    inputs_b.layout = 'bas'
+    
+    vchp_hando = HandoCycle(InCond_water, OutCond_water, InCond_space, OutCond_space, InEvap, OutEvap, inputs_t, inputs_b, hotwater_frac, purpose)
+    vchp_hando()
+    '''
+    weather_list = [254.55, 262.55, 282.15, 287.35, 290.25,	304.75,	309.65,	306.85,	295.75,	288.75, 269.45, 257.65]
+    inputs = Settings()
+    inputs.Y = {'Ammonia':1.0,}
+    inputs.second = 'process'
+    inputs.cycle = 'vcc'
+    inputs.DSC = 5.0
+    inputs.DSH = 10.0
+    inputs.layout = 'bas'
+        
+    results_array = []
+    
+    for i in weather_list:
+        if i < 293.0: # 간절기 및 동절기
+            evapfluid = 'air'
+            inevapT = i
+            inevapp = 101300.0
+            InEvap = ProcessFluid(Y={evapfluid:1.0,},T = inevapT, p = inevapp)
+            
+            outevapT = inevapT - 5.0
+            outevapp = 101300.0
+            OutEvap = ProcessFluid(Y={evapfluid:1.0,}, T = outevapT, p = outevapp)
+            
+            inputs.evap_type = 'fthe'
+            
+            
+            condfluid = 'water'
+            incondT = 293.0
+            incondp = 101300.0
+            incondm = 0.19 # 분산 히트펌프 증발유량이 메인 히트펌프 응축 유량이 됨
+            InCond = ProcessFluid(Y={condfluid:1.0,}, m = incondm, T = incondT, p = incondp)
+            
+            outcondT = incondT+5.0
+            outcondp = 101300.0
+            OutCond = ProcessFluid(Y={condfluid:1.0,}, m = incondm, T =outcondT, p = outcondp)
+            
+            inputs.cond_type = 'phe'
+            
+            vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
+            (InCond, OutCond, InEvap, OutEvap, outputs) = vchp_basic()
+        
+            
+        elif i > 298.0: # 하절기
+            evapfluid = 'water'
+            inevapT = 303.0
+            inevapm = 0.18 # 분산 히트펌프 응축유량이 메인 히트펌프 증발 유량이 됨
+            inevapp = 101300.0
+            InEvap = ProcessFluid(Y={evapfluid:1.0,},m = inevapm, T = inevapT, p = inevapp)
+            
+            outevapT = inevapT - 5.0
+            outevapp = 101300.0
+            OutEvap = ProcessFluid(Y={evapfluid:1.0,},m = inevapm, T = outevapT, p = outevapp)
+            
+            inputs.evap_type = 'phe'
+                
+            condfluid = 'air'
+            incondT = i
+            incondp = 101300.0
+            InCond = ProcessFluid(Y={condfluid:1.0,}, T = incondT, p = incondp)
+            
+            outcondT = incondT+5.0
+            outcondp = 101300.0
+            OutCond = ProcessFluid(Y={condfluid:1.0,}, T =outcondT, p = outcondp)
+            
+            inputs.cond_type = 'fthe'
+            
+            vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
+            (InCond, OutCond, InEvap, OutEvap, outputs) = vchp_basic()
+        
+        results_array.append([InCond.q/1000.0, -InEvap.q/1000.0, outputs.Wcomp/1000.0, outputs.COP_heating])
+    
+    import pandas as pd
+    
+    df = pd.DataFrame(results_array)
+    print(df)
+        
