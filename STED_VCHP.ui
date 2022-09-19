@@ -3466,10 +3466,13 @@
     <attribute name="toolTip">
      <string>COP, 선도 등 계산 결과 출력</string>
     </attribute>
-    <widget class="QPushButton" name="Recommand_btn">
+    <widget class="QPushButton" name="valve_recommand">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
-       <x>660</x>
+       <x>600</x>
        <y>10</y>
        <width>161</width>
        <height>31</height>
@@ -3478,7 +3481,7 @@
      <property name="font">
       <font>
        <family>HY견고딕</family>
-       <pointsize>13</pointsize>
+       <pointsize>11</pointsize>
       </font>
      </property>
      <property name="cursor">
@@ -3491,7 +3494,7 @@
       <string notr="true">background-color: rgb(170, 0, 0);</string>
      </property>
      <property name="text">
-      <string>제품추천</string>
+      <string>밸브 추천</string>
      </property>
     </widget>
     <widget class="QLabel" name="layout_fig_tab3">
@@ -5173,8 +5176,39 @@
       </property>
      </widget>
     </widget>
+    <widget class="QPushButton" name="compressor_recommand">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>770</x>
+       <y>10</y>
+       <width>161</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>HY견고딕</family>
+       <pointsize>11</pointsize>
+      </font>
+     </property>
+     <property name="cursor">
+      <cursorShape>ArrowCursor</cursorShape>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(170, 0, 0);</string>
+     </property>
+     <property name="text">
+      <string>압축기 추천</string>
+     </property>
+    </widget>
     <zorder>layout_fig_tab3</zorder>
-    <zorder>Recommand_btn</zorder>
+    <zorder>valve_recommand</zorder>
     <zorder>process_fig_tab3</zorder>
     <zorder>comp_top_group_2</zorder>
     <zorder>comp_group_2</zorder>
@@ -5197,6 +5231,7 @@
     <zorder>COP_bot_group</zorder>
     <zorder>COP_top_group</zorder>
     <zorder>COP_group</zorder>
+    <zorder>compressor_recommand</zorder>
    </widget>
   </widget>
  </widget>
