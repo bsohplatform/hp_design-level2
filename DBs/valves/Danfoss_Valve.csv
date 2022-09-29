@@ -1,0 +1,284 @@
+Brand,Model,NS,Kv,maxdP,maxP,maxT,minT,inlet_size_mm,inlet_size_inch,inlet_dia,outlet_size_mm,outlet_size_inch,outlet_dia,connect_recommand,connect_possible,Fig
+Danfoss,CCM 10,15,0.8,50,90,60,-40,15,0.5,16.7,15,0.5,16.7,ANSI 솔더 ODF. 사이즈: 5/8?,"DIN-EN 버트 용접. 사이즈: 15 t=2.3 mm
+DIN-EN SS 버트 용접. 사이즈: 15 t=2.3 mm
+ANSI 솔더 ODF. 사이즈: 5/8?",CCM
+Danfoss,CCM 20,20,1.7,50,90,60,-40,20,0.75,22.3,20,0.75,22.3,ANSI 솔더 ODF. 사이즈: 7/8?,"DIN-EN 버트 용접. 사이즈: 20 t=2.3 mm
+DIN-EN SS 버트 용접. 사이즈: 20 t=2.3 mm
+DIN-EN 솔더 ODF. 사이즈: 22
+ANSI 솔더 ODF. 사이즈: 7/8?",CCM
+Danfoss,CCM 30,25,2.5,50,90,60,-40,25,1,28.5,25,1,28.5,ANSI 솔더 ODF. 사이즈: 1 1/8?,"DIN-EN 버트 용접. 사이즈: 25 t=2.6 mm
+DIN-EN SS 버트 용접. 사이즈: 25 t=2.6 mm
+ANSI 솔더 ODF. 사이즈: 1 1/8?",CCM
+Danfoss,CCM 40,25,4.2,50,90,60,-40,25,1,28.5,25,1,28.5,ANSI 솔더 ODF. 사이즈: 1 1/8?,"DIN-EN 버트 용접. 사이즈: 25 t=2.6 mm
+DIN-EN SS 버트 용접. 사이즈: 25 t=2.6 mm
+ANSI 솔더 ODF. 사이즈: 1 1/8?",CCM
+Danfoss,CCMT 2,15,0.17,90,140,60,-40,15,0.5,16.7,15,0.5,16.7,DIN-EN 솔더 ODF. 사이즈: 15,"DIN-EN 버트 용접. 사이즈: 15 t=2.3 mm
+DIN-EN SS 버트 용접. 사이즈: 15 t=2.3 mm
+DIN-EN 솔더 ODF. 사이즈: 15
+DIN-EN 솔더 ODF. 사이즈: 16
+ANSI 솔더 ODF. 사이즈: 5/8?",CCMT
+Danfoss,CCMT 4,15,0.45,90,140,60,-40,15,0.5,16.7,15,0.5,16.7,DIN-EN 솔더 ODF. 사이즈: 15,"DIN-EN 버트 용접. 사이즈: 15 t=2.3 mm
+DIN-EN SS 버트 용접. 사이즈: 15 t=2.3 mm
+DIN-EN 솔더 ODF. 사이즈: 15
+DIN-EN 솔더 ODF. 사이즈: 16
+ANSI 솔더 ODF. 사이즈: 5/8?",CCMT
+Danfoss,CCMT 8,15,0.8,90,140,60,-40,15,0.5,16.7,15,0.5,16.7,DIN-EN 솔더 ODF. 사이즈: 15,"DIN-EN 버트 용접. 사이즈: 15 t=2.3 mm
+DIN-EN SS 버트 용접. 사이즈: 15 t=2.3 mm
+DIN-EN 솔더 ODF. 사이즈: 15
+DIN-EN 솔더 ODF. 사이즈: 16
+ANSI 솔더 ODF. 사이즈: 5/8?",CCMT
+Danfoss,CCMT 16,25,1.6,90,140,60,-40,25,1,28.5,25,1,28.5,ANSI 솔더 ODF. 사이즈: 1 1/8?,"DIN-EN 버트 용접. 사이즈: 25 t=2.6 mm
+DIN-EN SS 버트 용접. 사이즈: 25 t=2.6 mm
+ANSI 솔더 ODF. 사이즈: 1 1/8?",CCMT
+Danfoss,CCMT 24,25,2.4,90,140,60,-40,25,1,28.5,25,1,28.5,ANSI 솔더 ODF. 사이즈: 1 1/8?,"DIN-EN 버트 용접. 사이즈: 25 t=2.6 mm
+DIN-EN SS 버트 용접. 사이즈: 25 t=2.6 mm
+ANSI 솔더 ODF. 사이즈: 1 1/8?",CCMT
+Danfoss,CCMT 30,25,3,90,140,60,-40,25,1,28.5,25,1,28.5,ANSI 솔더 ODF. 사이즈: 1 1/8?,"DIN-EN 버트 용접. 사이즈: 25 t=2.6 mm
+DIN-EN SS 버트 용접. 사이즈: 25 t=2.6 mm
+ANSI 솔더 ODF. 사이즈: 1 1/8?",CCMT
+Danfoss,CCMT 42,25,4.2,90,140,60,-40,25,1,28.5,25,1,28.5,ANSI 솔더 ODF. 사이즈: 1 1/8?,"DIN-EN 버트 용접. 사이즈: 25 t=2.6 mm
+DIN-EN SS 버트 용접. 사이즈: 25 t=2.6 mm
+ANSI 솔더 ODF. 사이즈: 1 1/8?",CCMT
+Danfoss,KVS 1C-16,16,0.6,40,50,100,-40,16,0.63,14,16,0.63,14,DIN-EN 솔더 ODF. 사이즈: 15,"DIN-EN 솔더 ODF. 사이즈: 15
+DIN-EN 솔더 ODF. 사이즈: 16
+ANSI 솔더 ODF. 사이즈: 5/8?",KVS
+Danfoss,KVS 2C-22,22,1.2,40,50,100,-40,22,0.88,20,22,0.88,20,ANSI 솔더 ODF. 사이즈: 7/8?,"DIN-EN 솔더 ODF. 사이즈: 22
+ANSI 솔더 ODF. 사이즈: 7/8?",KVS
+Danfoss,KVS 3C-28,28,2.5,40,50,100,-40,28,1.25,25.3,28,1.25,25.3,DIN-EN 솔더 ODF. 사이즈: 28,"DIN-EN 솔더 ODF. 사이즈: 28
+ANSI 솔더 ODF. 사이즈: 1 1/8?",KVS
+Danfoss,KVS 5C-28,28,4.9,40,50,100,-40,28,1.25,25.3,28,1.25,25.3,DIN-EN 솔더 ODF. 사이즈: 28,"DIN-EN 솔더 ODF. 사이즈: 28
+ANSI 솔더 ODF. 사이즈: 1 1/8?",KVS
+Danfoss,KVR 12,12,2.5,28,28,105,-40,12,0.5,9,12,0.5,9,DIN-EN 솔더 ODF. 사이즈: 12,"DIN-EN 솔더 ODF. 사이즈: 12
+ANSI 솔더 ODF. 사이즈: 1/2?",KVR
+Danfoss,KVR 15,16,2.5,28,28,105,-40,16,0.63,13,16,0.63,13,DIN-EN 솔더 ODF. 사이즈: 16,"DIN-EN 솔더 ODF. 사이즈: 16
+ANSI 솔더 ODF. 사이즈: 5/8?",KVR
+Danfoss,KVR 22,22,2.5,28,28,105,-40,22,0.88,19,22,0.88,19,ANSI 솔더 ODF. 사이즈: 7/8?,"DIN-EN 솔더 ODF. 사이즈: 22
+ANSI 솔더 ODF. 사이즈: 7/8?",KVR
+Danfoss,KVR 28,28,8,28,28,105,-40,28,1.13,25,28,1.13,25,DIN-EN 솔더 ODF. 사이즈: 28,"DIN-EN 솔더 ODF. 사이즈: 28
+ANSI 솔더 ODF. 사이즈: 1 1/8?",KVR
+Danfoss,KVR 35,35,8,28,28,105,-40,35,1.38,32,35,1.38,32,DIN-EN 솔더 ODF. 사이즈: 35,"DIN-EN 솔더 ODF. 사이즈: 35
+ANSI 솔더 ODF. 사이즈: 1 3/8?",KVR
+Danfoss,ETS 175L-S,42,9.07,33,34,70,-50,42,1.13,39,42,1.13,39,ANSI 솔더 ODF. 사이즈: 1 1/8?,"DIN-EN 솔더 ODF. 사이즈: 42
+ANSI 솔더 ODF. 사이즈: 1 1/8?
+DIN-EN 솔더 ODF. 사이즈: 35
+ANSI 솔더 ODF. 사이즈: 1 3/8?
+ANSI 솔더 ODF. 사이즈: 1 5/8?",ETS
+Danfoss,ETS 175L-L,42,9.9,33,34,70,-50,42,1.13,39,42,1.13,39,ANSI 솔더 ODF. 사이즈: 1 1/8?,"DIN-EN 솔더 ODF. 사이즈: 42
+ANSI 솔더 ODF. 사이즈: 1 1/8?
+DIN-EN 솔더 ODF. 사이즈: 35
+ANSI 솔더 ODF. 사이즈: 1 3/8?
+ANSI 솔더 ODF. 사이즈: 1 5/8?",ETS
+Danfoss,ETS 250,42,11.39,33,34,65,-40,42,1.13,39,42,1.13,39,ANSI 솔더 ODF. 사이즈: 1 1/8?,"DIN-EN 솔더 ODF. 사이즈: 42
+ANSI 솔더 ODF. 사이즈: 1 1/8?
+DIN-EN 솔더 ODF. 사이즈: 35
+ANSI 솔더 ODF. 사이즈: 1 3/8?
+ANSI 솔더 ODF. 사이즈: 1 5/8?",ETS
+Danfoss,ETS 250L-S,42,12.29,33,34,70,-50,42,1.13,39,42,1.13,39,ANSI 솔더 ODF. 사이즈: 1 1/8?,"DIN-EN 솔더 ODF. 사이즈: 42
+ANSI 솔더 ODF. 사이즈: 1 1/8?
+DIN-EN 솔더 ODF. 사이즈: 35
+ANSI 솔더 ODF. 사이즈: 1 3/8?
+ANSI 솔더 ODF. 사이즈: 1 5/8?",ETS
+Danfoss,ETS 250L-L,42,13.25,33,34,70,-50,42,1.13,39,42,1.13,39,ANSI 솔더 ODF. 사이즈: 1 1/8?,"DIN-EN 솔더 ODF. 사이즈: 42
+ANSI 솔더 ODF. 사이즈: 1 1/8?
+DIN-EN 솔더 ODF. 사이즈: 35
+ANSI 솔더 ODF. 사이즈: 1 3/8?
+ANSI 솔더 ODF. 사이즈: 1 5/8?",ETS
+Danfoss,ETS 400,42,19.64,33,34,65,-40,42,1.65,39,42,1.65,39,ANSI 솔더 ODF. 사이즈: 1 5/8?,"ANSI 솔더 ODF. 사이즈: 1 5/8?
+DIN-EN 솔더 ODF. 사이즈: 54
+ANSI 솔더 ODF. 사이즈: 2 1/8?",ETS
+Danfoss,ETS 400L-S,42,20.46,33,34,70,-50,42,1.65,39,42,1.65,39,ANSI 솔더 ODF. 사이즈: 1 5/8?,"ANSI 솔더 ODF. 사이즈: 1 5/8?
+DIN-EN 솔더 ODF. 사이즈: 54
+ANSI 솔더 ODF. 사이즈: 2 1/8?",ETS
+Danfoss,ETS 400L-L,42,20.99,33,34,70,-50,42,1.65,39,42,1.65,39,ANSI 솔더 ODF. 사이즈: 1 5/8?,"ANSI 솔더 ODF. 사이즈: 1 5/8?
+DIN-EN 솔더 ODF. 사이즈: 54
+ANSI 솔더 ODF. 사이즈: 2 1/8?",ETS
+Danfoss,ETS 500P-S,54,24.3,33,34,65,-40,54,2.13,50.42,54,2.13,50.42,DIN-EN 솔더 ODF. 사이즈: 54,"DIN-EN 솔더 ODF. 사이즈: 54
+ANSI 솔더 ODF. 사이즈: 2 1/8?",ETS
+Danfoss,ETS 800P-S,79,36.7,33,34,65,-40,79,3.13,74.8,79,3.13,74.8,ANSI 솔더 ODF. 사이즈: 3 1/8?,ANSI 솔더 ODF. 사이즈: 3 1/8?,ETS
+Danfoss,ETS 6-18,6,0.082,35,47,70,-30,6,0.25,4,6,0.25,4,ANSI 솔더 ODF. 사이즈: 5/16?,"ANSI 솔더 ODF. 사이즈: 1/4?
+ANSI 솔더 ODF. 사이즈: 5/16?
+DIN-EN 솔더 ODF. 사이즈: 6",ETS6
+Danfoss,ETS 6-08,8,0.011,35,47,70,-30,8,0.31,6,8,0.31,6,ANSI 솔더 ODF. 사이즈: 5/16?,"DIN-EN 솔더 ODF. 사이즈: 8
+ANSI 솔더 ODF. 사이즈: 1/4?
+ANSI 솔더 ODF. 사이즈: 5/16?",ETS6
+Danfoss,ETS 6-10,8,0.03,35,47,70,-30,8,0.31,6,8,0.31,6,ANSI 솔더 ODF. 사이즈: 5/16?,"ANSI 솔더 ODF. 사이즈: 5/16?
+DIN-EN 솔더 ODF. 사이즈: 8",ETS6
+Danfoss,ETS 6-14,8,0.052,35,47,70,-30,8,0.31,6,8,0.31,6,ANSI 솔더 ODF. 사이즈: 5/16?,"ANSI 솔더 ODF. 사이즈: 5/16?
+DIN-EN 솔더 ODF. 사이즈: 8",ETS6
+Danfoss,ETS 6-25,8,0.164,35,47,70,-30,8,0.31,6,8,0.31,6,ANSI 솔더 ODF. 사이즈: 5/16?,"ANSI 솔더 ODF. 사이즈: 5/16?
+DIN-EN 솔더 ODF. 사이즈: 8",ETS6
+Danfoss,ETS 6-30,8,0.24,35,47,70,-30,8,0.31,6,8,0.31,6,ANSI 솔더 ODF. 사이즈: 5/16?,"ANSI 솔더 ODF. 사이즈: 5/16?
+DIN-EN 솔더 ODF. 사이즈: 8",ETS6
+Danfoss,ETS 6-32,8,0.242,35,47,70,-30,8,0.31,6,8,0.31,6,ANSI 솔더 ODF. 사이즈: 5/16?,"ANSI 솔더 ODF. 사이즈: 5/16?
+DIN-EN 솔더 ODF. 사이즈: 8",ETS6
+Danfoss,ETS 6-40,8,0.329,35,47,70,-30,8,0.31,6,8,0.31,6,ANSI 솔더 ODF. 사이즈: 5/16?,"ANSI 솔더 ODF. 사이즈: 5/16?
+DIN-EN 솔더 ODF. 사이즈: 8",ETS6
+Danfoss,ETS 5M13,6,0.066,35,45.5,70,-30,6,0.25,5.15,6,0.25,5.15,ANSI 솔더 ODF. 사이즈: 1/4?,"ANSI 솔더 ODF. 사이즈: 1/4?
+DIN-EN 솔더 ODF. 사이즈: 6",ETS5M
+Danfoss,ETS 5M17,6,0.102,35,45.5,70,-30,6,0.25,5.15,6,0.25,5.15,ANSI 솔더 ODF. 사이즈: 1/4?,"ANSI 솔더 ODF. 사이즈: 1/4?
+DIN-EN 솔더 ODF. 사이즈: 6",ETS5M
+Danfoss,ETS 5M20,6,0.174,35,45.5,70,-30,6,0.25,5.15,6,0.25,5.15,ANSI 솔더 ODF. 사이즈: 1/4?,"ANSI 솔더 ODF. 사이즈: 1/4?
+DIN-EN 솔더 ODF. 사이즈: 6",ETS5M
+Danfoss,ETS 5M24,6,0.2,35,45.5,70,-30,6,0.25,5.15,6,0.25,5.15,ANSI 솔더 ODF. 사이즈: 1/4?,"ANSI 솔더 ODF. 사이즈: 1/4?
+DIN-EN 솔더 ODF. 사이즈: 6",ETS5M
+Danfoss,ICM 20-A33,20,0.2,52,52,120,-60,20,0.75,22.3,20,0.75,22.3,DIN-EN 솔더 ODF. 사이즈: 15,"DIN-EN 버트 용접. 사이즈: 20 t=2.3 mm
+DIN-EN 버트 용접. 사이즈: 25 t=2.6 mm
+ANSI 버트 용접. 사이즈: 3/4?  Sch. 80
+ANSI 버트 용접. 사이즈: 1?  Sch. 80
+ANSI 소켓 용접. 사이즈: 3/4?
+DIN-EN 솔더 ODF. 사이즈: 15
+DIN-EN 솔더 ODF. 사이즈: 16
+DIN-EN 솔더 ODF. 사이즈: 22
+ANSI 솔더 ODF. 사이즈: 5/8?
+ANSI 솔더 ODF. 사이즈: 7/8?",ICM
+Danfoss,ICM 20-A,20,0.6,52,52,120,-60,20,0.75,22.3,20,0.75,22.3,DIN-EN 솔더 ODF. 사이즈: 15,"DIN-EN 버트 용접. 사이즈: 20 t=2.3 mm
+DIN-EN 버트 용접. 사이즈: 25 t=2.6 mm
+ANSI 버트 용접. 사이즈: 3/4?  Sch. 80
+ANSI 버트 용접. 사이즈: 1?  Sch. 80
+ANSI 소켓 용접. 사이즈: 3/4?
+DIN-EN 솔더 ODF. 사이즈: 15
+DIN-EN 솔더 ODF. 사이즈: 16
+DIN-EN 솔더 ODF. 사이즈: 22
+ANSI 솔더 ODF. 사이즈: 5/8?
+ANSI 솔더 ODF. 사이즈: 7/8?",ICM
+Danfoss,ICM 20-B66,20,1.6,52,52,120,-60,20,0.75,22.3,20,0.75,22.3,DIN-EN 솔더 ODF. 사이즈: 15,"DIN-EN 버트 용접. 사이즈: 20 t=2.3 mm
+DIN-EN 버트 용접. 사이즈: 25 t=2.6 mm
+ANSI 버트 용접. 사이즈: 3/4?  Sch. 80
+ANSI 버트 용접. 사이즈: 1?  Sch. 80
+ANSI 소켓 용접. 사이즈: 3/4?
+DIN-EN 솔더 ODF. 사이즈: 15
+DIN-EN 솔더 ODF. 사이즈: 16
+DIN-EN 솔더 ODF. 사이즈: 22
+ANSI 솔더 ODF. 사이즈: 5/8?
+ANSI 솔더 ODF. 사이즈: 7/8?",ICM
+Danfoss,ICM 20-B,20,2.4,52,52,120,-60,20,0.75,22.3,20,0.75,22.3,DIN-EN 솔더 ODF. 사이즈: 15,"DIN-EN 버트 용접. 사이즈: 20 t=2.3 mm
+DIN-EN 버트 용접. 사이즈: 25 t=2.6 mm
+ANSI 버트 용접. 사이즈: 3/4?  Sch. 80
+ANSI 버트 용접. 사이즈: 1?  Sch. 80
+ANSI 소켓 용접. 사이즈: 3/4?
+DIN-EN 솔더 ODF. 사이즈: 15
+DIN-EN 솔더 ODF. 사이즈: 16
+DIN-EN 솔더 ODF. 사이즈: 22
+ANSI 솔더 ODF. 사이즈: 5/8?
+ANSI 솔더 ODF. 사이즈: 7/8?",ICM
+Danfoss,ICM 20-C,20,4.6,52,52,120,-60,20,0.75,22.3,20,0.75,22.3,DIN-EN 솔더 ODF. 사이즈: 15,"DIN-EN 버트 용접. 사이즈: 20 t=2.3 mm
+DIN-EN 버트 용접. 사이즈: 25 t=2.6 mm
+ANSI 버트 용접. 사이즈: 3/4?  Sch. 80
+ANSI 버트 용접. 사이즈: 1?  Sch. 80
+ANSI 소켓 용접. 사이즈: 3/4?
+DIN-EN 솔더 ODF. 사이즈: 15
+DIN-EN 솔더 ODF. 사이즈: 16
+DIN-EN 솔더 ODF. 사이즈: 22
+ANSI 솔더 ODF. 사이즈: 5/8?
+ANSI 솔더 ODF. 사이즈: 7/8?",ICM
+Danfoss,ICM 25-A33,25,2,52,52,120,-60,25,1,28.5,25,1,28.5,ANSI 버트 용접. 사이즈: 3/4?  Sch. 80,"DIN-EN 버트 용접. 사이즈: 20 t=2.3 mm
+DIN-EN 버트 용접. 사이즈: 25 t=2.6 mm
+DIN-EN 버트 용접. 사이즈: 32 t=2.6 mm
+DIN-EN 버트 용접. 사이즈: 40 t=2.6 mm
+ANSI 버트 용접. 사이즈: 3/4?  Sch. 80
+ANSI 버트 용접. 사이즈: 1?  Sch. 80
+ANSI 버트 용접. 사이즈: 1 1/4?  Sch. 80
+ANSI 소켓 용접. 사이즈: 3/4?
+ANSI 소켓 용접. 사이즈: 1?
+DIN-EN 솔더 ODF. 사이즈: 22
+DIN-EN 솔더 ODF. 사이즈: 28
+DIN-EN 솔더 ODF. 사이즈: 35
+ANSI 솔더 ODF. 사이즈: 7/8?
+ANSI 솔더 ODF. 사이즈: 1 1/8?
+ANSI 솔더 ODF. 사이즈: 1 3/8?",ICM
+Danfoss,ICM 25-A,25,6,52,52,120,-60,25,1,28.5,25,1,28.5,ANSI 버트 용접. 사이즈: 3/4?  Sch. 80,"DIN-EN 버트 용접. 사이즈: 20 t=2.3 mm
+DIN-EN 버트 용접. 사이즈: 25 t=2.6 mm
+DIN-EN 버트 용접. 사이즈: 32 t=2.6 mm
+DIN-EN 버트 용접. 사이즈: 40 t=2.6 mm
+ANSI 버트 용접. 사이즈: 3/4?  Sch. 80
+ANSI 버트 용접. 사이즈: 1?  Sch. 80
+ANSI 버트 용접. 사이즈: 1 1/4?  Sch. 80
+ANSI 소켓 용접. 사이즈: 3/4?
+ANSI 소켓 용접. 사이즈: 1?
+DIN-EN 솔더 ODF. 사이즈: 22
+DIN-EN 솔더 ODF. 사이즈: 28
+DIN-EN 솔더 ODF. 사이즈: 35
+ANSI 솔더 ODF. 사이즈: 7/8?
+ANSI 솔더 ODF. 사이즈: 1 1/8?
+ANSI 솔더 ODF. 사이즈: 1 3/8?",ICM
+Danfoss,ICM 25-B,25,12,52,52,120,-60,25,1,28.5,25,1,28.5,ANSI 버트 용접. 사이즈: 3/4?  Sch. 80,"DIN-EN 버트 용접. 사이즈: 20 t=2.3 mm
+DIN-EN 버트 용접. 사이즈: 25 t=2.6 mm
+DIN-EN 버트 용접. 사이즈: 32 t=2.6 mm
+DIN-EN 버트 용접. 사이즈: 40 t=2.6 mm
+ANSI 버트 용접. 사이즈: 3/4?  Sch. 80
+ANSI 버트 용접. 사이즈: 1?  Sch. 80
+ANSI 버트 용접. 사이즈: 1 1/4?  Sch. 80
+ANSI 소켓 용접. 사이즈: 3/4?
+ANSI 소켓 용접. 사이즈: 1?
+DIN-EN 솔더 ODF. 사이즈: 22
+DIN-EN 솔더 ODF. 사이즈: 28
+DIN-EN 솔더 ODF. 사이즈: 35
+ANSI 솔더 ODF. 사이즈: 7/8?
+ANSI 솔더 ODF. 사이즈: 1 1/8?
+ANSI 솔더 ODF. 사이즈: 1 3/8?",ICM
+Danfoss,ICM 32-A,32,9,52,52,120,-60,32,1.25,37.2,32,1.25,37.2,DIN-EN 솔더 ODF. 사이즈: 35,"DIN-EN 버트 용접. 사이즈: 32 t=2.6 mm
+DIN-EN 버트 용접. 사이즈: 40 t=2.6 mm
+ANSI 버트 용접. 사이즈: 1 1/4?  Sch. 80
+ANSI 버트 용접. 사이즈: 1 1/2?  Sch. 80
+ANSI 소켓 용접. 사이즈: 1 1/4?
+DIN-EN 솔더 ODF. 사이즈: 35
+DIN-EN 솔더 ODF. 사이즈: 42
+ANSI 솔더 ODF. 사이즈: 1 3/8?
+ANSI 솔더 ODF. 사이즈: 1 5/8?",ICM
+Danfoss,ICM 32-B,32,17,52,52,120,-60,32,1.25,37.2,32,1.25,37.2,DIN-EN 솔더 ODF. 사이즈: 35,"DIN-EN 버트 용접. 사이즈: 32 t=2.6 mm
+DIN-EN 버트 용접. 사이즈: 40 t=2.6 mm
+ANSI 버트 용접. 사이즈: 1 1/4?  Sch. 80
+ANSI 버트 용접. 사이즈: 1 1/2?  Sch. 80
+ANSI 소켓 용접. 사이즈: 1 1/4?
+DIN-EN 솔더 ODF. 사이즈: 35
+DIN-EN 솔더 ODF. 사이즈: 42
+ANSI 솔더 ODF. 사이즈: 1 3/8?
+ANSI 솔더 ODF. 사이즈: 1 5/8?",ICM
+Danfoss,ICM 40-A,40,15,40,52,120,-60,40,1.5,43.1,40,1.5,43.1,ANSI 버트 용접. 사이즈: 1 1/2?  Sch. 80,"DIN-EN 버트 용접. 사이즈: 40 t=2.6 mm
+DIN-EN 버트 용접. 사이즈: 50 t=2.9 mm
+ANSI 버트 용접. 사이즈: 1 1/2?  Sch. 80
+ANSI 버트 용접. 사이즈: 2?  Sch. 40
+ANSI 소켓 용접. 사이즈: 1 1/2?
+DIN-EN 솔더 ODF. 사이즈: 42
+ANSI 솔더 ODF. 사이즈: 1 5/8?",ICM
+Danfoss,ICM 40-B,40,26,40,52,120,-60,40,1.5,43.1,40,1.5,43.1,ANSI 버트 용접. 사이즈: 1 1/2?  Sch. 80,"DIN-EN 버트 용접. 사이즈: 40 t=2.6 mm
+DIN-EN 버트 용접. 사이즈: 50 t=2.9 mm
+ANSI 버트 용접. 사이즈: 1 1/2?  Sch. 80
+ANSI 버트 용접. 사이즈: 2?  Sch. 40
+ANSI 소켓 용접. 사이즈: 1 1/2?
+DIN-EN 솔더 ODF. 사이즈: 42
+ANSI 솔더 ODF. 사이즈: 1 5/8?",ICM
+Danfoss,ICM 50-A,50,23,30,52,120,-60,50,2,54.5,50,2,54.5,DIN-EN 솔더 ODF. 사이즈: 54,"DIN-EN 버트 용접. 사이즈: 50 t=2.9 mm
+DIN-EN 버트 용접. 사이즈: 65 t=2.9 mm
+ANSI 버트 용접. 사이즈: 2?  Sch. 40
+ANSI 버트 용접. 사이즈: 2 1/2?  Sch. 40
+ANSI 소켓 용접. 사이즈: 2?
+DIN-EN 솔더 ODF. 사이즈: 54
+ANSI 솔더 ODF. 사이즈: 2 1/8?",ICM
+Danfoss,ICM 50-B,50,40,30,52,120,-60,50,2,54.5,50,2,54.5,DIN-EN 솔더 ODF. 사이즈: 54,"DIN-EN 버트 용접. 사이즈: 50 t=2.9 mm
+DIN-EN 버트 용접. 사이즈: 65 t=2.9 mm
+ANSI 버트 용접. 사이즈: 2?  Sch. 40
+ANSI 버트 용접. 사이즈: 2 1/2?  Sch. 40
+ANSI 소켓 용접. 사이즈: 2?
+DIN-EN 솔더 ODF. 사이즈: 54
+ANSI 솔더 ODF. 사이즈: 2 1/8?",ICM
+Danfoss,ICM 65-A,65,35,20,52,120,-60,65,2.5,70.3,65,2.5,70.3,ANSI 솔더 ODF. 사이즈: 2 5/8?,"DIN-EN 버트 용접. 사이즈: 65 t=2.9 mm
+DIN-EN 버트 용접. 사이즈: 80 t=3.2 mm
+ANSI 버트 용접. 사이즈: 2 1/2?  Sch. 40
+ANSI 버트 용접. 사이즈: 3?  Sch. 40
+ANSI 소켓 용접. 사이즈: 2 1/2?
+DIN-EN 솔더 ODF. 사이즈: 76
+ANSI 솔더 ODF. 사이즈: 2 5/8?",ICM
+Danfoss,ICM 65-B,65,70,20,52,120,-60,65,2.5,70.3,65,2.5,70.3,ANSI 솔더 ODF. 사이즈: 2 5/8?,"DIN-EN 버트 용접. 사이즈: 65 t=2.9 mm
+DIN-EN 버트 용접. 사이즈: 80 t=3.2 mm
+ANSI 버트 용접. 사이즈: 2 1/2?  Sch. 40
+ANSI 버트 용접. 사이즈: 3?  Sch. 40
+ANSI 소켓 용접. 사이즈: 2 1/2?
+DIN-EN 솔더 ODF. 사이즈: 76
+ANSI 솔더 ODF. 사이즈: 2 5/8?",ICM
+Danfoss,ICM 100-B,100,142,20,52,120,-60,100,4,107.1,100,4,107.1,ANSI 버트 용접. 사이즈: 4?  Sch. 40,"DIN-EN 버트 용접. 사이즈: 100 t=3.6 mm
+ANSI 버트 용접. 사이즈: 4?  Sch. 40",ICM
+Danfoss,ICM 125-B,125,223,20,52,120,-60,125,5,131.7,125,5,131.7,ANSI 버트 용접. 사이즈: 5?  Sch. 40,"DIN-EN 버트 용접. 사이즈: 125 t=4.0 mm
+ANSI 버트 용접. 사이즈: 5?  Sch. 40",ICM
+Danfoss,ICM 150-B,150,370,20,52,120,-60,150,6,159.3,150,6,159.3,ANSI 버트 용접. 사이즈: 6?  Sch. 40,"DIN-EN 버트 용접. 사이즈: 150 t=4.5 mm
+ANSI 버트 용접. 사이즈: 6?  Sch. 40",ICM
