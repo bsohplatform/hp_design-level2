@@ -83,7 +83,7 @@ class Settings:
     evap_type = 'phe'
     evap_T_pp: float = 2.0
     evap_T_lm: float = 10.0
-    evap_dp: float = 0.08
+    evap_dp: float = 0.01
     evap_N_element: int = 20
     evap_N_row: int = 5
     evap_UA = 0.0
@@ -97,7 +97,7 @@ class Settings:
     
     # 중간열교환기 스펙
     ihx_eff: float = 0.95
-    ihx_cold_dp: float = 0.08
+    ihx_cold_dp: float = 0.01
     ihx_hot_dp: float = 0.01
     
     # 증기 공정 조건 입력
