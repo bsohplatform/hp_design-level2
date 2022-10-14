@@ -8,7 +8,14 @@ from CoolProp.CoolProp import PropsSI
 from VCHP_layout import VCHP, VCHP_cascade
 from HP_dataclass import ProcessFluid, Settings, Outputs
 
-form_class = uic.loadUiType("STED_VCHP.ui")[0]
+import os
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
+
+form = resource_path("STED_VCHP.ui")
+form_class = uic.loadUiType(form)[0]
 
 class WindowClass(QMainWindow, form_class):
     def __init__(self):
@@ -110,6 +117,9 @@ class WindowClass(QMainWindow, form_class):
         
         # 밸브 추천 버튼
         self.valve_recommand.clicked.connect(self.Valve_Recommand)
+        
+        # 압축기 추천 버튼
+        self.compressor_recommand.clicked.connect(self.Compressor_Recommand)
         
     def MoveToLayoutTab(self):
         self.STED_tab.setCurrentWidget(self.layout_tab)
@@ -1220,7 +1230,7 @@ class WindowClass(QMainWindow, form_class):
         self.evap_out_T_edit_2.setText(str(round(self.OutEvap.T-273.15,2)))
         self.evap_out_p_edit_2.setText(str(round(self.OutEvap.p/1.0e5,2)))
         self.IHX_group_2.setHidden(False)
-        self.IHXQ_edit.setText(str(round(self.outputs.qihx,2)))
+        self.IHXQ_edit.setText(str(round(self.outputs.qihx/1000.0,2)))
         self.COP_h_edit.setText(str(round(self.outputs.COP_heating,2)))
         COP_c = abs(self.OutEvap.q)/(self.outputs.Wcomp - self.outputs.Wexpand)
         self.COP_c_edit.setText(str(round(COP_c,2)))
@@ -1611,6 +1621,51 @@ class WindowClass(QMainWindow, form_class):
                 
         self.valve.show()
     
+    def Compressor_Recommand(self):
+        from COMPRESSOR_GUI import compressorWindow
+        if self.layout_type == 'cas':
+            Pevap = self.OutEvap_REF_b.p
+            Pcond = self.InCond_REF_b.p
+            Wcomp = self.outputs_b.Wcomp
+            Refrigerant = self.OutEvap_REF_b.fluidmixture
+            Pevap_2 = self.OutEvap_REF_t.p
+            Pcond_2 = self.InCond_REF_t.p
+            Wcomp_2 = self.outputs_t.Wcomp
+            Refrigerant_2 = self.OutEvap_REF_t.fluidmixture
+            
+        elif self.layout_type == 'inj':
+            Pevap = self.OutEvap_REF.p
+            Pcond = self.outputs.outcomp_low_p
+            Wcomp = self.outputs.Wcomp - self.outputs.Wcomp_top
+            Refrigerant = self.OutEvap_REF.fluidmixture
+            Pevap_2 = self.outputs.incomp_high_p
+            Pcond_2 = self.InCond_REF.p
+            Wcomp_2 = self.outputs.Wcomp_top
+            Refrigerant_2 = self.InCond_REF.fluidmixture
+            
+        elif self.layout_type == 'ihx':
+            Pevap = self.outputs.ihx_cold_out_p
+            Pcond = self.InCond_REF.p
+            Wcomp = self.outputs.Wcomp
+            Refrigerant = self.OutEvap_REF.fluidmixture
+            Pevap_2 = self.outputs.ihx_cold_out_p
+            Pcond_2 = self.OutCond_REF.p
+            Wcomp_2 = self.outputs.Wcomp
+            Refrigerant_2 = self.OutEvap_REF.fluidmixture
+            
+        else:
+            Pevap = self.OutEvap_REF.p
+            Pcond = self.InCond_REF.p
+            Wcomp = self.outputs.Wcomp
+            Refrigerant = self.OutEvap_REF.fluidmixture
+            Pevap_2 = self.OutEvap_REF.p
+            Pcond_2 = self.InCond_REF.p
+            Wcomp_2 = self.outputs.Wcomp
+            Refrigerant_2 = self.OutEvap_REF.fluidmixture
+        
+        self.compressor = compressorWindow(Pevap, Pcond, Wcomp, Refrigerant, Pevap_2, Pcond_2, Wcomp_2, Refrigerant_2, self.layout_type)            
+        self.compressor.show()
+        
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     
