@@ -1074,14 +1074,14 @@ class WindowClass(QMainWindow, form_class):
                 self.outputs_t = Outputs()
                 self.outputs_b = Outputs()
                 
-                self.InCond_REF_t = ProcessFluid(Y=self.inputs_t.Y)
-                self.OutCond_REF_t = ProcessFluid(Y=self.inputs_t.Y)
-                self.InEvap_REF_t = ProcessFluid(Y=self.inputs_t.Y)
-                self.OutEvap_REF_t = ProcessFluid(Y=self.inputs_t.Y)
-                self.InCond_REF_b = ProcessFluid(Y=self.inputs_b.Y)
-                self.OutCond_REF_b = ProcessFluid(Y=self.inputs_b.Y)
-                self.InEvap_REF_b = ProcessFluid(Y=self.inputs_b.Y)
-                self.OutEvap_REF_b = ProcessFluid(Y=self.inputs_b.Y)
+                self.InCond_REF_t = ProcessFluid(Y=self.inputs_t.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+                self.OutCond_REF_t = ProcessFluid(Y=self.inputs_t.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+                self.InEvap_REF_t = ProcessFluid(Y=self.inputs_t.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+                self.OutEvap_REF_t = ProcessFluid(Y=self.inputs_t.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+                self.InCond_REF_b = ProcessFluid(Y=self.inputs_b.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+                self.OutCond_REF_b = ProcessFluid(Y=self.inputs_b.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+                self.InEvap_REF_b = ProcessFluid(Y=self.inputs_b.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+                self.OutEvap_REF_b = ProcessFluid(Y=self.inputs_b.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
                 cond_t_ph = 0
                 evap_b_ph = 0
                 (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF_t, self.OutCond_REF_t, self.InEvap_REF_t, self.OutEvap_REF_t, self.InCond_REF_b, self.OutCond_REF_b, self.InEvap_REF_b, self.OutEvap_REF_b, self.outputs_t, self.outputs_b)\
@@ -1090,10 +1090,10 @@ class WindowClass(QMainWindow, form_class):
             else:
                 self.outputs = Outputs()
                 
-                self.InCond_REF = ProcessFluid(Y=self.inputs.Y)
-                self.OutCond_REF = ProcessFluid(Y=self.inputs.Y)
-                self.InEvap_REF = ProcessFluid(Y=self.inputs.Y)
-                self.OutEvap_REF = ProcessFluid(Y=self.inputs.Y)
+                self.InCond_REF = ProcessFluid(Y=self.inputs.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+                self.OutCond_REF = ProcessFluid(Y=self.inputs.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+                self.InEvap_REF = ProcessFluid(Y=self.inputs.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+                self.OutEvap_REF = ProcessFluid(Y=self.inputs.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
                 evap_ph = 0
                 cond_ph = 0
                 if self.layout_type == 'inj':    
@@ -1418,6 +1418,8 @@ class WindowClass(QMainWindow, form_class):
         
         self.evap_in_p_edit.setText('1.5')
         self.evap_in_m_edit.setText('1.0')
+        
+        self.evap_out_T_edit.setText('')
         self.evap_out_p_edit.setText('1.5')
         
         
