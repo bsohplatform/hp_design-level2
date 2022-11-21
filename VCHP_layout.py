@@ -1389,6 +1389,39 @@ class HandoCycle(VCHP):
     
         
 if __name__ == '__main__':
+    evapfluid = 'water'
+    inevapT = 285.15
+    inevapp = 101300.0
+    InEvap = ProcessFluid(Y={evapfluid:1.0,},m = 0.182, T = inevapT, p = inevapp)
+    
+    outevapT = 280.15
+    outevapp = 101300.0
+    OutEvap = ProcessFluid(Y={evapfluid:1.0,},T = outevapT, p = outevapp)
+    
+    condfluid = 'water'
+    incondT = 305.15
+    incondp = 101300.0
+    InCond = ProcessFluid(Y={condfluid:1.0,},m = 0.195, T = incondT, p = incondp)
+    
+    outcondT = 311.15
+    outcondp = 101300.0
+    OutCond = ProcessFluid(Y={condfluid:1.0,},m = 0.195, p = outcondp)
+    
+    
+    inputs = Settings()
+    inputs.Y = {'R410A':1.0,}
+    inputs.second = 'process'
+    inputs.cycle = 'vcc'
+    inputs.DSC = 5.0
+    inputs.cond_type = 'phe'
+    inputs.evap_type = 'phe'
+    inputs.layout = 'bas'
+    
+    
+    vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
+    vchp_basic()
+    
+    
     '''
     evapfluid = 'water'
     inevapT = 285.15

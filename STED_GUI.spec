@@ -2,13 +2,13 @@
 
 
 block_cipher = None
-ui = [('STED_VCHP.ui','.')]
+
 
 a = Analysis(
     ['STED_GUI.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('STED_VCHP.ui', '.'),('VALVE.ui', '.'),('COMPRESSOR.ui', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -41,5 +41,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='icon.ico',
+    icon='Figs\\icon.ico',
 )

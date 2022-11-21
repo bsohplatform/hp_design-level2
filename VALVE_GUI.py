@@ -1,11 +1,20 @@
-import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5 import uic
 import pandas as pd
 
-form_class = uic.loadUiType("VALVE.ui")[0]
+
+import sys
+import os
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
+
+form = resource_path("VALVE.ui")
+form_class = uic.loadUiType(form)[0]
 
 
 class valveWindow(QMainWindow, form_class):
