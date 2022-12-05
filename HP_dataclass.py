@@ -156,5 +156,6 @@ class Outputs:
     DSH:float = 0.0
     cond_Tarray:list = field(default_factory=list)
     cond_parray:list = field(default_factory=list)
-    
+    cond_UA:float = 0.0
+    evap_UA:float = 0.0    
     

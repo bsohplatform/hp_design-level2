@@ -312,6 +312,7 @@ class VCHP():
             outputs.COP_heating = abs(OutCond.q)/(outputs.Wcomp - outputs.Wexpand)
         
         outputs.DSH = OutEvap_REF.T - OutEvap_REF_Tvap
+        outputs.evap_UA = evap.UA
         
         return (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs)
         
@@ -559,6 +560,7 @@ class VCHP():
                 self.cond_conv_err = 1
                 cond_a = 0
         
+        outputs.cond_UA = cond.UA
         if inputs.layout == 'ihx':
             outputs.qihx = (InComp.h - OutEvap_REF.h)*OutEvap_REF.m
             outputs.ihx_hot_out_T = InExpand.T
@@ -718,7 +720,7 @@ class VCHP():
         Thigh = PropsSI('T','P',0.5*(self.OutCond_REF.p+self.InCond_REF.p),'Q',0.5,self.OutCond_REF.fluidmixture)
         print('Tlow: {:.3f} [℃], Thigh: {:.3f} [℃], mdot: {:.3f}[kg/s]'.format(Tlow-273.15,Thigh-273.15, self.OutEvap_REF.m))
         print('Tcomp_in: {:.3f} [℃], Tcomp_out: {:.3f} [℃]'.format(self.OutEvap_REF.T-273.15,self.InCond_REF.T-273.15))
-      
+        print('Cond_UA: {:.3f} [W/℃], Evap_UA: {:.3f} [W/℃]'.format(outputs.cond_UA, outputs.evap_UA))
 class VCHP_cascade(VCHP):
     def __init__(self, InCond, OutCond, InEvap, OutEvap, inputs_t, inputs_b):
         self.InCond = InCond
@@ -1389,10 +1391,11 @@ class HandoCycle(VCHP):
     
         
 if __name__ == '__main__':
+    
     evapfluid = 'water'
     inevapT = 285.15
     inevapp = 101300.0
-    InEvap = ProcessFluid(Y={evapfluid:1.0,},m = 0.182, T = inevapT, p = inevapp)
+    InEvap = ProcessFluid(Y={evapfluid:1.0,},m = 0.179, T = inevapT, p = inevapp)
     
     outevapT = 280.15
     outevapp = 101300.0
@@ -1412,17 +1415,66 @@ if __name__ == '__main__':
     inputs.Y = {'R410A':1.0,}
     inputs.second = 'process'
     inputs.cycle = 'vcc'
-    inputs.DSC = 5.0
+    inputs.DSC = 0.01
+    inputs.DSH = 5.0
+    inputs.cond_dp = 0.01
+    inputs.evap_dp = 0.01
     inputs.cond_type = 'phe'
     inputs.evap_type = 'phe'
     inputs.layout = 'bas'
-    
+    inputs.cond_T_pp = 1.0
+    inputs.evap_T_pp = 1.0
+    inputs.comp_eff = 0.74
     
     vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
     vchp_basic()
-    
-    
     '''
+    COP_list = []
+    evapUA_list = []
+    condUA_list = []
+    comp_list = [0.7, 0.71, 0.72, 0.73, 0.74, 0.75]
+    cond_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+    evap_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+    for comp in comp_list:
+        COP_list_c = []
+        evapUA_list_c = []
+        condUA_list_c = []
+        for cond in cond_list:
+            COP_list_e = []
+            evapUA_list_e = []
+            condUA_list_e = []
+            for evap in evap_list:
+                try:
+                    inputs.comp_eff = comp
+                    inputs.cond_T_pp = cond
+                    inputs.evap_T_pp = evap
+                    OutCond = ProcessFluid(Y={condfluid:1.0,},m = 0.195, p = outcondp)
+                    vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
+                    (a, b, c, d, outputs) = vchp_basic()
+                    COP = outputs.COP_heating - 1
+                except:
+                    COP = 0.0
+                    outputs.evap_UA = 0.0
+                    outputs.cond_UA = 0.0
+                
+                COP_list_e.append(COP)
+                evapUA_list_e.append(outputs.evap_UA)
+                condUA_list_e.append(outputs.cond_UA)
+                
+            COP_list_c.append(COP_list_e)
+            evapUA_list_c.append(evapUA_list_e)
+            condUA_list_c.append(condUA_list_e)
+        
+        COP_list.append(COP_list_c)
+        evapUA_list.append(evapUA_list_c)
+        condUA_list.append(condUA_list_c)
+
+
+    print(COP_list)
+    print(evapUA_list)
+    print(condUA_list)
+    
+    
     evapfluid = 'water'
     inevapT = 285.15
     inevapp = 101300.0
