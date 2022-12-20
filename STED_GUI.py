@@ -79,14 +79,14 @@ class WindowClass(QMainWindow, form_class):
         # 저온/고온 유체 선택
         self.evap_row_add_btn.clicked.connect(self.EvapRowAdd)
         self.evap_row_delete_btn.clicked.connect(self.EvapDeleteAdd)
-        self.evap_fluid_table.setColumnWidth(0, 0.08*self.width())
-        self.evap_fluid_table.setColumnWidth(1, 0.08*self.width())
+        #self.evap_fluid_table.setColumnWidth(0, 0.08*self.width())
+        #self.evap_fluid_table.setColumnWidth(1, 0.08*self.width())
         self.evap_fluid_list.currentIndexChanged.connect(self.EvapFluidAdd)
         
         self.cond_row_add_btn.clicked.connect(self.CondRowAdd)
         self.cond_row_delete_btn.clicked.connect(self.CondDeleteAdd)
-        self.cond_fluid_table.setColumnWidth(0, 0.08*self.width())
-        self.cond_fluid_table.setColumnWidth(1, 0.08*self.width())
+        #self.cond_fluid_table.setColumnWidth(0, 0.08*self.width())
+        #self.cond_fluid_table.setColumnWidth(1, 0.08*self.width())
         self.cond_fluid_list.currentIndexChanged.connect(self.CondFluidAdd)
         
         # 열교환기 타입 선택

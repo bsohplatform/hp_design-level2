@@ -1,3 +1,4 @@
+from cmath import log
 import numpy as np
 from CoolProp.CoolProp import PropsSI
 
@@ -210,7 +211,7 @@ class Heatexchanger_module:
         p_primary[0] = self.primary_in.p
         T_primary[0] = self.primary_in.T
         h_primary[0] = self.primary_in.h
-        
+         
         dT[0] = T_primary[0] - T_secondary[0]
         
         if (dT[0] < 0.0 and self.primary_in.q < 0.0) or (dT[0] > 0.0 and self.primary_in.q > 0.0):
@@ -228,7 +229,7 @@ class Heatexchanger_module:
                 h_primary[i+1] = h_primary[i] + self.primary_in.q/N_element/self.primary_in.m
                 p_primary[i+1] = p_primary[i] - (self.primary_in.p - self.primary_out.p)/N_element
                 T_primary[i+1] = PropsSI('T','H',h_primary[i+1],'P',p_primary[i+1],self.primary_in.fluidmixture)
-            
+                
             if self.sph == 0:
                 T_secondary[i+1] = T_secondary[i] - self.secondary_in.q/N_element/self.secondary_in.m/0.5/(self.secondary_in.Cp + self.secondary_out.Cp)
             else: 
@@ -244,11 +245,14 @@ class Heatexchanger_module:
                 LMTD[i] = ((T_primary[i+1]-T_secondary[i+1]) - (T_primary[i]-T_secondary[i]))\
                             /np.log((T_primary[i+1]-T_secondary[i+1])/(T_primary[i]-T_secondary[i]))
                             
-                UA_element[i] = abs((self.primary_in.q/N_element) / LMTD[i])  
-        
-        self.UA = np.sum(UA_element)
+                UA_element[i] = abs((self.primary_in.q/N_element)/LMTD[i])  
+      
         self.T_pp = min(abs(dT))
         
+        Tsat = PropsSI('T','Q',0.5,'P',0.5*(self.primary_in.p+self.primary_out.p),self.primary_in.fluidmixture)
+        lmtd = ((Tsat-T_secondary[0]) - (Tsat-T_secondary[-1])) / log((Tsat-T_secondary[0])/(Tsat-T_secondary[-1]))
+        self.UA = abs(self.primary_in.q/lmtd)
+        self.UA = sum(UA_element) 
         self.primary_out.T = T_primary[N_element]
         self.primary_out.h = h_primary[N_element]
         

@@ -33,12 +33,17 @@ class ProcessFluid:
     
     def __init__(self,  Y: dict = field(default_factory=dict),  m: float = 0.0,  T: float = 0.0, p: float = 0.0, q: float = 0.0, h: float = 0.0, s: float = 0.0, Cp: float = 0.0):
         self.fluidmixture: str = ''
-        for fluids, ratio in Y.items():         
-            if fluids == list(Y.keys())[-1]:
-                self.fluidmixture = self.fluidmixture+fluids+'['+str(ratio)+']'
-            else:
-                self.fluidmixture = self.fluidmixture+'SRK::'+fluids+'['+str(ratio)+']'+'&'
-                    
+        if len(list(Y.keys())) == 1:
+            self.fluidmixture = list(Y.keys())[0]
+        else:
+            for fluids, ratio in Y.items():
+                if fluids == list(Y.keys())[0]:
+                    self.fluidmixture = self.fluidmixture+'SRK::'+fluids+'['+str(ratio)+']'+'&'      
+                elif fluids == list(Y.keys())[-1]:
+                    self.fluidmixture = self.fluidmixture+fluids+'['+str(ratio)+']'
+                else:
+                    self.fluidmixture = self.fluidmixture+fluids+'['+str(ratio)+']'+'&'
+                        
         self.m = m
         self.T = T
         self.p = p
@@ -46,15 +51,7 @@ class ProcessFluid:
         self.h = h
         self.s = s
         self.Cp = Cp
-        try:
-            self.p_crit = PropsSI('PCRIT','',0,'',0,self.fluidmixture)
-        except:
-            print('해당 유체는 임계압력을 구할 수 없습니다.')
-        try:
-            self.T_crit = PropsSI('TCRIT','',0,'',0,self.fluidmixture)
-        except:
-            print('해당 유체는 임계온도를 구할 수 없습니다.')
-        
+                
         
 @dataclass
 class Settings:
@@ -156,6 +153,6 @@ class Outputs:
     DSH:float = 0.0
     cond_Tarray:list = field(default_factory=list)
     cond_parray:list = field(default_factory=list)
-    evap_UA: float = 0.0
-    cond_UA: float = 0.0
+    cond_UA:float = 0.0
+    evap_UA:float = 0.0    
     
