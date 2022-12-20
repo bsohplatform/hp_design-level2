@@ -4,7 +4,6 @@ from CoolProp.CoolProp import PropsSI
 
 """
 Common Data Types
-
 """
 @dataclass
 class ProcessFluid:
@@ -155,4 +154,3 @@ class Outputs:
     cond_parray:list = field(default_factory=list)
     cond_UA:float = 0.0
     evap_UA:float = 0.0    
-    
