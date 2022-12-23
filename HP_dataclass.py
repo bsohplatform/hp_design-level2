@@ -61,6 +61,7 @@ class Settings:
     second: str = 'process'
     cycle: str = 'vcc'
     layout: str = 'ihx'
+    frac: str = 0.0
     
     DSC = 5.0
     DSH = 10.0

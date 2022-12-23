@@ -39,8 +39,10 @@ class VCHP():
         (self.InCond, self.OutCond, self.InEvap, self.OutEvap, no_input) = self.Input_Processing(self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.inputs)
         evap_ph = 0
         cond_ph = 0
-        if self.inputs.layout == 'inj':    
+        if self.inputs.layout == 'inj':
             (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs) = self.Injection_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, self.inputs, outputs, no_input, cond_ph, evap_ph)
+        elif self.inputs.layout == '2comp':
+            (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs) = self.Comp_2stage_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, self.inputs, outputs, no_input, cond_ph, evap_ph)
         else:
             (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs) = self.Cycle_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, self.inputs, outputs, no_input, cond_ph, evap_ph)
         
@@ -267,6 +269,12 @@ class VCHP():
         
         return (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs)
     
+    def Comp_2stage_Solver(self, InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs, no_input, cond_ph, evap_ph):
+        self.inter_frac = inputs.frac
+        (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs) = self.Cycle_Solver(InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs, no_input, cond_ph, evap_ph)
+        
+        return (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs)
+    
     def Cycle_Solver(self,InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs, no_input, cond_ph, evap_ph):
         if no_input == 'InEvapT':
             evap_p_ub = PropsSI('P','T',OutEvap.T, 'Q', 1.0, InEvap_REF.fluidmixture)        
@@ -326,7 +334,7 @@ class VCHP():
         
     def HighPressure_Solver(self, InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs, no_input, cond_ph):
         if inputs.cycle == 'scc':
-            cond_p_ub = min(2*InCond_REF.p_crit, 3.0e7)
+            cond_p_ub = min(5*InCond_REF.p_crit, 1.0e8)
             cond_p_lb = InCond_REF.p_crit
         else:
             cond_p_ub = InCond_REF.p_crit
@@ -366,7 +374,6 @@ class VCHP():
     
             if inputs.layout == 'inj':
                 inter_p = InEvap_REF.p + self.inter_frac*(OutCond_REF.p - InEvap_REF.p)
-                
                 inter_h_vap = PropsSI('H','P',inter_p,'Q',1.0, OutCond_REF.fluidmixture)
                 outputs.inter_h_vap = inter_h_vap
                 inter_h_liq = PropsSI('H','P',inter_p,'Q',0.0, OutCond_REF.fluidmixture)
@@ -404,6 +411,30 @@ class VCHP():
                 expand_low = CP.Compander_module(Flash_liq, InEvap_REF)
                 expand_low.EXPAND(eff_isen=inputs.expand_bot_eff, eff_mech = inputs.mech_eff)
                 InEvap_REF = expand_low.primary_out
+                
+            elif inputs.layout == '2comp':
+                inter_p = InEvap_REF.p + self.inter_frac*(OutCond_REF.p - InEvap_REF.p)
+                OutComp_low = deepcopy(OutEvap_REF)
+                OutComp_low.p = inter_p
+                
+                comp_low = CP.Compander_module(OutEvap_REF, OutComp_low)
+                comp_low.COMP(eff_isen = inputs.comp_eff, eff_mech = inputs.mech_eff)
+                OutComp_low = comp_low.primary_out
+                
+                InComp_high = deepcopy(OutComp_low)
+                
+                InComp_high.h = OutComp_low.h
+                InComp_high.T = PropsSI('T','P',InComp_high.p,'H',InComp_high.h, InComp_high.fluidmixture)
+                InComp_high.s = PropsSI('S','T',InComp_high.T, 'P', InComp_high.p, InComp_high.fluidmixture)
+                
+                comp_high = CP.Compander_module(InComp_high, InCond_REF)
+                comp_high.COMP(eff_isen = inputs.comp_top_eff, eff_mech = inputs.mech_eff)
+                InCond_REF = comp_high.primary_out
+                
+                InExpand = OutCond_REF
+                expand_high = CP.Compander_module(InExpand, InEvap_REF)
+                expand_high.EXPAND(eff_isen = inputs.expand_eff, eff_mech = inputs.mech_eff)
+                InEvap_REF = expand_high.primary_out
             else:
                 if inputs.layout == 'ihx':
                     InComp = deepcopy(OutEvap_REF)
@@ -438,6 +469,12 @@ class VCHP():
                     outputs.Wcomp_top = comp_high.Pspecific*InCond_REF.m
                     outputs.Wexpand = expand_high.Pspecific*OutCond_REF.m + expand_low.Pspecific*InEvap_REF.m
                     outputs.Wexpand_bot = expand_low.Pspecific*InEvap_REF.m
+                elif inputs.layout == '2comp':
+                    InCond_REF.m = InEvap_REF.m
+                    OutCond_REF.m = InEvap_REF.m
+                    outputs.Wcomp = comp_low.Pspecific*OutEvap_REF.m + comp_high.Pspecific*InCond_REF.m
+                    outputs.Wcomp_top = comp_high.Pspecific*InCond_REF.m
+                    outputs.Wexpand = expand_high.Pspecific*OutCond_REF.m
                 else:
                     InCond_REF.m = InEvap_REF.m
                     OutCond_REF.m = InEvap_REF.m
@@ -493,6 +530,12 @@ class VCHP():
                     outputs.Wcomp_top = comp_high.Pspecific*InCond_REF.m
                     outputs.Wexpand = expand_high.Pspecific*OutCond_REF.m + expand_low.Pspecific*InEvap_REF.m
                     outputs.Wexpand_bot = expand_low.Pspecific*InEvap_REF.m
+                elif inputs.layout == '2comp':
+                    InCond_REF.m = InCond_REF.m
+                    OutCond_REF.m = InCond_REF.m
+                    outputs.Wcomp = comp_low.Pspecific*OutEvap_REF.m + comp_high.Pspecific*InCond_REF.m
+                    outputs.Wcomp_top = comp_high.Pspecific*InCond_REF.m
+                    outputs.Wexpand = expand_high.Pspecific*OutCond_REF.m
                 else:
                     InEvap_REF.m = InCond_REF.m
                     OutEvap_REF.m = InCond_REF.m
@@ -595,7 +638,16 @@ class VCHP():
             outputs.flash_liq_T = Flash_liq.T
             outputs.flash_liq_p = Flash_liq.p
             outputs.flash_liq_h = Flash_liq.h
-            outputs.flash_liq_s = Flash_liq.s            
+            outputs.flash_liq_s = Flash_liq.s
+        elif inputs.layout == '2comp':
+            outputs.outcomp_low_T = OutComp_low.T
+            outputs.outcomp_low_p = OutComp_low.p
+            outputs.outcomp_low_h = OutComp_low.h
+            outputs.outcomp_low_s = OutComp_low.s
+            outputs.incomp_high_T = InComp_high.T
+            outputs.incomp_high_p = InComp_high.p
+            outputs.incomp_high_h = InComp_high.h
+            outputs.incomp_high_s = InComp_high.s        
         
         return (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs)
     
@@ -725,11 +777,17 @@ class VCHP():
         print('Cold fluid Outlet T:{:.3f}[℃]/P:{:.3f}[bar]/m:{:.3f}[kg/s]: <------- Cold fluid Inlet T:{:.3f}[℃]/P:{:.3f}[bar]/m:{:.3f}[kg/s]'.format(self.OutEvap.T-273.15, self.OutEvap.p/1.0e5, self.OutEvap.m, self.InEvap.T-273.15, self.InEvap.p/1.0e5, self.InEvap.m))
         print('Plow: {:.3f} [bar], Phigh: {:.3f} [bar], PR: {:.3f}[-]'.format(self.OutEvap_REF.p/1.0e5, self.InCond_REF.p/1.0e5, self.InCond_REF.p/self.OutEvap_REF.p))
         Tlow = PropsSI('T','P',0.5*(self.OutEvap_REF.p+self.InEvap_REF.p),'Q',0.5,self.OutEvap_REF.fluidmixture)
-        Thigh = PropsSI('T','P',0.5*(self.OutCond_REF.p+self.InCond_REF.p),'Q',0.5,self.OutCond_REF.fluidmixture)
+        try:
+            Thigh = PropsSI('T','P',0.5*(self.OutCond_REF.p+self.InCond_REF.p),'Q',0.5,self.OutCond_REF.fluidmixture)
+        except:
+            Thigh = 0
         print('Tlow: {:.3f} [℃], Thigh: {:.3f} [℃], mdot: {:.3f}[kg/s]'.format(Tlow-273.15,Thigh-273.15, self.OutEvap_REF.m))
         print('Tcomp_in: {:.3f} [℃], Tcomp_out: {:.3f} [℃]'.format(self.OutEvap_REF.T-273.15,self.InCond_REF.T-273.15))
         print('Cond_UA: {:.3f} [W/℃], Evap_UA: {:.3f} [W/℃]'.format(outputs.cond_UA, outputs.evap_UA))
-
+        if self.inputs.layout == 'inj' or self.inputs.layout == '2comp':
+            print('T_inter: {:.3f} [℃] / P_inter: {:.3f} [bar]'.format(outputs.incomp_high_T-273.15, outputs.incomp_high_p/1.0e5))
+            
+        
 class VCHP_cascade(VCHP):
     def __init__(self, InCond, OutCond, InEvap, OutEvap, inputs_t, inputs_b):
         self.InCond = InCond
@@ -853,7 +911,7 @@ class VCHP_cascade(VCHP):
                         
                 elif (no_input == 'InCondT') or (no_input == 'OutCondT') or (no_input == 'Condm'):
                     if inputs_t.cycle == 'scc':
-                        cond_p_ub = min(2*InCond_REF_t.p_crit, 3.0e7)
+                        cond_p_ub = min(5*InCond_REF_t.p_crit, 1.0e8)
                         cond_p_lb = InCond_REF_t.p_crit
                     else:
                         cond_p_ub = InCond_REF_t.p_crit
@@ -1614,11 +1672,9 @@ if __name__ == '__main__':
     stats.print_stats()
     '''
     
-<<<<<<< HEAD
     '''
-=======
     # 한도외 사이클 입력
-    '''
+    
     purpose = 'summer'
     
     inputs_t = Settings()
@@ -1638,7 +1694,6 @@ if __name__ == '__main__':
     inputs_b.layout = 'bas'
     inputs_b.comp_eff = 0.72
         
->>>>>>> 0f68b27046b97a3a95056ae2e8f3c6386ec3ebf2
     if purpose == 'winter':
             
         evapfluid = 'water'
@@ -1816,9 +1871,9 @@ if __name__ == '__main__':
     df = pd.DataFrame(results_array)
     print(df)
     '''
-    
-    # 2단 캐스케이드 입력
     '''
+    # 2단 캐스케이드 입력
+    
     
     purpose = 'winter'
     
@@ -1943,28 +1998,32 @@ if __name__ == '__main__':
         vchp_hando = HandoCycle(InCond_water, OutCond_water, InCond_space, OutCond_space, 'fthe', InEvap, OutEvap, inputs_t, inputs_b, purpose)
     vchp_hando()
     
+    # 한도외 사이클 CO2-R290
+    # CO2-R290: eff_b = 0.65, eff_t = 0.68
+    # CO2-R1234yf: eff_b = 0.65, eff_t = 0.65
     
-    # 한도외 사이클 입력
+    
     inputs_b = Settings()
     inputs_t = Settings()
     m_cond_fix = 0.0
-    m_evap_fix = 3.561
+    m_evap_fix = 0.742
     m_TES = 0.0
-    T_amb = [280.15, 280.15]
-    eff_comp_b = [0.80, 0.80]
-    eff_comp_t = [0.75, 0.75]
-    for T, eff_b, eff_t in zip(T_amb, eff_comp_b, eff_comp_t):
-        inputs_b.Y = {'R32':1.0,}
+    T_amb = [258.15, 266.15, 275.15, 280.15]
+    eff_comp_b = [0.745, 0.77, 0.786, 0.786]
+    eff_comp_t = [0.77, 0.766, 0.75, 0.735]
+    T_mid = [284.95, 288.95, 293.35, 295.85]
+    for T, Tm, eff_b, eff_t in zip(T_amb, T_mid, eff_comp_b, eff_comp_t):
+        inputs_b.Y = {'CO2':1.0,}
         inputs_b.comp_eff = eff_b
         inputs_b.second = 'process'
         inputs_b.cycle = 'vcc'
         inputs_b.cond_type = 'phe'
         inputs_b.evap_type = 'fthe'
         inputs_b.layout = 'bas'
-        inputs_b.DSC = 3
-        inputs_b.DSH = 1
-        inputs_b.cond_T_pp = 1
-        inputs_b.evap_T_lm = 7
+        inputs_b.DSC = 1
+        inputs_b.DSH = 3
+        inputs_b.cond_T_pp = 2
+        inputs_b.evap_T_lm = 5
 
         evapfluid = 'air'
         inevapT = T
@@ -1977,12 +2036,12 @@ if __name__ == '__main__':
         OutEvap_b = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = outevapT, p = outevapp)
         
         condfluid = 'water'
-        incondT = 298.15
+        incondT = Tm
         incondp = 101300.0
         condm = m_TES
         InCond_b = ProcessFluid(Y={condfluid:1.0,},m = condm, T = incondT, p = incondp)
         
-        outcondT = 300.15
+        outcondT = Tm+2.0
         outcondp = 101300.0
         OutCond_b = ProcessFluid(Y={condfluid:1.0,},m = condm, T=outcondT, p=outcondp)
         
@@ -1990,25 +2049,25 @@ if __name__ == '__main__':
         vchp_hando_bot = VCHP(InCond_b, OutCond_b, InEvap_b, OutEvap_b, inputs_b)
         vchp_hando_bot()
         
-        inputs_t.Y = {'R1234ZEE':1.0,}
+        inputs_t.Y = {'R290':1.0,}
         inputs_t.comp_eff = eff_t
         inputs_t.second = 'process'
         inputs_t.cycle = 'vcc'
         inputs_t.cond_type = 'phe'
         inputs_t.evap_type = 'phe'
         inputs_t.layout = 'bas'
-        inputs_t.DSC = 3
-        inputs_t.DSH = 1
-        inputs_t.cond_T_pp = 5
-        inputs_t.evap_T_pp = 1
+        inputs_t.DSC = 1
+        inputs_t.DSH = 3
+        inputs_t.cond_T_pp = 2
+        inputs_t.evap_T_pp = 2
         
         evapfluid = 'water'
-        inevapT = 298.15
+        inevapT = Tm
         inevapp = 101300.0
         evapm = OutCond_b.m
         InEvap_t = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = inevapT, p = inevapp)
         
-        outevapT = 296.15
+        outevapT = Tm-2
         outevapp = 101300.0
         OutEvap_t = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = outevapT, p = outevapp)
         
@@ -2026,284 +2085,133 @@ if __name__ == '__main__':
         vchp_hando_top = VCHP(InCond_t, OutCond_t, InEvap_t, OutEvap_t, inputs_t)
         vchp_hando_top()
         print('------------------------------------------------------------------------')
-<<<<<<< HEAD
     '''
-
- 
-    # R32-R1234ZEE 조합
-    purpose = 'cooling'
-=======
-    
-    
-    # R32-R1234yf 조합
-    purpose = 'heating'
->>>>>>> 0f68b27046b97a3a95056ae2e8f3c6386ec3ebf2
-    
-    if purpose == 'heating':
-        inputs_b = Settings()
-        inputs_t = Settings()
-<<<<<<< HEAD
-        m_cond_fix = 1.162
-        m_evap_fix = 3.561
-        m_TES = 2.519
-        T_amb_list = [258.15, 266.15, 275.15, 280.15]
-        T_TES_list = [289.55, 291.53, 296.0, 298.5]
-        eff_b_list = [0.725627744, 0.770819, 0.803, 0.812]
-        eff_t_list = [0.71, 0.71, 0.71, 0.71]
-        for T_amb, eff_b, eff_t, T_tes in zip(T_amb_list, eff_b_list, eff_t_list, T_TES_list):
-=======
-        m_cond_fix = 1.15
-        m_evap_fix = 3.4
-        m_TES = 0.991
-        dsc = 0.001
-        dsh = 0.001
-        T_amb = [258.15, 266.15, 275.15, 280.15]
-        eff_comp_b = [0.7, 0.731, 0.80, 0.81]
-        eff_t = 0.75
-        for T, eff_b in zip(T_amb, eff_comp_b):
->>>>>>> 0f68b27046b97a3a95056ae2e8f3c6386ec3ebf2
-            inputs_b.Y = {'R32':1.0,}
-            inputs_b.comp_eff = eff_b
-            inputs_b.second = 'process'
-            inputs_b.cycle = 'vcc'
-            inputs_b.cond_type = 'phe'
-            inputs_b.evap_type = 'fthe'
-            inputs_b.layout = 'bas'
-            inputs_b.DSC = 1.0
-            inputs_b.DSH = 3.0
-            inputs_b.cond_T_pp = 2
-<<<<<<< HEAD
-            inputs_b.evap_T_lm = 8
-=======
-            inputs_b.evap_T_lm = 5
->>>>>>> 0f68b27046b97a3a95056ae2e8f3c6386ec3ebf2
-
-
-            evapfluid = 'air'
-            inevapT = T_amb
-            inevapp = 101300.0
-            evapm = m_evap_fix
-            InEvap_b = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = inevapT, p = inevapp)
-            
-            outevapT = 0.0
-            outevapp = 101300.0
-            OutEvap_b = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = outevapT, p = outevapp)
-            
-            condfluid = 'water'
-            incondT = T_tes
-            incondp = 101300.0
-            condm = m_TES
-            InCond_b = ProcessFluid(Y={condfluid:1.0,},m = condm, T = incondT, p = incondp)
-            
-            outcondT = T_tes+2.0
-            outcondp = 101300.0
-            OutCond_b = ProcessFluid(Y={condfluid:1.0,},m = condm, T=outcondT, p=outcondp)
-            
-            print('------------------------------------------------------------------------')
-            vchp_hando_bot = VCHP(InCond_b, OutCond_b, InEvap_b, OutEvap_b, inputs_b)
-            vchp_hando_bot()
-            
-            inputs_t.Y = {'R1234ZEE':1.0,}
-            inputs_t.comp_eff = eff_t
-            inputs_t.second = 'process'
-            inputs_t.cycle = 'vcc'
-            inputs_t.cond_type = 'phe'
-            inputs_t.evap_type = 'phe'
-            inputs_t.layout = 'bas'
-            inputs_t.DSC = 1
-            inputs_t.DSH = 3.0
-            inputs_t.cond_T_pp = 4
-            inputs_t.evap_T_pp = 2
-            
-            evapfluid = 'water'
-            inevapT = T_tes
-            inevapp = 101300.0
-            evapm = OutCond_b.m
-            InEvap_t = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = inevapT, p = inevapp)
-            
-            outevapT = T_tes-2.0
-            outevapp = 101300.0
-            OutEvap_t = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = outevapT, p = outevapp)
-            
-            condfluid = 'water'
-            incondT = 0.0
-            incondp = 101300.0
-            condm = m_cond_fix
-            InCond_t = ProcessFluid(Y={condfluid:1.0,},m = condm, T = incondT, p = incondp)
-            
-            outcondT = 318.15
-            outcondp = 101300.0
-            OutCond_t = ProcessFluid(Y={condfluid:1.0,},m = condm, T=outcondT, p=outcondp)
-            
-            
-            vchp_hando_top = VCHP(InCond_t, OutCond_t, InEvap_t, OutEvap_t, inputs_t)
-            vchp_hando_top()
-            print('------------------------------------------------------------------------')
-    else:
-        inputs_b = Settings()
-        inputs_t = Settings()
-        m_evap_fix = 0.76
-        m_cond_fix = 5.0
-        T_amb = 308.15
-        eff_b = 0.83
-        eff_t = 0.485
-        
-        inputs_t.Y = {'R1234ZEE':1.0,}
-        inputs_t.comp_eff = eff_t
-        inputs_t.second = 'process'
-        inputs_t.cycle = 'vcc'
-        inputs_t.cond_type = 'phe'
-        inputs_t.evap_type = 'phe'
-        inputs_t.layout = 'bas'
-        inputs_t.DSC = 0.01
-        inputs_t.DSH = 1
-        inputs_t.cond_T_pp = 2.0
-        inputs_t.evap_T_pp = 4
-        
-        evapfluid = 'water'
-        inevapT = 285.15
-        inevapp = 101300.0
-        evapm = m_evap_fix
-        InEvap_t = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = inevapT, p = inevapp)
-        
-        outevapT = 280.15
-        outevapp = 101300.0
-        OutEvap_t = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = outevapT, p = outevapp)
-        
-        condfluid = 'water'
-        incondT = 298.15
-        incondp = 101300.0
-        condm = 0.0
-        InCond_t = ProcessFluid(Y={condfluid:1.0,},m = condm, T = incondT, p = incondp)
-        
-        outcondT = 300.15
-        outcondp = 101300.0
-        OutCond_t = ProcessFluid(Y={condfluid:1.0,},m = condm, T=outcondT, p=outcondp)
-        
-        print('------------------------------------------------------------------------')
-        vchp_hando_top = VCHP(InCond_t, OutCond_t, InEvap_t, OutEvap_t, inputs_t)
-        vchp_hando_top()
-        
-        
-        inputs_b.Y = {'R32':1.0,}
+    '''
+    # CO2-CO2 급탕
+    inputs_b = Settings()
+    inputs_t = Settings()
+    m_cond_fix = 0.0
+    m_evap_fix = 2.13
+    m_TES = 0.0
+    T_amb = [258.15, 266.15, 275.15, 280.15]
+    eff_comp_b = [0.745, 0.77, 0.786, 0.786]
+    eff_comp_t = [0.73, 0.77, 0.78, 0.784]
+    T_mid = [284.95, 288.95, 293.35, 295.85]
+    for T, Tm, eff_b, eff_t in zip(T_amb, T_mid, eff_comp_b, eff_comp_t):
+        inputs_b.Y = {'CO2':1.0,}
         inputs_b.comp_eff = eff_b
         inputs_b.second = 'process'
         inputs_b.cycle = 'vcc'
-        inputs_b.cond_type = 'fthe'
-        inputs_b.evap_type = 'phe'
+        inputs_b.cond_type = 'phe'
+        inputs_b.evap_type = 'fthe'
         inputs_b.layout = 'bas'
-        inputs_b.DSC = 0.01
-        inputs_b.DSH = 1.0
-        inputs_b.cond_T_lm = 8
-        inputs_b.evap_T_pp = 2.0
+        inputs_b.DSC = 1
+        inputs_b.DSH = 3
+        inputs_b.cond_T_pp = 2
+        inputs_b.evap_T_lm = 5
 
-        evapfluid = 'water'
-        inevapT = 298.15
+        evapfluid = 'air'
+        inevapT = T
         inevapp = 101300.0
-        evapm = OutCond_t.m
+        evapm = m_evap_fix
         InEvap_b = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = inevapT, p = inevapp)
         
-        outevapT = 296.15
+        outevapT = T-5
         outevapp = 101300.0
         OutEvap_b = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = outevapT, p = outevapp)
         
-        condfluid = 'air'
-        incondT = T_amb
+        condfluid = 'water'
+        incondT = Tm
         incondp = 101300.0
-        condm = m_cond_fix
+        condm = m_TES
         InCond_b = ProcessFluid(Y={condfluid:1.0,},m = condm, T = incondT, p = incondp)
         
-        outcondT = 0.0
+        outcondT = Tm+2.0
         outcondp = 101300.0
         OutCond_b = ProcessFluid(Y={condfluid:1.0,},m = condm, T=outcondT, p=outcondp)
         
         print('------------------------------------------------------------------------')
         vchp_hando_bot = VCHP(InCond_b, OutCond_b, InEvap_b, OutEvap_b, inputs_b)
         vchp_hando_bot()
-<<<<<<< HEAD
-    
-    
-=======
         
-    '''    
->>>>>>> 0f68b27046b97a3a95056ae2e8f3c6386ec3ebf2
-    '''
-    purpose = 'heating'
-    if purpose == 'heating':
-        inputs_b = Settings()
-        m_cond_fix = 1.162
-        m_evap_fix = 3.55
-        T_amb = [258.15, 266.15, 275.15, 280.15]
-        eff_comp_b = [0.49, 0.615, 0.688, 0.726]
-        inputs_b.Y = {'R32':1.0,}
-        inputs_b.second = 'process'
-        inputs_b.cycle = 'vcc'
-        inputs_b.cond_type = 'phe'
-        inputs_b.evap_type = 'fthe'
-        inputs_b.layout = 'bas'
-        inputs_b.DSC = 3
-        inputs_b.DSH = 1.0
-        inputs_b.cond_T_pp = 9
-        inputs_b.evap_T_lm = 6
-
-        for T, eff_b in zip(T_amb, eff_comp_b):
-            
-            inputs_b.comp_eff = eff_b
-            evapfluid = 'air'
-            inevapT = T
-            inevapp = 101300.0
-            evapm = m_evap_fix
-            InEvap_b = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = inevapT, p = inevapp)
-            
-            outevapT = 0.0
-            outevapp = 101300.0
-            OutEvap_b = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = outevapT, p = outevapp)
-            
-            condfluid = 'water'
-            incondT = 313.15
-            incondp = 101300.0
-            condm = m_cond_fix
-            InCond_b = ProcessFluid(Y={condfluid:1.0,},m = condm, T = incondT, p = incondp)
-            
-            outcondT = 318.15
-            outcondp = 101300.0
-            OutCond_b = ProcessFluid(Y={condfluid:1.0,},m = condm, T=outcondT, p=outcondp)
-            
-            print('------------------------------------------------------------------------')
-            vchp_hando_bot = VCHP(InCond_b, OutCond_b, InEvap_b, OutEvap_b, inputs_b)
-            vchp_hando_bot()
-    else:
-        inputs_b = Settings()
-        m_cond_fix = 1.15
-        m_evap_fix = 3.605
-        T_amb = 32.0
-        eff_comp_b = 0.7
-        inputs_b.Y = {'R32':1.0,}
-        inputs_b.second = 'process'
-        inputs_b.cycle = 'vcc'
-        inputs_b.cond_type = 'phe'
-        inputs_b.evap_type = 'fthe'
-        inputs_b.layout = 'bas'
-        inputs_b.DSC = 0.001
-        inputs_b.DSH = 2
-        inputs_b.cond_T_pp = 2
-        inputs_b.evap_T_lm = 5
-        inputs_b.comp_eff = 0.7
+        inputs_t.Y = {'CO2':1.0,}
+        inputs_t.comp_eff = eff_t
+        inputs_t.second = 'process'
+        inputs_t.cycle = 'scc'
+        inputs_t.cond_type = 'phe'
+        inputs_t.evap_type = 'phe'
+        inputs_t.layout = 'bas'
+        inputs_t.DSC = 5
+        inputs_t.DSH = 3
+        inputs_t.cond_T_pp = 2
+        inputs_t.evap_T_pp = 2
         
         evapfluid = 'water'
-        inevapT = 7
+        inevapT = Tm
+        inevapp = 101300.0
+        evapm = OutCond_b.m
+        InEvap_t = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = inevapT, p = inevapp)
+        
+        outevapT = Tm-2
+        outevapp = 101300.0
+        OutEvap_t = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = outevapT, p = outevapp)
+        
+        condfluid = 'water'
+        incondT = 313.15
+        incondp = 101300.0
+        condm = m_cond_fix
+        InCond_t = ProcessFluid(Y={condfluid:1.0,},m = condm, T = incondT, p = incondp)
+        
+        outcondT = 333.15
+        outcondp = 101300.0
+        OutCond_t = ProcessFluid(Y={condfluid:1.0,},m = condm, T=outcondT, p=outcondp)
+        
+        
+        vchp_hando_top = VCHP(InCond_t, OutCond_t, InEvap_t, OutEvap_t, inputs_t)
+        vchp_hando_top()
+        print('------------------------------------------------------------------------')
+    
+    
+    
+    # CO2 단독 난방
+    # T_amb = [258.15, 266.15, 275.15, 280.15]
+    # eff_comp_b = [0.573, 0.687, 0.76, 0.796]
+    
+    inputs_b = Settings()
+    m_cond_fix = 0.0
+    m_evap_fix = 3.561
+    m_TES = 0.0
+    T_amb = [258.15, 266.15, 275.15, 280.15]
+    eff_comp_b = [0.573, 0.687, 0.76, 0.796]
+    DSH_list = [5.0, 5.0, 5.0, 5.0]
+    
+    for T, eff_b, dsh in zip(T_amb, eff_comp_b, DSH_list):
+        inputs_b.Y = {'CO2':1.0,}
+        inputs_b.comp_eff = eff_b
+        inputs_b.second = 'process'
+        inputs_b.cycle = 'scc'
+        inputs_b.cond_type = 'phe'
+        inputs_b.evap_type = 'fthe'
+        inputs_b.layout = 'bas'
+        inputs_b.DSC = dsh
+        inputs_b.DSH = 3
+        inputs_b.cond_T_pp = 2
+        inputs_b.evap_T_lm = 5
+
+        evapfluid = 'air'
+        inevapT = T
         inevapp = 101300.0
         evapm = m_evap_fix
         InEvap_b = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = inevapT, p = inevapp)
         
-        outevapT = 0.0
+        outevapT = T-5
         outevapp = 101300.0
         OutEvap_b = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = outevapT, p = outevapp)
         
         condfluid = 'water'
         incondT = 313.15
         incondp = 101300.0
-        condm = m_cond_fix
+        condm = m_TES
         InCond_b = ProcessFluid(Y={condfluid:1.0,},m = condm, T = incondT, p = incondp)
         
         outcondT = 318.15
@@ -2313,135 +2221,195 @@ if __name__ == '__main__':
         print('------------------------------------------------------------------------')
         vchp_hando_bot = VCHP(InCond_b, OutCond_b, InEvap_b, OutEvap_b, inputs_b)
         vchp_hando_bot()
-<<<<<<< HEAD
-        '''
-=======
     '''
-    inevapT = 308.15
+    
+     # R1234ze(E) 단독급탕
+    
+    inputs_b = Settings()
+    m_cond_fix = 0.0
+    m_evap_fix = 3.561
+    m_TES = 0.0
+    T_amb = [258.15, 266.15, 275.15, 280.15]
+    eff_comp_b = [0.43, 0.5, 0.6, 0.65]
+    
+    for T, eff_b in zip(T_amb, eff_comp_b):
+        inputs_b.Y = {'R1234ze(E)':1.0,}
+        inputs_b.comp_eff = eff_b
+        inputs_b.second = 'process'
+        inputs_b.cycle = 'vcc'
+        inputs_b.cond_type = 'phe'
+        inputs_b.evap_type = 'fthe'
+        inputs_b.layout = 'inj'
+        inputs_b.DSC = 1
+        inputs_b.DSH = 3
+        inputs_b.cond_T_pp = 2
+        inputs_b.evap_T_lm = 5
 
-    inevapp = 101325
-
-    InEvap = ProcessFluid(
-
-        Y={
-
-            "N2": 0.7552295743657736,
-
-            "O2": 0.2269587565619999,
-
-            "CO2": 0,
-
-            "H2O": 0.017811669072226408,
-
-        },
-
-        m=0.27087827844274565,
-
-        T=inevapT,
-
-        p=inevapp,
-
-    )
-
- 
-
-    outevapT = 298.55
-
-    outevapp = 101325
-
-    OutEvap = ProcessFluid(
-
-        Y={
-
-            "N2": 0.7552295743657736,
-
-            "O2": 0.2269587565619999,
-
-            "CO2": 0,
-
-            "H2O": 0.017811669072226408,
-
-        },
+        evapfluid = 'air'
+        inevapT = T
+        inevapp = 101300.0
+        evapm = m_evap_fix
+        InEvap_b = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = inevapT, p = inevapp)
         
-        m=0.27087827844274565,
+        outevapT = T-5
+        outevapp = 101300.0
+        OutEvap_b = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = outevapT, p = outevapp)
         
-        T=outevapT,
-
-        p=outevapp,
-
-    )
-
- 
-
-    incondT = 339.95
-
-    incondp = 101325
-
-    InCond = ProcessFluid(
-
-        Y={"N2": 0.767, "O2": 0.233},
-
-        m=0.27,
-
-        T=incondT,
-
-        p=incondp,
-
-    )
-
- 
-
-    outcondT = 0.0
-
-    outcondp = 101325
-
-    OutCond = ProcessFluid(
-
-        Y={"N2": 0.767, "O2": 0.233},
-
-        m=0.27,
+        condfluid = 'water'
+        incondT = 313.15
+        incondp = 101300.0
+        condm = m_TES
+        InCond_b = ProcessFluid(Y={condfluid:1.0,},m = condm, T = incondT, p = incondp)
         
-        T=outcondT,
+        outcondT = 333.15
+        outcondp = 101300.0
+        OutCond_b = ProcessFluid(Y={condfluid:1.0,},m = condm, T=outcondT, p=outcondp)
         
-        p=outcondp,
+        print('------------------------------------------------------------------------')
+        vchp_hando_bot = VCHP(InCond_b, OutCond_b, InEvap_b, OutEvap_b, inputs_b)
+        vchp_hando_bot()
+    '''
+    
+    
+    # 한도외 사이클 CO2-R290 (-15℃ 조건 밸런스 계산용)
+    # CO2-R290: eff_b = 0.65, eff_t = 0.68
+    # CO2-R1234yf: eff_b = 0.65, eff_t = 0.65
+    
+    
+    inputs_b = Settings()
+    inputs_t = Settings()
+    m_cond_fix = 0.0
+    m_evap_fix = 0.742
+    m_TES = 0.0
+    T_amb = 258.15
+    eff_comp_b = 0.745
+    eff_comp_t = 0.77
+    T_mid = 284.95
+    
+    inputs_b.Y = {'CO2':1.0,}
+    inputs_b.comp_eff = eff_comp_b
+    inputs_b.second = 'process'
+    inputs_b.cycle = 'vcc'
+    inputs_b.cond_type = 'phe'
+    inputs_b.evap_type = 'fthe'
+    inputs_b.layout = 'bas'
+    inputs_b.DSC = 1
+    inputs_b.DSH = 3
+    inputs_b.cond_T_pp = 2
+    inputs_b.evap_T_lm = 5
 
-    )
+    evapfluid = 'air'
+    inevapT = T_amb
+    inevapp = 101300.0
+    evapm = m_evap_fix
+    InEvap_b = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = inevapT, p = inevapp)
+    
+    outevapT = T_amb-5
+    outevapp = 101300.0
+    OutEvap_b = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = outevapT, p = outevapp)
+    
+    condfluid = 'water'
+    incondT = T_mid
+    incondp = 101300.0
+    condm = m_TES
+    InCond_b = ProcessFluid(Y={condfluid:1.0,},m = condm, T = incondT, p = incondp)
+    
+    outcondT = T_mid+2.0
+    outcondp = 101300.0
+    OutCond_b = ProcessFluid(Y={condfluid:1.0,},m = condm, T=outcondT, p=outcondp)
+    
+    print('------------------------------------------------------------------------')
+    vchp_hando_bot = VCHP(InCond_b, OutCond_b, InEvap_b, OutEvap_b, inputs_b)
+    vchp_hando_bot()
+    
+    inputs_t.Y = {'R290':1.0,}
+    inputs_t.comp_eff = eff_comp_t
+    inputs_t.second = 'process'
+    inputs_t.cycle = 'vcc'
+    inputs_t.cond_type = 'phe'
+    inputs_t.evap_type = 'phe'
+    inputs_t.layout = 'bas'
+    inputs_t.DSC = 1
+    inputs_t.DSH = 3
+    inputs_t.cond_T_pp = 2
+    inputs_t.evap_T_pp = 2
+    
+    evapfluid = 'water'
+    inevapT = T_mid
+    inevapp = 101300.0
+    evapm = OutCond_b.m
+    InEvap_t = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = inevapT, p = inevapp)
+    
+    outevapT = T_mid-2
+    outevapp = 101300.0
+    OutEvap_t = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = outevapT, p = outevapp)
+    
+    condfluid = 'water'
+    incondT = 313.15
+    incondp = 101300.0
+    condm = m_cond_fix
+    InCond_t = ProcessFluid(Y={condfluid:1.0,},m = condm, T = incondT, p = incondp)
+    
+    outcondT = 318.15
+    outcondp = 101300.0
+    OutCond_t = ProcessFluid(Y={condfluid:1.0,},m = condm, T=outcondT, p=outcondp)
+    
+    
+    vchp_hando_top = VCHP(InCond_t, OutCond_t, InEvap_t, OutEvap_t, inputs_t)
+    vchp_hando_top()
+    print('------------------------------------------------------------------------')
+    '''
+    
+    '''
+    # CO2 단독 난방 2단 (-15℃ 급탕 밸런스 계산용) 
+    # T_amb = [258.15, 266.15, 275.15, 280.15]
+    # eff_comp_b = [0.573, 0.687, 0.76, 0.796]
+    
+    inputs_b = Settings()
+    m_cond_fix = 0.0
+    m_evap_fix = 0.742
+    m_TES = 0.0
+    T_amb = 258.15
+    eff_comp_b = 0.745
+    eff_comp_t = 0.73
+    dsh = 5
+    
+    
+    inputs_b.Y = {'CO2':1.0,}
+    inputs_b.comp_eff = eff_comp_b
+    inputs_b.comp_top_eff = eff_comp_t
+    inputs_b.second = 'process'
+    inputs_b.cycle = 'scc'
+    inputs_b.cond_type = 'phe'
+    inputs_b.evap_type = 'fthe'
+    inputs_b.layout = '2comp'
+    inputs_b.frac = 0.3
+    inputs_b.DSC = dsh
+    inputs_b.DSH = 3
+    inputs_b.cond_T_pp = 2
+    inputs_b.evap_T_lm = 5.0
 
- 
-
-    inputs = Settings()
-
-    inputs.Y = {
-
-        "R245FA": 1.0,
-
-    }
-
-    inputs.second = "process"
-
-    inputs.cycle = "vcc"
-
-    inputs.DSC = 5.0
-
-    inputs.cond_type = "phe"
-
-    inputs.evap_type = "phe"
-
-    inputs.layout = "bas"
-
- 
-
-    vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
-
-    (a, b, c, d, outputs) = vchp_basic()
-
-    print(f"a: {a}")
-
-    print(f"a: {b}")
-
-    print(f"a: {c}")
-
-    print(f"a: {d}")
-
-    print(f"outputs: {outputs}")
->>>>>>> 0f68b27046b97a3a95056ae2e8f3c6386ec3ebf2
+    evapfluid = 'air'
+    inevapT = T_amb
+    inevapp = 101300.0
+    evapm = m_evap_fix
+    InEvap_b = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = inevapT, p = inevapp)
+    
+    outevapT = T_amb-5
+    outevapp = 101300.0
+    OutEvap_b = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = outevapT, p = outevapp)
+    
+    condfluid = 'water'
+    incondT = 313.15
+    incondp = 101300.0
+    condm = m_TES
+    InCond_b = ProcessFluid(Y={condfluid:1.0,},m = condm, T = incondT, p = incondp)
+    
+    outcondT = 333.15
+    outcondp = 101300.0
+    OutCond_b = ProcessFluid(Y={condfluid:1.0,},m = condm, T=outcondT, p=outcondp)
+    
+    print('------------------------------------------------------------------------')
+    vchp_hando_bot = VCHP(InCond_b, OutCond_b, InEvap_b, OutEvap_b, inputs_b)
+    vchp_hando_bot()
+    '''

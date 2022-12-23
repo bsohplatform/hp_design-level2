@@ -248,11 +248,13 @@ class Heatexchanger_module:
                 UA_element[i] = abs((self.primary_in.q/N_element)/LMTD[i])  
       
         self.T_pp = min(abs(dT))
-        
+        '''
         Tsat = PropsSI('T','Q',0.5,'P',0.5*(self.primary_in.p+self.primary_out.p),self.primary_in.fluidmixture)
         lmtd = ((Tsat-T_secondary[0]) - (Tsat-T_secondary[-1])) / log((Tsat-T_secondary[0])/(Tsat-T_secondary[-1]))
         self.UA = abs(self.primary_in.q/lmtd)
         self.UA = sum(UA_element) 
+        '''
+        self.UA = 0.0
         self.primary_out.T = T_primary[N_element]
         self.primary_out.h = h_primary[N_element]
         
