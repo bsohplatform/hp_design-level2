@@ -1997,7 +1997,8 @@ if __name__ == '__main__':
         
         vchp_hando = HandoCycle(InCond_water, OutCond_water, InCond_space, OutCond_space, 'fthe', InEvap, OutEvap, inputs_t, inputs_b, purpose)
     vchp_hando()
-    
+    '''
+    '''
     # 한도외 사이클 CO2-R290
     # CO2-R290: eff_b = 0.65, eff_t = 0.68
     # CO2-R1234yf: eff_b = 0.65, eff_t = 0.65
@@ -2006,7 +2007,8 @@ if __name__ == '__main__':
     inputs_b = Settings()
     inputs_t = Settings()
     m_cond_fix = 0.0
-    m_evap_fix = 0.742
+    # m_evap_fix = 0.742 (1세대 기준)
+    m_evap_fix = 27.825
     m_TES = 0.0
     T_amb = [258.15, 266.15, 275.15, 280.15]
     eff_comp_b = [0.745, 0.77, 0.786, 0.786]
@@ -2086,12 +2088,12 @@ if __name__ == '__main__':
         vchp_hando_top()
         print('------------------------------------------------------------------------')
     '''
-    '''
+    
     # CO2-CO2 급탕
     inputs_b = Settings()
     inputs_t = Settings()
     m_cond_fix = 0.0
-    m_evap_fix = 2.13
+    m_evap_fix = 77.525
     m_TES = 0.0
     T_amb = [258.15, 266.15, 275.15, 280.15]
     eff_comp_b = [0.745, 0.77, 0.786, 0.786]
@@ -2157,7 +2159,7 @@ if __name__ == '__main__':
         OutEvap_t = ProcessFluid(Y={evapfluid:1.0,}, m = evapm, T = outevapT, p = outevapp)
         
         condfluid = 'water'
-        incondT = 313.15
+        incondT = 323.15
         incondp = 101300.0
         condm = m_cond_fix
         InCond_t = ProcessFluid(Y={condfluid:1.0,},m = condm, T = incondT, p = incondp)
@@ -2172,14 +2174,14 @@ if __name__ == '__main__':
         print('------------------------------------------------------------------------')
     
     
-    
+    '''
     # CO2 단독 난방
     # T_amb = [258.15, 266.15, 275.15, 280.15]
     # eff_comp_b = [0.573, 0.687, 0.76, 0.796]
     
     inputs_b = Settings()
     m_cond_fix = 0.0
-    m_evap_fix = 3.561
+    m_evap_fix = 163.3
     m_TES = 0.0
     T_amb = [258.15, 266.15, 275.15, 280.15]
     eff_comp_b = [0.573, 0.687, 0.76, 0.796]
@@ -2221,7 +2223,7 @@ if __name__ == '__main__':
         print('------------------------------------------------------------------------')
         vchp_hando_bot = VCHP(InCond_b, OutCond_b, InEvap_b, OutEvap_b, inputs_b)
         vchp_hando_bot()
-    '''
+    
     
      # R1234ze(E) 단독급탕
     
@@ -2268,7 +2270,7 @@ if __name__ == '__main__':
         print('------------------------------------------------------------------------')
         vchp_hando_bot = VCHP(InCond_b, OutCond_b, InEvap_b, OutEvap_b, inputs_b)
         vchp_hando_bot()
-    '''
+    
     
     
     # 한도외 사이클 CO2-R290 (-15℃ 조건 밸런스 계산용)
