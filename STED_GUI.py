@@ -1082,6 +1082,33 @@ class WindowClass(QMainWindow, form_class):
                 self.OutCond_REF_b = ProcessFluid(Y=self.inputs_b.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
                 self.InEvap_REF_b = ProcessFluid(Y=self.inputs_b.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
                 self.OutEvap_REF_b = ProcessFluid(Y=self.inputs_b.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+                
+                p_crit_t = PropsSI('PCRIT','',0,'',0,list(self.inputs_t.Y.keys())[0])
+                T_crit_t = PropsSI('TCRIT','',0,'',0,list(self.inputs_t.Y.keys())[0])
+                p_crit_b = PropsSI('PCRIT','',0,'',0,list(self.inputs_b.Y.keys())[0])
+                T_crit_b = PropsSI('TCRIT','',0,'',0,list(self.inputs_b.Y.keys())[0])
+                
+                self.InCond_REF_t.p_crit = p_crit_t
+                self.OutCond_REF_t.p_crit = p_crit_t
+                self.InEvap_REF_t.p_crit = p_crit_t
+                self.OutEvap_REF_t.p_crit = p_crit_t
+                
+                self.InCond_REF_t.T_crit = T_crit_t
+                self.OutCond_REF_t.T_crit = T_crit_t
+                self.InEvap_REF_t.T_crit = T_crit_t
+                self.OutEvap_REF_t.T_crit = T_crit_t
+                
+                self.InCond_REF_b.p_crit = p_crit_b
+                self.OutCond_REF_b.p_crit = p_crit_b
+                self.InEvap_REF_b.p_crit = p_crit_b
+                self.OutEvap_REF_b.p_crit = p_crit_b
+                
+                self.InCond_REF_b.T_crit = T_crit_b
+                self.OutCond_REF_b.T_crit = T_crit_b
+                self.InEvap_REF_b.T_crit = T_crit_b
+                self.OutEvap_REF_b.T_crit = T_crit_b
+                
+                
                 cond_t_ph = 0
                 evap_b_ph = 0
                 (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF_t, self.OutCond_REF_t, self.InEvap_REF_t, self.OutEvap_REF_t, self.InCond_REF_b, self.OutCond_REF_b, self.InEvap_REF_b, self.OutEvap_REF_b, self.outputs_t, self.outputs_b)\
@@ -1094,6 +1121,20 @@ class WindowClass(QMainWindow, form_class):
                 self.OutCond_REF = ProcessFluid(Y=self.inputs.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
                 self.InEvap_REF = ProcessFluid(Y=self.inputs.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
                 self.OutEvap_REF = ProcessFluid(Y=self.inputs.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+                
+                p_crit = PropsSI('PCRIT','',0,'',0, list(self.inputs.Y.keys())[0])
+                T_crit = PropsSI('TCRIT','',0,'',0, list(self.inputs.Y.keys())[0])
+                
+                self.InCond_REF.p_crit = p_crit
+                self.OutCond_REF.p_crit = p_crit
+                self.InEvap_REF.p_crit = p_crit
+                self.OutEvap_REF.p_crit = p_crit
+                
+                self.InCond_REF.T_crit = T_crit
+                self.OutCond_REF.T_crit = T_crit
+                self.InEvap_REF.T_crit = T_crit
+                self.OutEvap_REF.T_crit = T_crit
+                
                 evap_ph = 0
                 cond_ph = 0
                 if self.layout_type == 'inj':    
