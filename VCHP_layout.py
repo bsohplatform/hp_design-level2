@@ -46,8 +46,8 @@ class VCHP():
         else:
             (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs) = self.Cycle_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, self.inputs, outputs, no_input, cond_ph, evap_ph)
         
-        self.Post_Processing(outputs)
-        self.Plot_diagram(self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, outputs)
+        #self.Post_Processing(outputs)
+        #self.Plot_diagram(self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, outputs)
         
         return (self.InCond, self.OutCond, self.InEvap, self.OutEvap, outputs)
         
@@ -327,7 +327,7 @@ class VCHP():
                 
             outputs.COP_heating = abs(OutCond.q)/(outputs.Wcomp - outputs.Wexpand)
         
-        outputs.DSH = OutEvap_REF.T - OutEvap_REF_Tvap
+        outputs.DSH = inputs.DSH
         outputs.evap_UA = evap.UA
         
         return (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs)
@@ -451,7 +451,7 @@ class VCHP():
                     InExpand = OutCond_REF
                 
                 comp = CP.Compander_module(InComp, InCond_REF)
-                comp.COMP(eff_isen = inputs.comp_eff, eff_mech = inputs.mech_eff)
+                (inputs.DSH, cond_a) = comp.COMP(eff_isen = inputs.comp_eff, eff_mech = inputs.mech_eff, DSH = inputs.DSH)
                 InCond_REF = comp.primary_out
                 
                 
@@ -990,8 +990,8 @@ class VCHP_cascade(VCHP):
                     
                     if len(results_array) > 2:
                         if results_array[-2][0] > results_array[-1][0] and results_array[-2][0] > results_array[-3][0]:
-                            COP_cascade = results_array[-2][0]
-                            OutEvap_REF_t.p = results_array[-2][1]
+                            COP_cascade = results_array[-1][0]
+                            OutEvap_REF_t.p = results_array[-1][1]
                             cascade_a = 0
                         elif abs(results_array[-1][2]) < inputs_t.tol:
                             COP_cascade = results_array[-1][0]
@@ -1002,7 +1002,9 @@ class VCHP_cascade(VCHP):
                         COP_cascade = results_array[-1][0]
                         OutEvap_REF_t.p = results_array[-1][1]
                         cascade_a = 0
-    
+                    
+                    InEvap_REF_t.p = OutEvap_REF_t.p/(1.0 - inputs_t.evap_dp)
+                    
         outputs_t.DSH = OutEvap_REF_t.T - OutEvap_REF_t_Tvap
         
         return(InCond, OutCond, InEvap, OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, outputs_t, outputs_b)
@@ -1044,7 +1046,7 @@ class VCHP_cascade(VCHP):
             InExpand = OutCond_REF
             
         comp = CP.Compander_module(InComp, InCond_REF)
-        comp.COMP(eff_isen = inputs.comp_eff, eff_mech = inputs.mech_eff)
+        (inputs.DSH, cond_a) = comp.COMP(eff_isen = inputs.comp_eff, eff_mech = inputs.mech_eff, DSH = inputs.DSH)
         InCond_REF = comp.primary_out
         
         
@@ -1270,7 +1272,7 @@ class HandoCycle(VCHP):
             InExpand = OutCond_REF_cold
             
             comp = CP.Compander_module(InComp, InCond_REF_hot)
-            comp.COMP(eff_isen = inputs.comp_eff, eff_mech = inputs.mech_eff)
+            (inputs.DSH, cond_a) = comp.COMP(eff_isen = inputs.comp_eff, eff_mech = inputs.mech_eff, DSH = inputs.DSH)
             InCond_REF_hot = comp.primary_out
             
             expand = CP.Compander_module(InExpand, InEvap_REF)
@@ -1429,7 +1431,7 @@ class HandoCycle(VCHP):
                 
             outputs.COP_heating = abs(OutCond_hot.q+OutCond_cold.q)/(outputs.Wcomp - outputs.Wexpand)
             
-        outputs.DSH = OutEvap_REF.T - OutEvap_REF_Tvap
+        outputs.DSH = inputs.DSH
         
         return (InCond_hot, OutCond_hot, InCond_cold, OutCond_cold, InEvap, OutEvap, InCond_REF_hot, OutCond_REF_hot,  InCond_REF_cold, OutCond_REF_cold, InEvap_REF, OutEvap_REF, outputs)
     
