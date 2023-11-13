@@ -5,10 +5,10 @@ block_cipher = None
 
 
 a = Analysis(
-    ['STED_GUI.py'],
+    ['STED_GUI.py', '.'],
     pathex=[],
     binaries=[],
-    datas=[('STED_VCHP.ui', '.'),('VALVE.ui', '.'),('COMPRESSOR.ui', '.')],
+    datas=[],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -41,5 +41,4 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='Figs\\icon.ico',
 )

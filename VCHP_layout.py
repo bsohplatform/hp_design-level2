@@ -47,7 +47,7 @@ class VCHP():
             (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs) = self.Cycle_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, self.inputs, outputs, no_input, cond_ph, evap_ph)
         
         self.Post_Processing(outputs)
-        #self.Plot_diagram(self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, outputs)
+        self.Plot_diagram(self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, outputs)
         
         return (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs)
         
@@ -302,7 +302,7 @@ class VCHP():
             evap = HX.Heatexchanger_module(InEvap_REF, OutEvap_REF, 1, InEvap, OutEvap, evap_ph)
             
             if inputs.evap_type == 'fthe':
-                evap.FTHE(N_element = inputs.evap_N_element, N_row = inputs.evap_N_row)
+                evap.FTHE(N_element = inputs.evap_N_element, N_turn = inputs.evap_N_turn, N_row = inputs.evap_N_row)
                 self.evap_err = (inputs.evap_T_lm - evap.T_lm)/inputs.evap_T_lm
             elif inputs.evap_type == 'phe':
                 evap.PHE(N_element= inputs.evap_N_element)
@@ -587,7 +587,7 @@ class VCHP():
             cond = HX.Heatexchanger_module(InCond_REF, OutCond_REF, 1, InCond, OutCond, cond_ph)
         
             if inputs.cond_type == 'fthe':
-                (outputs.cond_Tarray, outputs.cond_parray) = cond.FTHE(N_element=inputs.cond_N_element, N_row = inputs.cond_N_row)
+                (outputs.cond_Tarray, outputs.cond_parray) = cond.FTHE(N_element=inputs.cond_N_element, N_turn = inputs.cond_N_turn, N_row = inputs.cond_N_row)
                 self.cond_err = (inputs.cond_T_lm - cond.T_lm)/inputs.cond_T_lm
                 
             elif inputs.cond_type == 'phe':
@@ -950,7 +950,7 @@ class VCHP_cascade(VCHP):
                         cond_t = HX.Heatexchanger_module(InCond_REF_t, OutCond_REF_t, 1, InCond, OutCond, cond_t_ph)
                         
                         if inputs_t.cond_type == 'fthe':
-                            (outputs_t.cond_Tarray, outputs_t.cond_parray) = cond_t.FTHE(N_element=inputs_t.cond_N_element, N_row = inputs_t.cond_N_row)
+                            (outputs_t.cond_Tarray, outputs_t.cond_parray) = cond_t.FTHE(N_element=inputs_t.cond_N_element, N_turn = inputs_t.cond_N_turn, N_row = inputs_t.cond_N_row)
                             cond_err = (inputs_t.cond_T_lm - cond_t.T_lm)/inputs_t.cond_T_lm
                             
                         elif inputs_t.cond_type == 'phe':
@@ -990,7 +990,7 @@ class VCHP_cascade(VCHP):
                     
                     if len(results_array) > 2:
                         if results_array[-2][0] > results_array[-1][0] and results_array[-2][0] > results_array[-3][0]:
-                            COP_cascade = results_array[-1][0]
+                            COP_cascade = results_array[-2][0]
                             OutEvap_REF_t.p = results_array[-1][1]
                             cascade_a = 0
                         elif abs(results_array[-1][2]) < inputs_t.tol:
@@ -1340,7 +1340,7 @@ class HandoCycle(VCHP):
             cond_hot = HX.Heatexchanger_module(InCond_REF_hot, OutCond_REF_hot, 1, InCond_hot, OutCond_hot, cond_ph)
         
             if inputs.cond_type == 'fthe':
-                cond_hot.FTHE(N_element=inputs.cond_N_element, N_row = inputs.cond_N_row)
+                cond_hot.FTHE(N_element=inputs.cond_N_element, N_turn = inputs.cond_N_turn, N_row = inputs.cond_N_row)
                 
             elif inputs.cond_type == 'phe':
                 cond_hot.PHE(N_element=inputs.cond_N_element)
@@ -1351,7 +1351,7 @@ class HandoCycle(VCHP):
             cond_cold = HX.Heatexchanger_module(InCond_REF_cold, OutCond_REF_cold, 1, InCond_cold, OutCond_cold, cond_ph)
             
             if Cond_cold_type == 'fthe':
-                cond_cold.FTHE(N_element=inputs.cond_N_element, N_row = inputs.cond_N_row)
+                cond_cold.FTHE(N_element=inputs.cond_N_element, N_turn = inputs.cond_N_turn, N_row = inputs.cond_N_row)
                 self.cond_err = (inputs.cond_T_lm - cond_cold.T_lm)/inputs.cond_T_lm
                 
             elif Cond_cold_type == 'phe':
@@ -1406,7 +1406,7 @@ class HandoCycle(VCHP):
             evap = HX.Heatexchanger_module(InEvap_REF, OutEvap_REF, 1, InEvap, OutEvap, evap_ph)
             
             if inputs.evap_type == 'fthe':
-                evap.FTHE(N_element = inputs.evap_N_element, N_row = inputs.evap_N_row)
+                evap.FTHE(N_element = inputs.evap_N_element, N_turn = inputs.evap_N_turn, N_row = inputs.evap_N_row)
                 self.evap_err = (inputs.evap_T_lm - evap.T_lm)/inputs.evap_T_lm
             elif inputs.evap_type == 'phe':
                 evap.PHE(N_element= inputs.evap_N_element)
@@ -1512,6 +1512,48 @@ class HandoCycle(VCHP):
 if __name__ == '__main__':
     import time
     
+    evapfluid = 'air'
+    inevapT = 12.0+273.15
+    inevapp = 101300.0
+    evapm = 0
+    InEvap = ProcessFluid(Y={evapfluid:1.0,},m = evapm, T = inevapT, p = inevapp)
+    
+    outevapT = 7.0+273.15
+    outevapp = 101300.0
+    OutEvap = ProcessFluid(Y={evapfluid:1.0,},m = evapm, T = outevapT, p = outevapp)
+    
+    condfluid = 'air'
+    incondT = 32.0+273.15
+    incondp = 101300.0
+    condm = 0.874
+    InCond = ProcessFluid(Y={condfluid:1.0,},m = condm, T = incondT, p = incondp)
+    
+    outcondT = 37.0 + 273.15
+    outcondp = 101300.0
+    OutCond = ProcessFluid(Y={condfluid:1.0,},m = condm, T = outcondT, p = outcondp)
+    
+    
+    inputs = Settings()
+    inputs.Y = {'R410A':1.0,}
+    inputs.second = 'process'
+    inputs.cycle = 'vcc'
+    inputs.DSC = 5.0
+    inputs.DSH = 2.0    
+    inputs.cond_dp = 0.01
+    inputs.evap_dp = 0.01
+    inputs.cond_type = 'fthe'
+    inputs.evap_type = 'fthe'
+    inputs.layout = 'bas'
+    inputs.cond_T_pp = 2.0
+    inputs.evap_T_pp = 2.0
+    
+    inputs.comp_eff = 0.7
+    
+    basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
+    basic()
+    a = 0
+    
+    '''
     evapfluid = 'water'
     inevapT = 70.0+273.15
     inevapp = 101300.0
@@ -1559,6 +1601,7 @@ if __name__ == '__main__':
     steam_ihx = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
     steam_ihx()
     a = 0
+    '''
     '''
     COP_list = []
     evapUA_list = []

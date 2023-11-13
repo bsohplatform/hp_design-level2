@@ -72,7 +72,8 @@ class Settings:
     cond_T_lm: float = 10.0
     cond_dp: float = 0.01
     cond_N_element: int = 20
-    cond_N_row: int = 5
+    cond_N_row: int = 2
+    cond_N_turn: int = 3
     cond_UA = 0.0
     
     
@@ -82,7 +83,8 @@ class Settings:
     evap_T_lm: float = 10.0
     evap_dp: float = 0.01
     evap_N_element: int = 20
-    evap_N_row: int = 5
+    evap_N_row: int = 3
+    evap_N_turn: int = 3
     evap_UA = 0.0
     
     # 터보기기 스펙
