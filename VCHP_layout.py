@@ -47,7 +47,7 @@ class VCHP():
             (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs) = self.Cycle_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, self.inputs, outputs, no_input, cond_ph, evap_ph)
         
         #self.Post_Processing(outputs)
-        #self.Plot_diagram(self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, outputs)
+        # self.Plot_diagram(self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, outputs)
         
         return (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs)
         
@@ -393,7 +393,7 @@ class VCHP():
                 InComp_high.s = PropsSI('S','T',InComp_high.T, 'P', InComp_high.p, InComp_high.fluidmixture)
                 
                 comp_high = CP.Compander_module(InComp_high, InCond_REF)
-                (inputs.DSH, dummy_cond_a)= comp_high.COMP(eff_isen = inputs.comp_top_eff, eff_mech = inputs.mech_eff, DSH = 0)
+                (dummy_dsh, dummy_cond_a)= comp_high.COMP(eff_isen = inputs.comp_top_eff, eff_mech = inputs.mech_eff, DSH = 0)
                 InCond_REF = comp_high.primary_out
                 
                 OutExpand_high = deepcopy(OutCond_REF)
@@ -428,7 +428,7 @@ class VCHP():
                 InComp_high.s = PropsSI('S','T',InComp_high.T, 'P', InComp_high.p, InComp_high.fluidmixture)
                 
                 comp_high = CP.Compander_module(InComp_high, InCond_REF)
-                (inputs.DSH, dummy_cond_a) = comp_high.COMP(eff_isen = inputs.comp_top_eff, eff_mech = inputs.mech_eff, DSH = 0)
+                (dummy_dsh, dummy_cond_a) = comp_high.COMP(eff_isen = inputs.comp_top_eff, eff_mech = inputs.mech_eff, DSH = 0)
                 InCond_REF = comp_high.primary_out
                 
                 InExpand = OutCond_REF
