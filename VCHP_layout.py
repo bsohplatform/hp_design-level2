@@ -46,8 +46,8 @@ class VCHP():
         else:
             (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs) = self.Cycle_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, self.inputs, outputs, no_input, cond_ph, evap_ph)
         
-        #self.Post_Processing(outputs)
-        # self.Plot_diagram(self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, outputs)
+        self.Post_Processing(outputs)
+        self.Plot_diagram(self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, outputs)
         
         return (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs)
         
@@ -262,7 +262,7 @@ class VCHP():
                                 outputs.inter_frac = results_array[-1][1]
                                 frac_a = 0
                         
-                        if (inter_frac_ub - inter_frac_lb)/(0.5*(inter_frac_ub + inter_frac_lb)) < inputs.tol: 
+                        if (inter_frac_ub - inter_frac_lb) < inputs.tol: 
                             outputs.COP_heating = results_array[-1][0]
                             outputs.inter_frac = results_array[-1][1]
                             frac_a = 0
@@ -321,7 +321,7 @@ class VCHP():
             if abs(self.evap_err) < inputs.tol:
                 self.evap_conv_err = 0
                 evap_a = 0
-            elif (evap_p_ub - evap_p_lb)/(0.5*(evap_p_ub + evap_p_lb)) < inputs.tol:
+            elif (evap_p_ub - evap_p_lb)/101300 < inputs.tol:
                 self.evap_conv_err = 1
                 evap_a = 0
                 
@@ -388,12 +388,12 @@ class VCHP():
                 
                 InComp_high = deepcopy(OutComp_low)
                 
-                InComp_high.h = OutComp_low.h*(1.0-outputs.inter_x)+inter_h_vap*outputs.inter_x
+                InComp_high.h = OutComp_low.h*((1.0-outputs.inter_x)*(1-inputs.liq_frac)+outputs.inter_x*(1-inputs.vap_frac))+inter_h_vap*outputs.inter_x*inputs.vap_frac+inter_h_liq*(1-outputs.inter_x)*inputs.liq_frac
                 InComp_high.T = PropsSI('T','P',InComp_high.p,'H',InComp_high.h, InComp_high.fluidmixture)
                 InComp_high.s = PropsSI('S','T',InComp_high.T, 'P', InComp_high.p, InComp_high.fluidmixture)
                 
                 comp_high = CP.Compander_module(InComp_high, InCond_REF)
-                (dummy_dsh, dummy_cond_a)= comp_high.COMP(eff_isen = inputs.comp_top_eff, eff_mech = inputs.mech_eff, DSH = 0)
+                (inputs.DSH, cond_a)= comp_high.COMP(eff_isen = inputs.comp_top_eff, eff_mech = inputs.mech_eff, DSH = inputs.DSH)
                 InCond_REF = comp_high.primary_out
                 
                 OutExpand_high = deepcopy(OutCond_REF)
@@ -403,7 +403,7 @@ class VCHP():
                 OutExpand_high = expand_high.primary_out
                 
                 Flash_liq = deepcopy(OutExpand_high) # 팽창 후 2-phase 중 liq 상만 두번째 팽창기 입구로
-                Flash_liq.h = inter_h_liq
+                Flash_liq.h = (inter_h_liq*(1-inputs.liq_frac)*(1-outputs.inter_x)+inter_h_vap*(1-inputs.vap_frac)*outputs.inter_x)/((1-inputs.liq_frac)*(1-outputs.inter_x)+(1-inputs.vap_frac)*outputs.inter_x)
                 Flash_liq.T = PropsSI('T','P',OutExpand_high.p,'Q',0.0, OutExpand_high.fluidmixture)
                 if inputs.expand_bot_eff > 0.0:
                     Flash_liq.s = PropsSI('S','P',OutExpand_high.p,'Q',0.0, OutExpand_high.fluidmixture) 
@@ -428,7 +428,7 @@ class VCHP():
                 InComp_high.s = PropsSI('S','T',InComp_high.T, 'P', InComp_high.p, InComp_high.fluidmixture)
                 
                 comp_high = CP.Compander_module(InComp_high, InCond_REF)
-                (dummy_dsh, dummy_cond_a) = comp_high.COMP(eff_isen = inputs.comp_top_eff, eff_mech = inputs.mech_eff, DSH = 0)
+                (inputs.DSH, cond_a) = comp_high.COMP(eff_isen = inputs.comp_top_eff, eff_mech = inputs.mech_eff, DSH = inputs.DSH)
                 InCond_REF = comp_high.primary_out
                 
                 InExpand = OutCond_REF
@@ -607,7 +607,7 @@ class VCHP():
             if abs(self.cond_err) < inputs.tol:
                 self.cond_conv_err = 0
                 cond_a = 0
-            elif (cond_p_ub - cond_p_lb)/(0.5*(cond_p_ub + cond_p_lb)) < inputs.tol:
+            elif (cond_p_ub - cond_p_lb)/101300 < inputs.tol:
                 self.cond_conv_err = 1
                 cond_a = 0
         
@@ -672,8 +672,8 @@ class VCHP():
         ax_ts.plot([i/1.0e3 for i in s_points], [i-273.15 for i in T_points],'bo-')
         ax_ph.plot([i/1.0e3 for i in h_points], [i/1.0e5 for i in p_points],'bo-')
         
-        fig_ph.savefig('.\Figs\Ph_diagram.png',dpi=300)
-        fig_ts.savefig('.\Figs\Ts_diagram.png',dpi=300)
+        fig_ph.savefig('.\\Figs\\Ph_diagram.png',dpi=300)
+        fig_ts.savefig('.\\Figs\\Ts_diagram.png',dpi=300)
         
     def Dome_Draw(self, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs):        
         P_crit = PropsSI('PCRIT','',0,'',0,InCond_REF.fluidmixture)
@@ -1372,7 +1372,7 @@ class HandoCycle(VCHP):
             if abs(self.cond_err) < inputs.tol:
                 self.cond_conv_err = 0
                 cond_a = 0
-            elif (cond_p_ub - cond_p_lb)/(0.5*(cond_p_ub + cond_p_lb)) < inputs.tol:
+            elif (cond_p_ub - cond_p_lb)/101300 < inputs.tol:
                 self.cond_conv_err = 1
                 cond_a = 0
         
@@ -1425,7 +1425,7 @@ class HandoCycle(VCHP):
             if abs(self.evap_err) < inputs.tol:
                 self.evap_conv_err = 0
                 evap_a = 0
-            elif (evap_p_ub - evap_p_lb)/(0.5*(evap_p_ub + evap_p_lb)) < inputs.tol:
+            elif (evap_p_ub - evap_p_lb)/101300 < inputs.tol:
                 self.evap_conv_err = 1
                 evap_a = 0
                 
@@ -1510,22 +1510,20 @@ class HandoCycle(VCHP):
     
         
 if __name__ == '__main__':
-    import time
-    
-    evapfluid = 'air'
+    evapfluid = 'water'
     inevapT = 12.0+273.15
     inevapp = 101300.0
-    evapm = 0
+    evapm = 1.0
     InEvap = ProcessFluid(Y={evapfluid:1.0,},m = evapm, T = inevapT, p = inevapp)
     
     outevapT = 7.0+273.15
     outevapp = 101300.0
     OutEvap = ProcessFluid(Y={evapfluid:1.0,},m = evapm, T = outevapT, p = outevapp)
     
-    condfluid = 'air'
-    incondT = 32.0+273.15
+    condfluid = 'water'
+    incondT = 32.0 + 273.15
     incondp = 101300.0
-    condm = 0.874
+    condm = 0.0
     InCond = ProcessFluid(Y={condfluid:1.0,},m = condm, T = incondT, p = incondp)
     
     outcondT = 37.0 + 273.15
@@ -1536,22 +1534,23 @@ if __name__ == '__main__':
     inputs = Settings()
     inputs.Y = {'R410A':1.0,}
     inputs.second = 'process'
-    inputs.cycle = 'vcc'
-    inputs.DSC = 5.0
-    inputs.DSH = 2.0    
+    inputs.cycle = 'vcc' 
+    
+    inputs.DSH = 5.0    
+    inputs.DSC = 2.0
     inputs.cond_dp = 0.01
     inputs.evap_dp = 0.01
-    inputs.cond_type = 'fthe'
-    inputs.evap_type = 'fthe'
-    inputs.layout = 'bas'
+    inputs.cond_type = 'phe'
+    inputs.evap_type = 'phe'
     inputs.cond_T_pp = 2.0
     inputs.evap_T_pp = 2.0
+    inputs.layout = 'ihx'
+    inputs.comp_eff = 0.80
     
-    inputs.comp_eff = 0.7
-    
-    basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
-    basic()
+    bas = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
+    bas()
     a = 0
+    
     
     '''
     evapfluid = 'water'

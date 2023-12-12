@@ -237,9 +237,9 @@ class Heatexchanger_module:
                 T_primary[i+1] = PropsSI('T','H',h_primary[i+1],'P',p_primary[i+1],self.primary_in.fluidmixture)
                 
             if self.sph == 0:
-                T_secondary[i+1] = T_secondary[i] + self.secondary_in.q/N_element/self.secondary_in.m/0.5/(self.secondary_in.Cp + self.secondary_out.Cp)
+                T_secondary[i+1] = T_secondary[i] - self.secondary_in.q/N_element/self.secondary_in.m/0.5/(self.secondary_in.Cp + self.secondary_out.Cp)
             else: 
-                h_secondary[i+1] = h_secondary[i] + self.secondary_in.q/N_element/self.secondary_in.m
+                h_secondary[i+1] = h_secondary[i] - self.secondary_in.q/N_element/self.secondary_in.m
                 p_secondary[i+1] = p_secondary[i] + (self.secondary_in.p - self.secondary_out.p)/N_element
                 T_secondary[i+1] = PropsSI('T','H',h_secondary[i+1],'P',p_secondary[i+1],self.secondary_in.fluidmixture)
             

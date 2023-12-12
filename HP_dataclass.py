@@ -99,6 +99,10 @@ class Settings:
     ihx_cold_dp: float = 0.01
     ihx_hot_dp: float = 0.01
     
+    # 증기 인젝션 스펙
+    vap_frac: float = 0.5
+    liq_frac: float = 0.0
+    
     # 증기 공정 조건 입력
     T_steam: float = 120.0
     T_steam = T_steam + 273.15
