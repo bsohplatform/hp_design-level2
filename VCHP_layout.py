@@ -46,8 +46,8 @@ class VCHP():
         else:
             (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs) = self.Cycle_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, self.inputs, outputs, no_input, cond_ph, evap_ph)
         
-        self.Post_Processing(outputs)
-        self.Plot_diagram(self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, outputs)
+        #self.Post_Processing(outputs)
+        #self.Plot_diagram(self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, outputs)
         
         return (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs)
         
@@ -652,7 +652,8 @@ class VCHP():
         return (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs)
     
     def Plot_diagram(self, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs):
-        (p_array, h_array, T_array, s_array, p_points, h_points, s_points, T_points) = self.Dome_Draw(InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs)
+        (p_array, h_array, T_array, s_array) = self.Dome_Draw(InCond_REF.fluidmixture)
+        (p_points, h_points, s_points, T_points) = self.Diagram_Draw(InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs)
         fig_ph, ax_ph = PLT.subplots()
         ax_ph.plot([i/1.0e3 for i in h_array], [i/1.0e5 for i in p_array],'b--')
         ax_ph.set_xlabel('Enthalpy [kJ/kg]',fontsize = 15)
@@ -675,37 +676,41 @@ class VCHP():
         fig_ph.savefig('.\\Figs\\Ph_diagram.png',dpi=300)
         fig_ts.savefig('.\\Figs\\Ts_diagram.png',dpi=300)
         
-    def Dome_Draw(self, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs):        
-        P_crit = PropsSI('PCRIT','',0,'',0,InCond_REF.fluidmixture)
-        P_trp = PropsSI('PTRIPLE','',0,'',0,InCond_REF.fluidmixture)
-        T_crit = PropsSI('TCRIT','',0,'',0,InCond_REF.fluidmixture)
-        H_crit = 0.5*(PropsSI('H','P',P_crit*0.999,'Q',0.0,InCond_REF.fluidmixture)+PropsSI('H','P',P_crit*0.999,'Q',1.0,InCond_REF.fluidmixture))
-        S_crit = 0.5*(PropsSI('S','P',P_crit*0.999,'Q',0.0,InCond_REF.fluidmixture)+PropsSI('S','P',P_crit*0.999,'Q',1.0,InCond_REF.fluidmixture))
+    def Dome_Draw(self, fluid):        
+        P_crit = PropsSI('PCRIT','',0,'',0,fluid)
+        P_trp = PropsSI('PTRIPLE','',0,'',0,fluid)
+        T_crit = PropsSI('TCRIT','',0,'',0,fluid)
+        H_crit = 0.5*(PropsSI('H','P',P_crit*0.999,'Q',0.0,fluid)+PropsSI('H','P',P_crit*0.999,'Q',1.0,fluid))
+        S_crit = 0.5*(PropsSI('S','P',P_crit*0.999,'Q',0.0,fluid)+PropsSI('S','P',P_crit*0.999,'Q',1.0,fluid))
         
         try:
             Pliq_array = [101300.0+(P_crit*0.99 - 101300.0)*i/49 for i in range(50)]
             Pvap_array = [P_crit*0.99 - (P_crit*0.99 - 101300.0)*i/49 for i in range(50)]
-            Tliq_array = [PropsSI('T','P',i,'Q',0.0,InCond_REF.fluidmixture) for i in Pliq_array]
-            Tvap_array = [PropsSI('T','P',i,'Q',1.0,InCond_REF.fluidmixture) for i in Pvap_array]
-            hliq_array = [PropsSI('H','P',i,'Q',0.0,InCond_REF.fluidmixture) for i in Pliq_array]
-            hvap_array = [PropsSI('H','P',i,'Q',1.0,InCond_REF.fluidmixture) for i in Pvap_array]
-            sliq_array = [PropsSI('S','P',i,'Q',0.0,InCond_REF.fluidmixture) for i in Pliq_array]
-            svap_array = [PropsSI('S','P',i,'Q',1.0,InCond_REF.fluidmixture) for i in Pvap_array]
+            Tliq_array = [PropsSI('T','P',i,'Q',0.0,fluid) for i in Pliq_array]
+            Tvap_array = [PropsSI('T','P',i,'Q',1.0,fluid) for i in Pvap_array]
+            hliq_array = [PropsSI('H','P',i,'Q',0.0,fluid) for i in Pliq_array]
+            hvap_array = [PropsSI('H','P',i,'Q',1.0,fluid) for i in Pvap_array]
+            sliq_array = [PropsSI('S','P',i,'Q',0.0,fluid) for i in Pliq_array]
+            svap_array = [PropsSI('S','P',i,'Q',1.0,fluid) for i in Pvap_array]
         except:
             Pliq_array = [P_trp*1.01+(P_crit*0.99 - P_trp*1.01)*i/49 for i in range(50)]
             Pvap_array = [P_crit*0.99 - (P_crit*0.99 - P_trp*1.01)*i/49 for i in range(50)]
-            Tliq_array = [PropsSI('T','P',i,'Q',0.0,InCond_REF.fluidmixture) for i in Pliq_array]
-            Tvap_array = [PropsSI('T','P',i,'Q',1.0,InCond_REF.fluidmixture) for i in Pvap_array]
-            hliq_array = [PropsSI('H','P',i,'Q',0.0,InCond_REF.fluidmixture) for i in Pliq_array]
-            hvap_array = [PropsSI('H','P',i,'Q',1.0,InCond_REF.fluidmixture) for i in Pvap_array]
-            sliq_array = [PropsSI('S','P',i,'Q',0.0,InCond_REF.fluidmixture) for i in Pliq_array]
-            svap_array = [PropsSI('S','P',i,'Q',1.0,InCond_REF.fluidmixture) for i in Pvap_array]
+            Tliq_array = [PropsSI('T','P',i,'Q',0.0,fluid) for i in Pliq_array]
+            Tvap_array = [PropsSI('T','P',i,'Q',1.0,fluid) for i in Pvap_array]
+            hliq_array = [PropsSI('H','P',i,'Q',0.0,fluid) for i in Pliq_array]
+            hvap_array = [PropsSI('H','P',i,'Q',1.0,fluid) for i in Pvap_array]
+            sliq_array = [PropsSI('S','P',i,'Q',0.0,fluid) for i in Pliq_array]
+            svap_array = [PropsSI('S','P',i,'Q',1.0,fluid) for i in Pvap_array]
             
         p_array = Pliq_array+[P_crit]+Pvap_array
         T_array = Tliq_array+[T_crit]+Tvap_array
         h_array = hliq_array+[H_crit]+hvap_array
         s_array = sliq_array+[S_crit]+svap_array
         
+        return (p_array, h_array, T_array, s_array)
+    
+    def Diagram_Draw(self, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs):
+    
         OutEvap_REF_Tvap = PropsSI('T','P',OutEvap_REF.p,'Q',1.0,OutCond_REF.fluidmixture)
         OutEvap_REF_svap = PropsSI('S','P',OutEvap_REF.p,'Q',1.0,OutCond_REF.fluidmixture)
         
@@ -764,7 +769,7 @@ class VCHP():
             
         
         
-        return (p_array, h_array, T_array, s_array, p_points, h_points, s_points, T_points)
+        return (p_points, h_points, s_points, T_points)
             
             
     def Post_Processing(self, outputs):
