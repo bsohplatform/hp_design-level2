@@ -277,9 +277,9 @@ class VCHP():
     
     def Cycle_Solver(self,InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs, no_input, cond_ph, evap_ph):
         if no_input == 'InEvapT':
-            evap_p_ub = PropsSI('P','T',OutEvap.T, 'Q', 1.0, InEvap_REF.fluidmixture)        
+            evap_p_ub = PropsSI('P','T',OutEvap.T, 'Q', 0.0, InEvap_REF.fluidmixture)        
         else:
-            evap_p_ub = PropsSI('P','T',InEvap.T, 'Q', 1.0, InEvap_REF.fluidmixture)
+            evap_p_ub = PropsSI('P','T',InEvap.T, 'Q', 0.0, InEvap_REF.fluidmixture)
             
         evap_p_lb = 101300.0
         evap_a = 1
@@ -652,7 +652,7 @@ class VCHP():
         return (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs)
     
     def Plot_diagram(self, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs, ts_file, ph_file, coeff):
-        (p_array, h_array, T_array, s_array) = self.Dome_Draw(list(inputs.Y.keys())[0],coeff)
+        (p_array, h_array, T_array, s_array) = self.Dome_Draw(list(inputs.Y.keys())[0], coeff)
         (p_points, h_points, T_points, s_points) = self.Diagram_Draw(InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs)
         fig_ph, ax_ph = PLT.subplots()
         ax_ph.plot([i/1.0e3 for i in h_array], [i/1.0e5 for i in p_array],'b--')
@@ -676,7 +676,7 @@ class VCHP():
         fig_ph.savefig('.\\Figs\\'+ph_file+'.png',dpi=300)
         fig_ts.savefig('.\\Figs\\'+ts_file+'.png',dpi=300)
         
-    def Dome_Draw(self, fluid, coeff=0.999):    
+    def Dome_Draw(self, fluid, coeff=0.999):
         P_crit = PropsSI('PCRIT','',0,'',0,fluid)
         T_crit = PropsSI('TCRIT','',0,'',0,fluid)
         H_crit_liq = PropsSI('H','P',P_crit*coeff,'Q',0.0,fluid)
@@ -692,9 +692,14 @@ class VCHP():
             Tliq_array = [PropsSI('T','P',i,'Q',0.0,fluid) for i in Pliq_array]
             Tvap_array = [PropsSI('T','P',i,'Q',1.0,fluid) for i in Pvap_array]
             hliq_array = [PropsSI('H','P',i,'Q',0.0,fluid) for i in Pliq_array]
+            hliq_array_new = [(H_crit-hliq_array[i-1])/(P_crit-Pliq_array[i-1])*(Pliq_array[i]-Pliq_array[i-1])+hliq_array[i-1] if hliq_array[i] < 0 or hliq_array[i]/hliq_array[i-1] > 1.2 else hliq_array[i] for i in range(len(hliq_array))]
             hvap_array = [PropsSI('H','P',i,'Q',1.0,fluid) for i in Pvap_array]
+            hvap_array_new = [(H_crit-hvap_array[i-1])/(P_crit-Pvap_array[i-1])*(Pvap_array[i]-Pvap_array[i-1])+hvap_array[i-1] if hvap_array[i] < 0 or hvap_array[i-1]/hvap_array[i] > 1.2 else hvap_array[i] for i in range(len(hvap_array))]
             sliq_array = [PropsSI('S','P',i,'Q',0.0,fluid) for i in Pliq_array]
-            svap_array = [PropsSI('S','P',i,'Q',1.0,fluid) for i in Pvap_array]
+            sliq_array_new = [(H_crit-sliq_array[i-1])/(T_crit-Tliq_array[i-1])*(Tliq_array[i]-Tliq_array[i-1])+sliq_array[i-1] if sliq_array[i] < 0 or sliq_array[i]/sliq_array[i-1] > 1.2 else sliq_array[i] for i in range(len(sliq_array))]
+            svap_array = [PropsSI('S','T',i,'Q',1.0,fluid) for i in Tvap_array]
+            svap_array_new = [(H_crit-svap_array[i-1])/(T_crit-Tvap_array[i-1])*(Tvap_array[i]-Tvap_array[i-1])+svap_array[i-1] if svap_array[i] < 0 or svap_array[i-1]/svap_array[i] > 1.2 else svap_array[i] for i in range(len(svap_array))]
+            
         except:
             P_trp = PropsSI('PTRIPLE','',0,'',0,fluid)
             Pliq_array = [P_trp*(2-coeff)+(P_crit*coeff - P_trp*(2-coeff))*i/49 for i in range(50)]
@@ -708,8 +713,8 @@ class VCHP():
             
         p_array = Pliq_array+[P_crit]+Pvap_array
         T_array = Tliq_array+[T_crit]+Tvap_array
-        h_array = hliq_array+[H_crit]+hvap_array
-        s_array = sliq_array+[S_crit]+svap_array
+        h_array = hliq_array_new+[H_crit]+hvap_array_new
+        s_array = sliq_array_new+[S_crit]+svap_array_new
         
         return (p_array, h_array, T_array, s_array)
     
@@ -784,14 +789,16 @@ class VCHP():
         print('Q comp: {:.3f} [kW]'.format(outputs.Wcomp/1000))
         print('Hot fluid Inlet T:{:.3f}[℃]/P:{:.3f}[bar]/m:{:.3f}[kg/s]:   -------> Hot fluid Outlet T:{:.3f}[℃]/P:{:.3f}[bar]/m:{:.3f}[kg/s]'.format(self.InCond.T-273.15, self.InCond.p/1.0e5, self.InCond.m, self.OutCond.T-273.15, self.OutCond.p/1.0e5, self.OutCond.m))
         print('Cold fluid Outlet T:{:.3f}[℃]/P:{:.3f}[bar]/m:{:.3f}[kg/s]: <------- Cold fluid Inlet T:{:.3f}[℃]/P:{:.3f}[bar]/m:{:.3f}[kg/s]'.format(self.OutEvap.T-273.15, self.OutEvap.p/1.0e5, self.OutEvap.m, self.InEvap.T-273.15, self.InEvap.p/1.0e5, self.InEvap.m))
-        print('Plow: {:.3f} [bar], Phigh: {:.3f} [bar], PR: {:.3f}[-]'.format(self.OutEvap_REF.p/1.0e5, self.InCond_REF.p/1.0e5, self.InCond_REF.p/self.OutEvap_REF.p))
+        print('Pcomp_in: {:.3f} [bar], Pcomp_out: {:.3f} [bar]'.format(self.OutEvap_REF.p/1.0e5, self.InCond_REF.p/1.0e5))
+        print('Pvalve_in: {:.3f} [bar], Pvalve_out: {:.3f} [bar]'.format(self.OutCond_REF.p/1.0e5, self.InEvap_REF.p/1.0e5))
+        print('Tcomp_in: {:.3f} [℃], Tcomp_out: {:.3f} [℃]'.format(self.OutEvap_REF.T-273.15,self.InCond_REF.T-273.15))
+        print('Tvalve_in: {:.3f} [℃], Tvalve_out: {:.3f} [℃]'.format(self.OutCond_REF.T-273.15,self.InEvap_REF.T-273.15))
         Tlow = PropsSI('T','P',0.5*(self.OutEvap_REF.p+self.InEvap_REF.p),'Q',0.5,self.OutEvap_REF.fluidmixture)
         try:
             Thigh = PropsSI('T','P',0.5*(self.OutCond_REF.p+self.InCond_REF.p),'Q',0.5,self.OutCond_REF.fluidmixture)
         except:
             Thigh = 0
-        print('Tlow: {:.3f} [℃], Thigh: {:.3f} [℃], mdot: {:.3f}[kg/s]'.format(Tlow-273.15,Thigh-273.15, self.OutEvap_REF.m))
-        print('Tcomp_in: {:.3f} [℃], Tcomp_out: {:.3f} [℃]'.format(self.OutEvap_REF.T-273.15,self.InCond_REF.T-273.15))
+        print('Ts_low: {:.3f} [℃], Ts_high: {:.3f} [℃], mdot: {:.3f}[kg/s]'.format(Tlow-273.15,Thigh-273.15, self.OutEvap_REF.m))
         print('Cond_UA: {:.3f} [W/℃], Evap_UA: {:.3f} [W/℃]'.format(outputs.cond_UA, outputs.evap_UA))
         if self.inputs.layout == 'inj' or self.inputs.layout == '2comp':
             print('T_inter: {:.3f} [℃] / P_inter: {:.3f} [bar]'.format(outputs.incomp_high_T-273.15, outputs.incomp_high_p/1.0e5))
@@ -890,9 +897,9 @@ class VCHP_cascade(VCHP):
         results_array = []
     
         if no_input == 'InCondT':
-            evap_t_p_ub = PropsSI('P','T',OutCond.T,'Q',1.0, OutEvap_REF_t.fluidmixture) 
+            evap_t_p_ub = PropsSI('P','T',OutCond.T,'Q',0.0, OutEvap_REF_t.fluidmixture) 
         else:
-            evap_t_p_ub = PropsSI('P','T',InCond.T,'Q',1.0, OutEvap_REF_t.fluidmixture)
+            evap_t_p_ub = PropsSI('P','T',InCond.T,'Q',0.0, OutEvap_REF_t.fluidmixture)
     
         evap_t_p_ub = min(evap_t_p_ub, OutEvap_REF_t.p_crit)
     
@@ -1389,9 +1396,9 @@ class HandoCycle(VCHP):
     
     def Cycle_Solver(self, InCond_hot, OutCond_hot, InCond_cold, OutCond_cold, Cond_cold_type, InEvap, OutEvap, InCond_REF_hot, OutCond_REF_hot, InCond_REF_cold, OutCond_REF_cold, InEvap_REF, OutEvap_REF, inputs, outputs, no_input, cond_ph, evap_ph):
         if no_input == 'InEvapT':
-            evap_p_ub = PropsSI('P','T',OutEvap.T, 'Q', 1.0, InEvap_REF.fluidmixture)        
+            evap_p_ub = PropsSI('P','T',OutEvap.T, 'Q', 0.0, InEvap_REF.fluidmixture)        
         else:
-            evap_p_ub = PropsSI('P','T',InEvap.T, 'Q', 1.0, InEvap_REF.fluidmixture)
+            evap_p_ub = PropsSI('P','T',InEvap.T, 'Q', 0.0, InEvap_REF.fluidmixture)
             
         evap_p_lb = 101300.0
         evap_a = 1
@@ -1452,9 +1459,9 @@ class HandoCycle(VCHP):
         results_array = []
     
         if no_input == 'InCondT':
-            evap_t_p_ub = PropsSI('P','T',OutCond_hot.T,'Q',1.0, OutEvap_REF_t.fluidmixture) 
+            evap_t_p_ub = PropsSI('P','T',OutCond_hot.T,'Q',0.0, OutEvap_REF_t.fluidmixture) 
         else:
-            evap_t_p_ub = PropsSI('P','T',InCond_hot.T,'Q',1.0, OutEvap_REF_t.fluidmixture)
+            evap_t_p_ub = PropsSI('P','T',InCond_hot.T,'Q',0.0, OutEvap_REF_t.fluidmixture)
     
         evap_t_p_ub = min(evap_t_p_ub, OutEvap_REF_t.p_crit)
     
