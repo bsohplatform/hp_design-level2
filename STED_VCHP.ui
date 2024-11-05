@@ -35,16 +35,16 @@
     <bool>false</bool>
    </property>
    <property name="tabPosition">
-    <enum>QTabWidget::South</enum>
+    <enum>QTabWidget::TabPosition::South</enum>
    </property>
    <property name="tabShape">
-    <enum>QTabWidget::Triangular</enum>
+    <enum>QTabWidget::TabShape::Triangular</enum>
    </property>
    <property name="currentIndex">
     <number>0</number>
    </property>
    <property name="elideMode">
-    <enum>Qt::ElideNone</enum>
+    <enum>Qt::TextElideMode::ElideNone</enum>
    </property>
    <property name="documentMode">
     <bool>false</bool>
@@ -629,7 +629,6 @@
       <font>
        <family>굴림</family>
        <pointsize>8</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -650,7 +649,6 @@
       <font>
        <family>굴림</family>
        <pointsize>8</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -709,7 +707,6 @@
       <font>
        <family>굴림</family>
        <pointsize>8</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -730,7 +727,6 @@
       <font>
        <family>굴림</family>
        <pointsize>8</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -825,7 +821,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -842,7 +837,6 @@
             <font>
              <family>굴림</family>
              <pointsize>8</pointsize>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -860,7 +854,6 @@
             <font>
              <family>굴림</family>
              <pointsize>8</pointsize>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -880,7 +873,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -898,12 +890,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -919,7 +910,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -937,12 +927,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -958,7 +947,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -976,12 +964,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -1040,7 +1027,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -1058,12 +1044,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -1079,7 +1064,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -1097,12 +1081,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -1161,7 +1144,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -1179,12 +1161,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -1200,7 +1181,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -1218,12 +1198,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -1239,7 +1218,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -1260,12 +1238,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -1281,7 +1258,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -1299,12 +1275,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -1320,7 +1295,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -1338,12 +1312,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -1359,7 +1332,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -1430,7 +1402,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -1448,12 +1419,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -1469,7 +1439,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -1487,12 +1456,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -1508,7 +1476,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -1526,12 +1493,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -1590,7 +1556,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -1608,12 +1573,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -1629,7 +1593,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -1647,12 +1610,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -1668,7 +1630,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -1686,12 +1647,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -1717,7 +1677,6 @@
       <font>
        <family>HY견고딕</family>
        <pointsize>9</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -1737,7 +1696,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -1758,7 +1716,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -1779,7 +1736,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -1812,7 +1768,6 @@
        <font>
         <family>굴림</family>
         <pointsize>6</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -1831,7 +1786,6 @@
       <font>
        <family>HY견고딕</family>
        <pointsize>9</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -1851,7 +1805,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -1872,7 +1825,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -1893,7 +1845,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -1926,7 +1877,6 @@
        <font>
         <family>굴림</family>
         <pointsize>6</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -1978,7 +1928,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -1993,7 +1942,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -2011,12 +1959,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -2032,7 +1979,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -2047,7 +1993,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -2065,12 +2010,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -2088,7 +2032,6 @@
             <font>
              <family>굴림</family>
              <pointsize>8</pointsize>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -2106,7 +2049,6 @@
             <font>
              <family>굴림</family>
              <pointsize>8</pointsize>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -2126,7 +2068,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -2144,12 +2085,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -2168,12 +2108,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -2232,7 +2171,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -2247,7 +2185,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -2265,12 +2202,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -2286,7 +2222,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -2304,12 +2239,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -2325,7 +2259,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -2343,12 +2276,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -2366,7 +2298,6 @@
             <font>
              <family>굴림</family>
              <pointsize>8</pointsize>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -2384,7 +2315,6 @@
             <font>
              <family>굴림</family>
              <pointsize>8</pointsize>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -2447,7 +2377,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -2465,12 +2394,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -2486,7 +2414,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -2504,12 +2431,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -2525,7 +2451,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -2543,12 +2468,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -2607,7 +2531,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -2625,12 +2548,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -2646,7 +2568,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -2664,12 +2585,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -2707,7 +2627,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -2731,13 +2650,12 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <bold>false</bold>
         <kerning>true</kerning>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(0, 0, 0);</string>
@@ -2772,7 +2690,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -2796,13 +2713,12 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <italic>false</italic>
         <bold>false</bold>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -2837,7 +2753,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -2865,7 +2780,7 @@
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -2903,7 +2818,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -2927,13 +2841,12 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <italic>false</italic>
         <bold>false</bold>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(0, 0, 0);</string>
@@ -2968,7 +2881,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -2992,13 +2904,12 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <bold>false</bold>
         <kerning>true</kerning>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(0, 0, 0);</string>
@@ -3036,13 +2947,12 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <italic>false</italic>
         <bold>false</bold>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -3064,7 +2974,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -3101,13 +3010,12 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <italic>false</italic>
         <bold>false</bold>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -3129,7 +3037,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -3166,13 +3073,12 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <italic>false</italic>
         <bold>false</bold>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -3194,7 +3100,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -3228,7 +3133,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -3256,7 +3160,7 @@
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -3291,7 +3195,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -3315,13 +3218,12 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <italic>false</italic>
         <bold>false</bold>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -3548,7 +3450,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -3572,13 +3473,12 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <bold>false</bold>
         <kerning>true</kerning>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(0, 0, 0);</string>
@@ -3616,7 +3516,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -3640,13 +3539,12 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <italic>false</italic>
         <bold>false</bold>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(0, 0, 0);</string>
@@ -3681,7 +3579,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -3705,13 +3602,12 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <bold>false</bold>
         <kerning>true</kerning>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(0, 0, 0);</string>
@@ -3749,13 +3645,12 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <italic>false</italic>
         <bold>false</bold>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -3777,7 +3672,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -3814,13 +3708,12 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <italic>false</italic>
         <bold>false</bold>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -3842,7 +3735,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -3879,13 +3771,12 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <italic>false</italic>
         <bold>false</bold>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -3907,7 +3798,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -3962,7 +3852,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -3980,12 +3869,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -4001,7 +3889,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -4019,12 +3906,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -4083,7 +3969,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -4101,12 +3986,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -4122,7 +4006,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -4140,12 +4023,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -4161,7 +4043,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -4179,12 +4060,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -4243,7 +4123,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -4261,12 +4140,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -4282,7 +4160,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -4300,12 +4177,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -4321,7 +4197,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -4339,12 +4214,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -4403,7 +4277,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -4421,12 +4294,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -4442,7 +4314,6 @@
           <font>
            <family>굴림</family>
            <pointsize>8</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -4460,12 +4331,11 @@
           <font>
            <family>HY견고딕</family>
            <pointsize>8</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::FocusPolicy::StrongFocus</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -4535,12 +4405,11 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <bold>false</bold>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -4562,7 +4431,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -4599,12 +4467,11 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <bold>false</bold>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -4626,7 +4493,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -4663,12 +4529,11 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <bold>false</bold>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -4690,7 +4555,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -4727,12 +4591,11 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <bold>false</bold>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -4754,7 +4617,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -4896,13 +4758,12 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <italic>false</italic>
         <bold>false</bold>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -4924,7 +4785,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -4961,12 +4821,11 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <bold>false</bold>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -4988,7 +4847,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -5025,12 +4883,11 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <bold>false</bold>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -5052,7 +4909,6 @@
        <font>
         <family>굴림</family>
         <pointsize>8</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -5089,12 +4945,11 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>10</pointsize>
-        <weight>50</weight>
         <bold>false</bold>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(255, 255, 255);</string>
@@ -5116,7 +4971,6 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>10</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -5137,7 +4991,6 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>10</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -5161,12 +5014,11 @@
        <font>
         <family>HY견고딕</family>
         <pointsize>10</pointsize>
-        <weight>50</weight>
         <bold>false</bold>
        </font>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true">border-color: rgb(255, 255, 255);</string>

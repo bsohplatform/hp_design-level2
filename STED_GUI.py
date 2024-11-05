@@ -1,21 +1,20 @@
 from cmath import sqrt
 import sys
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5 import uic
+import os
 from CoolProp.CoolProp import PropsSI
 from VCHP_layout import VCHP, VCHP_cascade
 from HP_dataclass import ProcessFluid, Settings, Outputs
+from PySide6.QtCore import QSize, Qt, QFile
+from PySide6.QtGui import QFont, QIcon, QPixmap
+from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QTableWidgetItem, QMessageBox
+from PySide6.QtUiTools import loadUiType
 
-import os
 def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
-    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))    
     return os.path.join(base_path, relative_path)
 
-form = resource_path("STED_VCHP.ui")
-form_class = uic.loadUiType(form)[0]
+form = resource_path('STED_VCHP.ui')
+form_class = loadUiType(form)[0]
 
 class WindowClass(QMainWindow, form_class):
     def __init__(self):
@@ -120,7 +119,6 @@ class WindowClass(QMainWindow, form_class):
         
         # 압축기 추천 버튼
         self.compressor_recommand.clicked.connect(self.Compressor_Recommand)
-        
     def MoveToLayoutTab(self):
         self.STED_tab.setCurrentWidget(self.layout_tab)
         self.Calcstart_btn.setEnabled(False)
@@ -1068,113 +1066,114 @@ class WindowClass(QMainWindow, form_class):
             self.Calcstart_btn.setEnabled(True)
             
     def Calcstart_action(self):
-        try:
+      ph_file = "Ph_diagram"
+      ts_file = "Ts_diagram"
+      try:
+        if self.layout_type == 'cas':
+          self.outputs_t = Outputs()
+          self.outputs_b = Outputs()
+          
+          self.InCond_REF_t = ProcessFluid(Y=self.inputs_t.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+          self.OutCond_REF_t = ProcessFluid(Y=self.inputs_t.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+          self.InEvap_REF_t = ProcessFluid(Y=self.inputs_t.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+          self.OutEvap_REF_t = ProcessFluid(Y=self.inputs_t.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+          self.InCond_REF_b = ProcessFluid(Y=self.inputs_b.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+          self.OutCond_REF_b = ProcessFluid(Y=self.inputs_b.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+          self.InEvap_REF_b = ProcessFluid(Y=self.inputs_b.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+          self.OutEvap_REF_b = ProcessFluid(Y=self.inputs_b.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+          
+          p_crit_t = PropsSI('PCRIT','',0,'',0,list(self.inputs_t.Y.keys())[0])
+          T_crit_t = PropsSI('TCRIT','',0,'',0,list(self.inputs_t.Y.keys())[0])
+          p_crit_b = PropsSI('PCRIT','',0,'',0,list(self.inputs_b.Y.keys())[0])
+          T_crit_b = PropsSI('TCRIT','',0,'',0,list(self.inputs_b.Y.keys())[0])
+          
+          self.InCond_REF_t.p_crit = p_crit_t
+          self.OutCond_REF_t.p_crit = p_crit_t
+          self.InEvap_REF_t.p_crit = p_crit_t
+          self.OutEvap_REF_t.p_crit = p_crit_t
+          
+          self.InCond_REF_t.T_crit = T_crit_t
+          self.OutCond_REF_t.T_crit = T_crit_t
+          self.InEvap_REF_t.T_crit = T_crit_t
+          self.OutEvap_REF_t.T_crit = T_crit_t
+          
+          self.InCond_REF_b.p_crit = p_crit_b
+          self.OutCond_REF_b.p_crit = p_crit_b
+          self.InEvap_REF_b.p_crit = p_crit_b
+          self.OutEvap_REF_b.p_crit = p_crit_b
+          
+          self.InCond_REF_b.T_crit = T_crit_b
+          self.OutCond_REF_b.T_crit = T_crit_b
+          self.InEvap_REF_b.T_crit = T_crit_b
+          self.OutEvap_REF_b.T_crit = T_crit_b
+          
+          
+          cond_t_ph = 0
+          evap_b_ph = 0
+          (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF_t, self.OutCond_REF_t, self.InEvap_REF_t, self.OutEvap_REF_t, self.InCond_REF_b, self.OutCond_REF_b, self.InEvap_REF_b, self.OutEvap_REF_b, self.outputs_t, self.outputs_b)\
+              = self.vchp_cascade.Cascade_solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF_t, self.OutCond_REF_t, self.InEvap_REF_t, self.OutEvap_REF_t, self.InCond_REF_b, self.OutCond_REF_b, self.InEvap_REF_b, self.OutEvap_REF_b, self.inputs_t, self.inputs_b, self.outputs_t, self.outputs_b, self.no_input, cond_t_ph, evap_b_ph)
+          self.vchp_cascade.Plot_diagram(self.InCond_REF_t, self.OutCond_REF_t, self.InEvap_REF_t, self.OutEvap_REF_t, self.inputs_t, self.outputs_t, self.InCond_REF_b, self.OutCond_REF_b, self.InEvap_REF_b, self.OutEvap_REF_b, self.inputs_b, self.outputs_b)
+        else:
+          self.outputs = Outputs()
+          
+          self.InCond_REF = ProcessFluid(Y=self.inputs.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+          self.OutCond_REF = ProcessFluid(Y=self.inputs.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+          self.InEvap_REF = ProcessFluid(Y=self.inputs.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+          self.OutEvap_REF = ProcessFluid(Y=self.inputs.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
+          
+          p_crit = PropsSI('PCRIT','',0,'',0, list(self.inputs.Y.keys())[0])
+          T_crit = PropsSI('TCRIT','',0,'',0, list(self.inputs.Y.keys())[0])
+          
+          self.InCond_REF.p_crit = p_crit
+          self.OutCond_REF.p_crit = p_crit
+          self.InEvap_REF.p_crit = p_crit
+          self.OutEvap_REF.p_crit = p_crit
+          
+          self.InCond_REF.T_crit = T_crit
+          self.OutCond_REF.T_crit = T_crit
+          self.InEvap_REF.T_crit = T_crit
+          self.OutEvap_REF.T_crit = T_crit
+          
+          evap_ph = 0
+          cond_ph = 0
+          if self.layout_type == 'inj':    
+              (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.outputs) = self.vchp.Injection_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, self.outputs, self.no_input, cond_ph, evap_ph)
+          else:
+              (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.outputs) = self.vchp.Cycle_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, self.outputs, self.no_input, cond_ph, evap_ph)
+      
+          self.vchp.Plot_diagram(self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, self.outputs, ts_file, ph_file, 0.999)
             
-            if self.layout_type == 'cas':
-                self.outputs_t = Outputs()
-                self.outputs_b = Outputs()
-                
-                self.InCond_REF_t = ProcessFluid(Y=self.inputs_t.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
-                self.OutCond_REF_t = ProcessFluid(Y=self.inputs_t.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
-                self.InEvap_REF_t = ProcessFluid(Y=self.inputs_t.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
-                self.OutEvap_REF_t = ProcessFluid(Y=self.inputs_t.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
-                self.InCond_REF_b = ProcessFluid(Y=self.inputs_b.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
-                self.OutCond_REF_b = ProcessFluid(Y=self.inputs_b.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
-                self.InEvap_REF_b = ProcessFluid(Y=self.inputs_b.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
-                self.OutEvap_REF_b = ProcessFluid(Y=self.inputs_b.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
-                
-                p_crit_t = PropsSI('PCRIT','',0,'',0,list(self.inputs_t.Y.keys())[0])
-                T_crit_t = PropsSI('TCRIT','',0,'',0,list(self.inputs_t.Y.keys())[0])
-                p_crit_b = PropsSI('PCRIT','',0,'',0,list(self.inputs_b.Y.keys())[0])
-                T_crit_b = PropsSI('TCRIT','',0,'',0,list(self.inputs_b.Y.keys())[0])
-                
-                self.InCond_REF_t.p_crit = p_crit_t
-                self.OutCond_REF_t.p_crit = p_crit_t
-                self.InEvap_REF_t.p_crit = p_crit_t
-                self.OutEvap_REF_t.p_crit = p_crit_t
-                
-                self.InCond_REF_t.T_crit = T_crit_t
-                self.OutCond_REF_t.T_crit = T_crit_t
-                self.InEvap_REF_t.T_crit = T_crit_t
-                self.OutEvap_REF_t.T_crit = T_crit_t
-                
-                self.InCond_REF_b.p_crit = p_crit_b
-                self.OutCond_REF_b.p_crit = p_crit_b
-                self.InEvap_REF_b.p_crit = p_crit_b
-                self.OutEvap_REF_b.p_crit = p_crit_b
-                
-                self.InCond_REF_b.T_crit = T_crit_b
-                self.OutCond_REF_b.T_crit = T_crit_b
-                self.InEvap_REF_b.T_crit = T_crit_b
-                self.OutEvap_REF_b.T_crit = T_crit_b
-                
-                
-                cond_t_ph = 0
-                evap_b_ph = 0
-                (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF_t, self.OutCond_REF_t, self.InEvap_REF_t, self.OutEvap_REF_t, self.InCond_REF_b, self.OutCond_REF_b, self.InEvap_REF_b, self.OutEvap_REF_b, self.outputs_t, self.outputs_b)\
-                    = self.vchp_cascade.Cascade_solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF_t, self.OutCond_REF_t, self.InEvap_REF_t, self.OutEvap_REF_t, self.InCond_REF_b, self.OutCond_REF_b, self.InEvap_REF_b, self.OutEvap_REF_b, self.inputs_t, self.inputs_b, self.outputs_t, self.outputs_b, self.no_input, cond_t_ph, evap_b_ph)
-                self.vchp_cascade.Plot_diagram(self.InCond_REF_t, self.OutCond_REF_t, self.InEvap_REF_t, self.OutEvap_REF_t, self.inputs_t, self.outputs_t, self.InCond_REF_b, self.OutCond_REF_b, self.InEvap_REF_b, self.OutEvap_REF_b, self.inputs_b, self.outputs_b)
-            else:
-                self.outputs = Outputs()
-                
-                self.InCond_REF = ProcessFluid(Y=self.inputs.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
-                self.OutCond_REF = ProcessFluid(Y=self.inputs.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
-                self.InEvap_REF = ProcessFluid(Y=self.inputs.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
-                self.OutEvap_REF = ProcessFluid(Y=self.inputs.Y, m = 0.0, T = 0.0, p = 0.0, q = 0.0, h = 0.0, s = 0.0, Cp = 0.0)
-                
-                p_crit = PropsSI('PCRIT','',0,'',0, list(self.inputs.Y.keys())[0])
-                T_crit = PropsSI('TCRIT','',0,'',0, list(self.inputs.Y.keys())[0])
-                
-                self.InCond_REF.p_crit = p_crit
-                self.OutCond_REF.p_crit = p_crit
-                self.InEvap_REF.p_crit = p_crit
-                self.OutEvap_REF.p_crit = p_crit
-                
-                self.InCond_REF.T_crit = T_crit
-                self.OutCond_REF.T_crit = T_crit
-                self.InEvap_REF.T_crit = T_crit
-                self.OutEvap_REF.T_crit = T_crit
-                
-                evap_ph = 0
-                cond_ph = 0
-                if self.layout_type == 'inj':    
-                    (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.outputs) = self.vchp.Injection_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, self.outputs, self.no_input, cond_ph, evap_ph)
-                else:
-                    (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.outputs) = self.vchp.Cycle_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, self.outputs, self.no_input, cond_ph, evap_ph)
-            
-                self.vchp.Plot_diagram(self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, self.outputs)
-        
-            self.MoveToResultsTab()
-            self.valve_recommand.setEnabled(True)
-            self.compressor_recommand.setEnabled(True)
-            self.AllHidden_ResultTab()
-            if self.layout_type == 'bas':
-                self.Bas_batch_result()
-                self.layout_fig_tab3.setPixmap(QPixmap(".\Figs\Basic_result.png").scaledToHeight(500))
-            elif self.layout_type == 'ihx':
-                self.IHX_batch_result()
-                self.layout_fig_tab3.setPixmap(QPixmap(".\Figs\IHX_result.png").scaledToHeight(500))    
-            elif self.layout_type == 'inj':
-                self.Inj_batch_result()
-                self.layout_fig_tab3.setPixmap(QPixmap(".\Figs\Injection_result.png").scaledToHeight(500))    
-            elif self.layout_type == 'cas':
-                self.Cas_batch_result()
-                self.layout_fig_tab3.setPixmap(QPixmap(".\Figs\Cascade_result.png").scaledToHeight(500))
-                
-            if self.process_type == 'process':
-                self.process_fig_tab3.setPixmap(QPixmap(".\Figs\Process.png").scaledToWidth(300))
-            elif self.process_type == 'steam':
-                self.process_fig_tab3.setPixmap(QPixmap(".\Figs\Steam.png").scaledToWidth(300))            
-            elif self.process_type == 'hotwater':
-                self.process_fig_tab3.setPixmap(QPixmap(".\Figs\Hotwater.png").scaledToWidth(300))            
-                
-            self.ph_diagram.setPixmap(QPixmap(".\Figs\Ph_diagram.png").scaledToWidth(400))
-            self.ts_diagram.setPixmap(QPixmap(".\Figs\Ts_diagram.png").scaledToWidth(400))
-        except:
-            import traceback
-            QMessageBox.warning(self, '계산 error', '입력문을 재검토하세요.', QMessageBox.Yes)
-            QMessageBox.warning(self, '계산 error', traceback.format_exc(), QMessageBox.Yes)
-            self.message_chk = self.message_chk+1
+          self.MoveToResultsTab()
+          self.valve_recommand.setEnabled(True)
+          self.compressor_recommand.setEnabled(True)
+          self.AllHidden_ResultTab()
+          if self.layout_type == 'bas':
+              self.Bas_batch_result()
+              self.layout_fig_tab3.setPixmap(QPixmap(".\Figs\Basic_result.png").scaledToHeight(500))
+          elif self.layout_type == 'ihx':
+              self.IHX_batch_result()
+              self.layout_fig_tab3.setPixmap(QPixmap(".\Figs\IHX_result.png").scaledToHeight(500))    
+          elif self.layout_type == 'inj':
+              self.Inj_batch_result()
+              self.layout_fig_tab3.setPixmap(QPixmap(".\Figs\Injection_result.png").scaledToHeight(500))    
+          elif self.layout_type == 'cas':
+              self.Cas_batch_result()
+              self.layout_fig_tab3.setPixmap(QPixmap(".\Figs\Cascade_result.png").scaledToHeight(500))
+              
+          if self.process_type == 'process':
+              self.process_fig_tab3.setPixmap(QPixmap(".\Figs\Process.png").scaledToWidth(300))
+          elif self.process_type == 'steam':
+              self.process_fig_tab3.setPixmap(QPixmap(".\Figs\Steam.png").scaledToWidth(300))            
+          elif self.process_type == 'hotwater':
+              self.process_fig_tab3.setPixmap(QPixmap(".\Figs\Hotwater.png").scaledToWidth(300))            
+              
+          self.ph_diagram.setPixmap(QPixmap('.\\Figs\\'+ph_file+'.png').scaledToWidth(400))
+          self.ts_diagram.setPixmap(QPixmap('.\\Figs\\'+ts_file+'.png').scaledToWidth(400))
+      except:
+          import traceback
+          QMessageBox.warning(self, '계산 error', '입력문을 재검토하세요.', QMessageBox.Yes)
+          QMessageBox.warning(self, '계산 error', traceback.format_exc(), QMessageBox.Yes)
+          self.message_chk = self.message_chk+1
     
     def AllHidden_ResultTab(self):
         self.REF_table.clearContents()
@@ -1455,13 +1454,13 @@ class WindowClass(QMainWindow, form_class):
         self.evap_fluid_table.setItem(0, 0, QTableWidgetItem('Water'))
         self.evap_fluid_table.setItem(0, 1, QTableWidgetItem('1.0'))
         
-        self.evap_in_T_edit.setText('50.0')
+        self.evap_in_T_edit.setText('12.0')
         
-        self.evap_in_p_edit.setText('1.5')
-        self.evap_in_m_edit.setText('1.0')
+        self.evap_in_p_edit.setText('1.563')
+        self.evap_in_m_edit.setText('')
         
-        self.evap_out_T_edit.setText('')
-        self.evap_out_p_edit.setText('1.5')
+        self.evap_out_T_edit.setText('7')
+        self.evap_out_p_edit.setText('1.013')
         
         
         if self.process_type == 'steam':
@@ -1494,26 +1493,26 @@ class WindowClass(QMainWindow, form_class):
             self.process_type = 'process'
             if self.cycle_type == 'vcc':
                 self.cond_fluid_table.setItem(0, 0, QTableWidgetItem('Water'))
-                self.cond_in_T_edit.setText('70.0')
-                self.cond_out_T_edit.setText('80.0')
+                self.cond_in_T_edit.setText('32.0')
+                self.cond_out_T_edit.setText('37.0')
             else:
                 self.cond_fluid_table.setItem(0, 0, QTableWidgetItem('air'))
                 self.cond_in_T_edit.setText('120.0')
                 self.cond_out_T_edit.setText('160.0')
             
             self.cond_fluid_table.setItem(0, 1, QTableWidgetItem('1.0'))
-            self.cond_in_p_edit.setText('1.5')
-            self.cond_in_m_edit.setText('1.0')
-            self.cond_out_p_edit.setText('1.5')
+            self.cond_in_p_edit.setText('1.333')
+            self.cond_in_m_edit.setText('9.0')
+            self.cond_out_p_edit.setText('1.013')
         
-        self.DSH_top_edit.setText('10.0')
+        self.DSH_top_edit.setText('3.0')
         if self.cycle_type == 'vcc':
-            self.DSC_edit.setText('5.0')
+            self.DSC_edit.setText('1.0')
         else:
             self.DSC_edit.setText('')
             
-        self.DSH_edit.setText('10.0')
-        self.DSC_bot_edit.setText('5.0')
+        self.DSH_edit.setText('3.0')
+        self.DSC_bot_edit.setText('1.0')
         
         self.cond_dp_edit.setText('1.0')
         self.cas_cold_dp_edit.setText('1.0')
@@ -1521,13 +1520,13 @@ class WindowClass(QMainWindow, form_class):
         self.evap_dp_edit.setText('1.0')
         
         if self.cond_phe_radio.isChecked():
-            self.cond_T_pp_edit.setText('5.0')
+            self.cond_T_pp_edit.setText('1.5')
         elif self.cond_fthe_radio.isChecked():
             self.cond_T_pp_edit.setText('15.0')
             self.cond_N_row_edit.setText('10')
         
         if self.cas_phe_radio.isChecked():
-            self.cas_T_pp_edit.setText('5.0')
+            self.cas_T_pp_edit.setText('0.8')
         elif self.cond_fthe_radio.isChecked():
             self.cas_T_pp_edit.setText('15.0')
             self.cas_N_row_edit.setText('5')
@@ -1537,7 +1536,7 @@ class WindowClass(QMainWindow, form_class):
         self.IHX_cold_dp_edit.setText('1.0')
         
         if self.evap_phe_radio.isChecked():
-            self.evap_T_pp_edit.setText('5.0')
+            self.evap_T_pp_edit.setText('0.8')
         elif self.evap_fthe_radio.isChecked():
             self.evap_T_pp_edit.setText('15.0')
             self.evap_N_row_edit.setText('5')
@@ -1551,9 +1550,9 @@ class WindowClass(QMainWindow, form_class):
     
         if self.layout_type == 'cas': 
             self.ref_list_b.setCurrentIndex(1)
-            self.ref_list_t.setCurrentIndex(93)
+            self.ref_list_t.setCurrentIndex(77)
         else:
-            self.ref_list_b.setCurrentIndex(93)
+            self.ref_list_b.setCurrentIndex(77)
             
     
     def InputClear(self):
@@ -1669,44 +1668,52 @@ class WindowClass(QMainWindow, form_class):
         if self.layout_type == 'cas':
             Pevap = self.OutEvap_REF_b.p
             Pcond = self.InCond_REF_b.p
-            Wcomp = self.outputs_b.Wcomp
+            Tcomp_in = self.OutEvap_REF_b.T
+            mdot = self.OutEvap_REF_b.m
             Refrigerant = self.OutEvap_REF_b.fluidmixture
             Pevap_2 = self.OutEvap_REF_t.p
             Pcond_2 = self.InCond_REF_t.p
-            Wcomp_2 = self.outputs_t.Wcomp
+            Tcomp_in_2 = self.OutEvap_REF_t.T
+            mdot_2 = self.OutEvap_REF_t.m
             Refrigerant_2 = self.OutEvap_REF_t.fluidmixture
             
         elif self.layout_type == 'inj':
             Pevap = self.OutEvap_REF.p
             Pcond = self.outputs.outcomp_low_p
-            Wcomp = self.outputs.Wcomp - self.outputs.Wcomp_top
+            Tcomp_in = self.OutEvap_REF.T
+            mdot = self.OutEvap_REF.m
             Refrigerant = self.OutEvap_REF.fluidmixture
             Pevap_2 = self.outputs.incomp_high_p
             Pcond_2 = self.InCond_REF.p
-            Wcomp_2 = self.outputs.Wcomp_top
+            Tcomp_in_2 = self.outputs.incomp_high_T
+            mdot_2 = self.InCond_REF.m
             Refrigerant_2 = self.InCond_REF.fluidmixture
             
         elif self.layout_type == 'ihx':
             Pevap = self.outputs.ihx_cold_out_p
             Pcond = self.InCond_REF.p
-            Wcomp = self.outputs.Wcomp
+            Tcomp_in = self.outputs.ihx_cold_out_T
+            mdot = self.InCond_REF.m
             Refrigerant = self.OutEvap_REF.fluidmixture
             Pevap_2 = self.outputs.ihx_cold_out_p
             Pcond_2 = self.OutCond_REF.p
-            Wcomp_2 = self.outputs.Wcomp
+            Tcomp_in_2 = self.outputs.ihx_cold_out_T
+            mdot_2 = self.OutCond_REF.m
             Refrigerant_2 = self.OutEvap_REF.fluidmixture
             
         else:
             Pevap = self.OutEvap_REF.p
             Pcond = self.InCond_REF.p
-            Wcomp = self.outputs.Wcomp
+            Tcomp_in = self.OutEvap_REF.T
+            mdot = self.InCond_REF.m
             Refrigerant = self.OutEvap_REF.fluidmixture
             Pevap_2 = self.OutEvap_REF.p
             Pcond_2 = self.InCond_REF.p
-            Wcomp_2 = self.outputs.Wcomp
+            Tcomp_in_2 = self.OutEvap_REF.T
+            mdot_2 = self.InCond_REF.m
             Refrigerant_2 = self.OutEvap_REF.fluidmixture
         
-        self.compressor = compressorWindow(Pevap, Pcond, Wcomp, Refrigerant, Pevap_2, Pcond_2, Wcomp_2, Refrigerant_2, self.layout_type)            
+        self.compressor = compressorWindow(Pevap, Pcond, Tcomp_in, mdot, Refrigerant, Pevap_2, Pcond_2, Tcomp_in_2, mdot_2, Refrigerant_2, self.layout_type)            
         self.compressor.show()
         
 if __name__ == "__main__":

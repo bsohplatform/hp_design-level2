@@ -1,7 +1,7 @@
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5 import uic
+from PySide6.QtCore import QSize, Qt, QFile
+from PySide6.QtGui import QFont, QIcon, QPixmap
+from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QTableWidgetItem, QMessageBox
+from PySide6.QtUiTools import loadUiType
 import pandas as pd
 
 
@@ -14,7 +14,7 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 form = resource_path("VALVE.ui")
-form_class = uic.loadUiType(form)[0]
+form_class = loadUiType(form)[0]
 
 
 class valveWindow(QMainWindow, form_class):
