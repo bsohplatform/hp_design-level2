@@ -1454,29 +1454,78 @@ class WindowClass(QMainWindow, form_class):
         self.evap_fluid_table.setItem(0, 0, QTableWidgetItem('Water'))
         self.evap_fluid_table.setItem(0, 1, QTableWidgetItem('1.0'))
         
-        self.evap_in_T_edit.setText('12.0')
-        
-        self.evap_in_p_edit.setText('1.563')
-        self.evap_in_m_edit.setText('')
-        
-        self.evap_out_T_edit.setText('7')
-        self.evap_out_p_edit.setText('1.013')
-        
-        
         if self.process_type == 'steam':
+            self.evap_in_T_edit.setText('70.0')
+        
+            self.evap_in_p_edit.setText('1.56')
+            self.evap_in_m_edit.setText('10.33')
+            
+            self.evap_out_T_edit.setText('')
+            self.evap_out_p_edit.setText('1.39')
+            
             if self.cycle_type == 'vcc':
-                self.dT_lift_edit.setText('110.0')
-                self.cond_out_T_edit.setText('120.0')
+                self.dT_lift_edit.setText('120.0')
+                self.cond_out_T_edit.setText('125.0')
             else:
                 self.dT_lift_edit.setText('140.0')
                 self.cond_out_T_edit.setText('150.0')
                 
-            self.m_load_edit.setText('0.02')
+            self.m_load_edit.setText('0.1153')
             self.Tmakeup_edit.setText('25.0')
             self.cond_in_T_edit.setEnabled(False)
             self.cond_in_p_edit.setEnabled(False)
             self.cond_in_m_edit.setEnabled(False)
             self.cond_out_p_edit.setEnabled(False)
+            
+            self.DSH_top_edit.setText('3.0')
+            if self.cycle_type == 'vcc':
+                self.DSC_edit.setText('1.0')
+            else:
+                self.DSC_edit.setText('')
+                
+            self.DSH_edit.setText('3.0')
+            self.DSC_bot_edit.setText('1.0')
+            
+            self.cond_dp_edit.setText('1.0')
+            self.cas_cold_dp_edit.setText('1.0')
+            self.cas_hot_dp_edit.setText('1.0')
+            self.evap_dp_edit.setText('1.0')
+            
+            if self.cond_phe_radio.isChecked():
+                self.cond_T_pp_edit.setText('3.5')
+            elif self.cond_fthe_radio.isChecked():
+                self.cond_T_pp_edit.setText('15.0')
+                self.cond_N_row_edit.setText('10')
+            
+            if self.cas_phe_radio.isChecked():
+                self.cas_T_pp_edit.setText('0.8')
+            elif self.cond_fthe_radio.isChecked():
+                self.cas_T_pp_edit.setText('15.0')
+                self.cas_N_row_edit.setText('5')
+            
+            if self.evap_phe_radio.isChecked():
+                self.evap_T_pp_edit.setText('3.0')
+            elif self.evap_fthe_radio.isChecked():
+                self.evap_T_pp_edit.setText('15.0')
+                self.evap_N_row_edit.setText('5')
+                    
+            self.comp_top_eff_edit.setText('80.0')
+            self.comp_eff_edit.setText('80.0')
+            self.comp_bot_eff_edit.setText('80.0')
+            self.expand_top_eff_edit.setText('0.0')
+            self.expand_eff_edit.setText('0.0')
+            self.expand_bot_eff_edit.setText('0.0')
+            
+            self.IHX_eff_edit.setText('62.0')
+            self.IHX_hot_dp_edit.setText('1.0')
+            self.IHX_cold_dp_edit.setText('1.0')
+            
+            if self.layout_type == 'cas': 
+                self.ref_list_b.setCurrentIndex(1)
+                self.ref_list_t.setCurrentIndex(93)
+            else:
+                self.ref_list_b.setCurrentIndex(93)       
+            
             
         elif self.process_type == 'hotwater':
             self.Thot_target_edit.setText('90.0')
@@ -1491,6 +1540,14 @@ class WindowClass(QMainWindow, form_class):
             self.cond_out_p_edit.setEnabled(False)
         else:
             self.process_type = 'process'
+            self.evap_in_T_edit.setText('12.0')
+        
+            self.evap_in_p_edit.setText('1.563')
+            self.evap_in_m_edit.setText('')
+            
+            self.evap_out_T_edit.setText('7')
+            self.evap_out_p_edit.setText('1.013')
+            
             if self.cycle_type == 'vcc':
                 self.cond_fluid_table.setItem(0, 0, QTableWidgetItem('Water'))
                 self.cond_in_T_edit.setText('32.0')
@@ -1504,56 +1561,55 @@ class WindowClass(QMainWindow, form_class):
             self.cond_in_p_edit.setText('1.333')
             self.cond_in_m_edit.setText('9.0')
             self.cond_out_p_edit.setText('1.013')
-        
-        self.DSH_top_edit.setText('3.0')
-        if self.cycle_type == 'vcc':
-            self.DSC_edit.setText('1.0')
-        else:
-            self.DSC_edit.setText('')
             
-        self.DSH_edit.setText('3.0')
-        self.DSC_bot_edit.setText('1.0')
-        
-        self.cond_dp_edit.setText('1.0')
-        self.cas_cold_dp_edit.setText('1.0')
-        self.cas_hot_dp_edit.setText('1.0')
-        self.evap_dp_edit.setText('1.0')
-        
-        if self.cond_phe_radio.isChecked():
-            self.cond_T_pp_edit.setText('1.5')
-        elif self.cond_fthe_radio.isChecked():
-            self.cond_T_pp_edit.setText('15.0')
-            self.cond_N_row_edit.setText('10')
-        
-        if self.cas_phe_radio.isChecked():
-            self.cas_T_pp_edit.setText('0.8')
-        elif self.cond_fthe_radio.isChecked():
-            self.cas_T_pp_edit.setText('15.0')
-            self.cas_N_row_edit.setText('5')
-        
-        self.IHX_eff_edit.setText('90.0')
-        self.IHX_hot_dp_edit.setText('1.0')
-        self.IHX_cold_dp_edit.setText('1.0')
-        
-        if self.evap_phe_radio.isChecked():
-            self.evap_T_pp_edit.setText('0.8')
-        elif self.evap_fthe_radio.isChecked():
-            self.evap_T_pp_edit.setText('15.0')
-            self.evap_N_row_edit.setText('5')
+            self.DSH_top_edit.setText('3.0')
+            if self.cycle_type == 'vcc':
+                self.DSC_edit.setText('1.0')
+            else:
+                self.DSC_edit.setText('')
                 
-        self.comp_top_eff_edit.setText('75.0')
-        self.comp_eff_edit.setText('75.0')
-        self.comp_bot_eff_edit.setText('75.0')
-        self.expand_top_eff_edit.setText('0.0')
-        self.expand_eff_edit.setText('0.0')
-        self.expand_bot_eff_edit.setText('0.0')
-    
-        if self.layout_type == 'cas': 
-            self.ref_list_b.setCurrentIndex(1)
-            self.ref_list_t.setCurrentIndex(77)
-        else:
-            self.ref_list_b.setCurrentIndex(77)
+            self.DSH_edit.setText('3.0')
+            self.DSC_bot_edit.setText('1.0')
             
+            self.cond_dp_edit.setText('1.0')
+            self.cas_cold_dp_edit.setText('1.0')
+            self.cas_hot_dp_edit.setText('1.0')
+            self.evap_dp_edit.setText('1.0')
+            
+            if self.cond_phe_radio.isChecked():
+                self.cond_T_pp_edit.setText('1.5')
+            elif self.cond_fthe_radio.isChecked():
+                self.cond_T_pp_edit.setText('15.0')
+                self.cond_N_row_edit.setText('10')
+            
+            if self.cas_phe_radio.isChecked():
+                self.cas_T_pp_edit.setText('0.8')
+            elif self.cond_fthe_radio.isChecked():
+                self.cas_T_pp_edit.setText('15.0')
+                self.cas_N_row_edit.setText('5')
+            
+            if self.evap_phe_radio.isChecked():
+                self.evap_T_pp_edit.setText('0.8')
+            elif self.evap_fthe_radio.isChecked():
+                self.evap_T_pp_edit.setText('15.0')
+                self.evap_N_row_edit.setText('5')
+                    
+            self.comp_top_eff_edit.setText('75.0')
+            self.comp_eff_edit.setText('75.0')
+            self.comp_bot_eff_edit.setText('75.0')
+            self.expand_top_eff_edit.setText('0.0')
+            self.expand_eff_edit.setText('0.0')
+            self.expand_bot_eff_edit.setText('0.0')
+            
+            self.IHX_eff_edit.setText('90.0')
+            self.IHX_hot_dp_edit.setText('1.0')
+            self.IHX_cold_dp_edit.setText('1.0')
+            
+            if self.layout_type == 'cas': 
+                self.ref_list_b.setCurrentIndex(1)
+                self.ref_list_t.setCurrentIndex(77)
+            else:
+                self.ref_list_b.setCurrentIndex(77)            
     
     def InputClear(self):
         self.evap_fluid_table.clearContents()

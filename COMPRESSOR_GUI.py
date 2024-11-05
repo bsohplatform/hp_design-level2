@@ -15,7 +15,7 @@ def resource_path(relative_path):
     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
 
-form = resource_path("COMPRESSOR_try.ui")
+form = resource_path("COMPRESSOR.ui")
 form_class = loadUiType(form)[0]
 
 class compressorWindow(QMainWindow, form_class):
@@ -170,8 +170,8 @@ class compressorWindow(QMainWindow, form_class):
         y_list.append(y_list[0])
         
         fig_ph, ax_ph = PLT.subplots()
-        ax_ph.plot([i for i in x_list], [i for i in y_list],'k')
-        ax_ph.scatter(Tevap, Tcond, color = 'red', s = 50, marker = '*', label='Operation Point')
+        ax_ph.plot([i for i in x_list], [i for i in y_list],'b--')
+        ax_ph.scatter(Tevap, Tcond, color = 'red', s = 100, marker = '*', label='Operation Point')
         ax_ph.set_xlabel('Evaporation Temperature [℃]',fontsize = 15)
         ax_ph.set_ylabel('Condensation Temperature [℃]',fontsize = 15)
         ax_ph.set_title('Compressor Operation Boundary',fontsize = 18)
