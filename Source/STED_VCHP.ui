@@ -104,10 +104,13 @@
      </property>
     </widget>
     <widget class="QLabel" name="inj_fig">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>660</x>
-       <y>30</y>
+       <y>20</y>
        <width>300</width>
        <height>300</height>
       </rect>
@@ -4672,7 +4675,7 @@
      </row>
      <row>
       <property name="text">
-       <string>유량 [kg/s]</string>
+       <string>유량 [kg/h]</string>
       </property>
      </row>
      <column>
