@@ -883,7 +883,7 @@ class VCHP():
         print('Heating COP:{:.3f}, Cooling COP:{:.3f}'.format(outputs.COP_heating, outputs.COP_heating-1))
         print('Refrigerant:{}'.format(OutCond_REF.fluidmixture))
         if inputs.second == 'steam':
-            print('Steam mass flow: %.4f[kg/s] (%.2f[ton/hr])' %(outputs.m_steam, outputs.m_steam*3.6))
+            print('Steam mass flow: %.4f[kg/s] (%.2f[ton/hr])' %(inputs.m_steam, inputs.m_steam*3.6))
         print('Q heating: {:.3f} [kW] ({:.3f} [usRT])'.format(OutCond.q/1000, OutCond.q/3516.8525))
         print('Q cooling: {:.3f} [kW] ({:.3f} [usRT])'.format(OutEvap_REF.q/1000, OutEvap_REF.q/3516.8525))
         print('Q comp: {:.3f} [kW]'.format(outputs.Wcomp/1000))
