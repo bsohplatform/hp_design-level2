@@ -30,7 +30,7 @@ class ProcessFluid:
 
     
     
-    def __init__(self,  Y: dict = field(default_factory=dict),  m: float = 0.0,  T: float = 0.0, p: float = 0.0, q: float = 0.0, h: float = 0.0, s: float = 0.0, Cp: float = 0.0, hum: float = 0.0):
+    def __init__(self,  Y: dict = field(default_factory=dict),  m: float = 0.0,  T: float = 0.0, p: float = 0.0, q: float = 0.0, h: float = 0.0, s: float = 0.0, Cp: float = 0.0, ahum: float = 0.0):
         self.fluidmixture: str = ''
         if len(list(Y.keys())) == 1:
             self.fluidmixture = list(Y.keys())[0]
@@ -50,7 +50,7 @@ class ProcessFluid:
         self.h = h
         self.s = s
         self.Cp = Cp
-        self.hum = hum
+        self.ahum = ahum
         
 @dataclass
 class Settings:

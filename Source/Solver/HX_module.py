@@ -27,7 +27,7 @@ class Heatexchanger_module:
         p_secondary_in = self.secondary_in.p
         T_secondary_in = self.secondary_in.T
         h_secondary_in = self.secondary_in.h
-        ahum_secondary_in = HAPropsSI('W','T',T_secondary_in,'P',p_secondary_in,'R',self.secondary_in.hum)
+        ahum_secondary_in = self.secondary_in.ahum
         
         p_primary_in = self.primary_in.p
         T_primary_in = self.primary_in.T
@@ -41,7 +41,7 @@ class Heatexchanger_module:
                         h_secondary[N_element*tt+jj,j] = h_secondary_in + self.secondary_in.q/N_row/self.secondary_in.m
                         p_secondary[N_element*tt+jj,j] = p_secondary_in - (self.secondary_in.p - self.secondary_out.p)/N_row
                         if self.sph == 0:
-                            if self.secondary_in.hum == 0:
+                            if self.secondary_in.ahum == 0:
                                 T_secondary[N_element*tt+jj,j] = T_secondary_in + self.secondary_in.q/N_row/self.secondary_in.m/0.5/(self.secondary_in.Cp + self.secondary_out.Cp)
                             else:
                                 T_secondary[N_element*tt+jj,j] = HAPropsSI('T','H',h_secondary[N_element*tt+jj,j],'P',p_secondary[N_element*tt+jj,j],'W',ahum_secondary_in)
@@ -58,7 +58,6 @@ class Heatexchanger_module:
                             
                             if (T_primary_in - T_secondary_in < 0 and self.primary_in.q < 0) or (T_primary_in - T_secondary_in > 0 and self.primary_in.q > 0):
                                 self.T_rvs = 1
-                                break
                             else:
                                 self.T_rvs = 0
                                 LMTD[N_element*tt+jj,j] = ((T_primary_in-T_secondary_in) - (T_primary[N_element*tt+jj,j]-T_secondary[N_element*tt+jj,j]))\
@@ -80,7 +79,6 @@ class Heatexchanger_module:
                             
                             if (T_primary[N_element*tt+jj-1,j] - T_secondary_in < 0 and self.primary_in.q < 0) or (T_primary[N_element*tt+jj-1,j] - T_secondary_in > 0 and self.primary_in.q > 0):
                                 self.T_rvs = 1
-                                break
                             else:
                                 self.T_rvs = 0
                                 LMTD[N_element*tt+jj,j] = ((T_primary[N_element*tt+jj-1,j] - T_secondary_in) - (T_primary[N_element*tt+jj,j] - T_secondary[N_element*tt+jj,j]))\
@@ -90,9 +88,9 @@ class Heatexchanger_module:
                             
                     elif round(j/2) == j/2 and j != 0: # 짝수
                         h_secondary[N_element*tt+jj,j] = h_secondary[N_element*tt+jj,j-1] + self.secondary_in.q/N_row/self.secondary_in.m
-                        p_secondary[N_element*tt+jj,j] = h_secondary[N_element*tt+jj,j-1] - (self.secondary_in.p - self.secondary_out.p)/N_row
+                        p_secondary[N_element*tt+jj,j] = p_secondary[N_element*tt+jj,j-1] - (self.secondary_in.p - self.secondary_out.p)/N_row
                         if self.sph == 0:
-                            if self.secondary_in.hum == 0:
+                            if self.secondary_in.ahum == 0:
                                 T_secondary[N_element*tt+jj,j] = T_secondary[N_element*tt+jj,j-1] + self.secondary_in.q/N_row/self.secondary_in.m/0.5/(self.secondary_in.Cp + self.secondary_out.Cp)
                             else:
                                 T_secondary[N_element*tt+jj,j] = HAPropsSI('T','H',h_secondary[N_element*tt+jj,j],'P',p_secondary[N_element*tt+jj,j],'W',ahum_secondary_in)
@@ -109,7 +107,6 @@ class Heatexchanger_module:
                             
                             if (T_primary_in - T_secondary[N_element*tt+jj,j-1] < 0 and self.primary_in.q < 0) or (T_primary_in - T_secondary[N_element*tt+jj,j-1] > 0 and self.primary_in.q > 0):
                                 self.T_rvs = 1
-                                break
                             else:
                                 self.T_rvs = 0
                                 LMTD[N_element*tt+jj,j] = ((T_primary_in - T_secondary[N_element*tt+jj,j-1]) - (T_primary[N_element*tt+jj,j] - T_secondary[N_element*tt+jj,j]))\
@@ -131,7 +128,6 @@ class Heatexchanger_module:
                             
                             if (T_primary[N_element*tt+jj-1,j] - T_secondary[N_element*tt+jj,j-1] < 0 and self.primary_in.q < 0) or (T_primary[N_element*tt+jj-1,j] - T_secondary[N_element*tt+jj,j-1] > 0 and self.primary_in.q > 0):
                                 self.T_rvs = 1
-                                break
                             else:
                                 self.T_rvs = 0
                                 LMTD[N_element*tt+jj,j] = ((T_primary[N_element*tt+jj-1,j] - T_secondary[N_element*tt+jj,j-1]) - (T_primary[N_element*tt+jj,j] - T_secondary[N_element*tt+jj,j]))\
@@ -140,9 +136,9 @@ class Heatexchanger_module:
                                 UA_element[N_element*tt+jj,j] = abs((self.primary_in.q/N_element/N_turn/N_row) / LMTD[N_element*tt+jj,j])  
                     else: # 홀수
                         h_secondary[N_element*N_turn-1-N_element*tt-jj,j] = h_secondary[N_element*N_turn-1-N_element*tt-jj,j-1] + self.secondary_in.q/N_row/self.secondary_in.m
-                        p_secondary[N_element*N_turn-1-N_element*tt-jj,j] = h_secondary[N_element*N_turn-1-N_element*tt-jj,j-1] - (self.secondary_in.p - self.secondary_out.p)/N_row
+                        p_secondary[N_element*N_turn-1-N_element*tt-jj,j] = p_secondary[N_element*N_turn-1-N_element*tt-jj,j-1] - (self.secondary_in.p - self.secondary_out.p)/N_row
                         if self.sph == 0:
-                            if self.secondary_in.hum == 0:
+                            if self.secondary_in.ahum == 0:
                                 T_secondary[N_element*N_turn-1-N_element*tt-jj,j] = T_secondary[N_element*N_turn-1-N_element*tt-jj,j-1] + self.secondary_in.q/N_row/self.secondary_in.m/0.5/(self.secondary_in.Cp + self.secondary_out.Cp)
                             else:
                                 T_secondary[N_element*N_turn-1-N_element*tt-jj,j] = HAPropsSI('T','H',h_secondary[N_element*N_turn-1-N_element*tt-jj,j],'P',p_secondary[N_element*N_turn-1-N_element*tt-jj,j], 'W',ahum_secondary_in)
@@ -158,7 +154,6 @@ class Heatexchanger_module:
                             
                             if (T_primary_in - T_secondary[N_element*N_turn-1-N_element*tt-jj,j-1] < 0 and self.primary_in.q < 0) or (T_primary_in - T_secondary[N_element*N_turn-1-N_element*tt-jj,j-1] > 0 and self.primary_in.q > 0):
                                 self.T_rvs = 1
-                                break
                             else:
                                 self.T_rvs = 0
                                 LMTD[N_element*N_turn-1-N_element*tt-jj,j] = ((T_primary_in - T_secondary[N_element*N_turn-1-N_element*tt-jj,j-1]) - (T_primary[N_element*N_turn-1-N_element*tt-jj,j] - T_secondary[N_element*N_turn-1-N_element*tt-jj,j]))\
@@ -180,14 +175,20 @@ class Heatexchanger_module:
                             
                             if (T_primary[N_element*N_turn-N_element*tt-jj,j] - T_secondary[N_element*N_turn-1-N_element*tt-jj,j-1] < 0 and self.primary_in.q < 0) or (T_primary[N_element*N_turn-N_element*tt-jj,j] - T_secondary[N_element*N_turn-1-N_element*tt-jj,j-1] > 0 and self.primary_in.q > 0):
                                 self.T_rvs = 1
-                                break
                             else:
                                 self.T_rvs = 0
                                 LMTD[N_element*N_turn-1-N_element*tt-jj,j] = ((T_primary[N_element*N_turn-N_element*tt-jj,j] - T_secondary[N_element*N_turn-1-N_element*tt-jj,j-1]) - (T_primary[N_element*N_turn-1-N_element*tt-jj,j] - T_secondary[N_element*N_turn-1-N_element*tt-jj,j]))\
                                     /np.log((T_primary[N_element*N_turn-N_element*tt-jj,j] - T_secondary[N_element*N_turn-1-N_element*tt-jj,j-1])/(T_primary[N_element*N_turn-1-N_element*tt-jj,j] - T_secondary[N_element*N_turn-1-N_element*tt-jj,j]))
         
                                 UA_element[N_element*N_turn-1-N_element*tt-jj,j] = abs((self.primary_in.q/N_element/N_turn/N_row) / LMTD[N_element*N_turn-1-N_element*tt-jj,j])        
-        
+                    
+                    if self.T_rvs == 1:
+                        break
+                if self.T_rvs == 1:
+                    break
+            if self.T_rvs == 1:
+                break
+                
         self.UA = np.sum(np.sum(UA_element))
         self.T_lm = abs(self.primary_in.q)/self.UA
         
@@ -224,7 +225,7 @@ class Heatexchanger_module:
         p_secondary[0] = self.secondary_out.p
         T_secondary[0] = self.secondary_out.T
         h_secondary[0] = self.secondary_out.h
-        ahum_secondary = HAPropsSI('W','T',T_secondary[0],'P',p_secondary[0],'R',self.secondary_out.hum)
+        ahum_secondary = self.secondary_out.ahum
         
         p_primary[0] = self.primary_in.p
         T_primary[0] = self.primary_in.T
@@ -251,7 +252,7 @@ class Heatexchanger_module:
             h_secondary[i+1] = h_secondary[i] - self.secondary_in.q/N_element/self.secondary_in.m
             p_secondary[i+1] = p_secondary[i] + (self.secondary_in.p - self.secondary_out.p)/N_element
             if self.sph == 0:
-                if self.secondary_out.hum == 0:
+                if self.secondary_out.ahum == 0:
                     T_secondary[i+1] = T_secondary[i] - self.secondary_in.q/N_element/self.secondary_in.m/0.5/(self.secondary_in.Cp + self.secondary_out.Cp)
                 else:
                     T_secondary[i+1] = HAPropsSI('T','H',h_secondary[i+1],'P',p_secondary[i+1],'W',ahum_secondary)
