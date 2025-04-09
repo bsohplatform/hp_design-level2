@@ -48,9 +48,6 @@ class VCHP():
         else:
             (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs) = self.Cycle_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, self.inputs, outputs, no_input, cond_ph, evap_ph)
         
-        #self.Post_Processing(outputs)
-        #self.Plot_diagram(self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, outputs)
-        
         return (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs)
         
     def Input_Processing(self, InCond, OutCond, InEvap, OutEvap, inputs):
@@ -1385,32 +1382,33 @@ class VCHP_cascade(VCHP):
 
 if __name__ == '__main__':
     
-    evapfluid = 'Water'
-    inevap_T = 12.387+273.15
-    inevap_p = 167000
-
-    outevap_T = 7.312+273.15
-    outevap_p = 165000
+    ts_file = "TS_R134a"
+    ph_file = "PH_R134a"
+    coeff = 0.999
     
-    evap_v = 339.844
-    evap_m = evap_v*PropsSI("D","T",inevap_T,"P",inevap_p,evapfluid)/1000/60
-    evap_v = evap_m/(PropsSI("D","T",inevap_T,"P",inevap_p,evapfluid)/1000/60)
-    print(evap_v)
+    evapfluid = 'water'
+    inevap_T = 12+273.15
+    inevap_p = 103000
+    
+    outevap_T = 7+273.15
+    outevap_p = 101300
+    
+    evap_v = 460 #LPM
+    evap_m = PropsSI("D","T",inevap_T,"P",103000,evapfluid)*evap_v/60/1000
     
     InEvap = ProcessFluid(Y={evapfluid:1.0,},m = evap_m, T = inevap_T, p = inevap_p)
     OutEvap = ProcessFluid(Y={evapfluid:1.0,},m = evap_m, T = outevap_T, p = outevap_p)
     
-    condfluid = 'Water'
+    condfluid = 'water'
 
-    incond_T = 29.737+273.15
-    incond_p = 236000
+    incond_T = 32.0+273.15
+    incond_p = 101300
     
-    outcond_T = 0
-    outcond_p = 215000
+    outcond_T = 37.0+273.15
+    outcond_p = 101300
     
-    cond_v = 429.641
-    cond_m = cond_v*PropsSI("D","T",incond_T,"P",incond_p,condfluid)/1000/60
-    print(cond_v)
+    cond_v = 0.0 #LPM/hr
+    cond_m = PropsSI("D","T",incond_T,"P",103000,condfluid)*cond_v/3600
     
     InCond = ProcessFluid(Y={condfluid:1.0,},m = cond_m, T = incond_T, p = incond_p)
     OutCond = ProcessFluid(Y={condfluid:1.0,},m = cond_m, T = outcond_T, p = outcond_p)

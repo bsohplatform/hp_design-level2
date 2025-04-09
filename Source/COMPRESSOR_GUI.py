@@ -107,7 +107,7 @@ class compressorWindow(QMainWindow):
     
     def open_specification(self):
         try:
-            subprocess.run(["start", self.pdf_path], shell=True)
+            os.startfile(self.pdf_path)
         except Exception as e:
             print(f"Failed to open PDF: {e}")
            
