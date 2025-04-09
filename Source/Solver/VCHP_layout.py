@@ -771,8 +771,8 @@ class VCHP():
         ax_ts.plot([i/1.0e3 for i in s_points], [i-273.15 for i in T_points],'bo-')
         ax_ph.plot([i/1.0e3 for i in h_points], [i/1.0e5 for i in p_points],'bo-')
         
-        fig_ph.savefig('.\\Figs\\'+ph_file+'.png',dpi=300)
-        fig_ts.savefig('.\\Figs\\'+ts_file+'.png',dpi=300)
+        fig_ph.savefig('.'+ph_file+'.png',dpi=300)
+        fig_ts.savefig('.'+ts_file+'.png',dpi=300)
         
     def Dome_Draw(self, fluid, coeff=0.999):
         P_crit = PropsSI('PCRIT','',0,'',0,fluid)
@@ -880,44 +880,58 @@ class VCHP():
             
             
     def Post_Processing(self, InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs):
-        print('Heating COP:{:.3f}, Cooling COP:{:.3f}'.format(outputs.COP_heating, outputs.COP_heating-1))
-        print('Refrigerant:{}'.format(OutCond_REF.fluidmixture))
-        print('Q heating: {:.3f} [kW] ({:.3f} [usRT])'.format(OutCond.q/1000, OutCond.q/3516.8525))
-        print('Q cooling: {:.3f} [kW] ({:.3f} [usRT])'.format(OutEvap_REF.q/1000, OutEvap_REF.q/3516.8525))
-        print('Q comp: {:.3f} [kW]'.format(outputs.Wcomp/1000))
+        print(' ')
+        print('---------------------------------------------------------------------------')
+        print(f'Heating COP:{outputs.COP_heating:.3f}, Cooling COP:{outputs.COP_heating-1:.3f}')
+        print(f'Refrigerant:{OutCond_REF.fluidmixture}')
+        print(f'Q heating: {OutCond.q/1000:.3f} [kW] ({OutCond.q/3516.8525:.3f} [usRT])')
+        print(f'Q cooling: {OutEvap_REF.q/1000:.3f} [kW] ({OutEvap_REF.q/3516.8525:.3f} [usRT])')
+        print(f'Q comp: {outputs.Wcomp/1000:.3f} [kW]')
         if inputs.layout == 'ihx':
-            print('Q IHX: {:.3f} [kW]'.format(outputs.qihx/1000))
+            print(f'Q IHX: {outputs.qihx/1000:.3f} [kW]')    
+        print('---------------------------------------------------------------------------')
         if inputs.second == 'steam':
-            print('Steam mass flow: %.4f[kg/s] (%.2f[ton/hr])' %(inputs.m_steam, inputs.m_steam*3.6))
-        print('<Hot fluid:'+InCond.fluidmixture+'> [Inlet] T:{:.3f}[℃]/P:{:.3f}[bar]/m:{:.3f}[kg/s]   ------->   <Hot fluid Outlet> T:{:.3f}[℃]/P:{:.3f}[bar]/m:{:.3f}[kg/s]'.format(InCond.T-273.15, InCond.p/1.0e5, InCond.m, OutCond.T-273.15, OutCond.p/1.0e5, OutCond.m))
+            print(f'Steam mass flow: {inputs.m_steam:.4f} [kg/s] ({inputs.m_steam*3.6:.2f} [ton/hr])')
+        print('<Cond fluid:'+InCond.fluidmixture+'>')
+        print(f'Tin:{InCond.T-273.15:.3f}[℃], Pin:{InCond.p/1.0e5:.3f}[bar], mdot:{InCond.m:.3f}[kg/s] -> Tout:{OutCond.T-273.15:.3f}[℃], Pout:{OutCond.p/1.0e5:.3f}[bar]')
         if InCond.fluidmixture == ('air' or 'Air'):
             InCond_rhum = HAPropsSI("R","T",InCond.T,"P",InCond.p,"W",InCond.ahum)
-            InCond_dewT = HAPropsSI("Tdp","T",InCond.T,"P",InCond.p,"W",InCond.ahum)
+            InCond_Tdew = HAPropsSI("Tdp","T",InCond.T,"P",InCond.p,"W",InCond.ahum)
+            InCond_Twet = HAPropsSI("B","T",InCond.T,"P",InCond.p,"W",InCond.ahum)
             OutCond_rhum = HAPropsSI("R","T",OutCond.T,"P",OutCond.p,"W",OutCond.ahum)
-            OutCond_dewT = HAPropsSI("Tdp","T",OutCond.T,"P",OutCond.p,"W",OutCond.ahum)
-            print('<Hot fluid Inlet> A_Humid:{:.3e}[kg/kg]/R_Humid:{:.3f}[%]/Dew_T:{:.3f}[℃]   ------->   <Hot_fluid Outlet> A_Humid:{:.3e}[kg/kg]/R_Humid:{:.3f}[%]/Dew_T:{:.3f}[℃]'.format(InCond.ahum, InCond_rhum*100, InCond_dewT-273.15, OutCond.ahum, OutCond_rhum*100, OutCond_dewT-273.15))
-        print('<Cold fluid:'+InEvap.fluidmixture+'> T:{:.3f}[℃]/P:{:.3f}[bar]/m:{:.3f}[kg/s]   ------->   <Cold fluid Outlet> T:{:.3f}[℃]/P:{:.3f}[bar]/m:{:.3f}[kg/s]'.format(InEvap.T-273.15, InEvap.p/1.0e5, InEvap.m, OutEvap.T-273.15, OutEvap.p/1.0e5, OutEvap.m))
+            OutCond_Tdew = HAPropsSI("Tdp","T",OutCond.T,"P",OutCond.p,"W",OutCond.ahum)
+            OutCond_Twet = HAPropsSI("B","T",OutCond.T,"P",OutCond.p,"W",OutCond.ahum)
+            print(f'Ahum:{InCond.ahum:.3e}[kg/kg], Rhum_in:{InCond_rhum*100:.3f}[%], Tdew_in:{InCond_Tdew-273.15:.3f}[℃], Twet_in:{InCond_Twet-273.15:.3f}[℃] -> R_Humid_out:{OutCond_rhum*100:.3f}[%], Tdew_out:{OutCond_Tdew-273.15:.3f}[℃], Twet_out:{OutCond_Twet-273.15:.3f}[℃]')
+        print(' ')
+        print('<Evap fluid:'+InEvap.fluidmixture+'>')
+        print(f'Tin:{InEvap.T-273.15:.3f}[℃], Pin:{InEvap.p/1.0e5:.3f}[bar], mdot:{InEvap.m:.3f}[kg/s] -> Tout:{OutEvap.T-273.15:.3f}[℃], Pout:{OutEvap.p/1.0e5:.3f}[bar]')
         if InEvap.fluidmixture == ('air' or 'Air'):
             InEvap_rhum = HAPropsSI("R","T",InEvap.T,"P",InEvap.p,"W",InEvap.ahum)
-            InEvap_dewT = HAPropsSI("Tdp","T",InEvap.T,"P",InEvap.p,"W",InEvap.ahum)
+            InEvap_Tdew = HAPropsSI("Tdp","T",InEvap.T,"P",InEvap.p,"W",InEvap.ahum)
+            InEvap_Twet = HAPropsSI("B","T",InEvap.T,"P",InEvap.p,"W",InEvap.ahum)
             OutEvap_rhum = HAPropsSI("R","T",OutEvap.T,"P",OutEvap.p,"W",OutEvap.ahum)
-            OutEvap_dewT = HAPropsSI("Tdp","T",OutEvap.T,"P",OutEvap.p,"W",OutEvap.ahum)
-            print('<Cold_fluid Inlet> A_Humid:{:.3e}[kg/kg]/R_Humid:{:.3f}[%]/Dew_T:{:.3f}[℃]   ------->   <Cold_fluid Outlet> A_Humid:{:.3e}[kg/kg]/R_Humid:{:.3f}[%]/Dew_T:{:.3f}[℃]'.format(InEvap.ahum, InEvap_rhum*100, InEvap_dewT-273.15, OutEvap.ahum, OutEvap_rhum*100, OutEvap_dewT-273.15))
-        print('Pcomp_in: {:.3f} [bar], Pcomp_out: {:.3f} [bar]'.format(OutEvap_REF.p/1.0e5, InCond_REF.p/1.0e5))
-        print('Pvalve_in: {:.3f} [bar], Pvalve_out: {:.3f} [bar]'.format(OutCond_REF.p/1.0e5, InEvap_REF.p/1.0e5))
-        print('Tcomp_in: {:.3f} [℃], Tcomp_out: {:.3f} [℃]'.format(OutEvap_REF.T-273.15,InCond_REF.T-273.15))
-        print('Tvalve_in: {:.3f} [℃], Tvalve_out: {:.3f} [℃]'.format(OutCond_REF.T-273.15,InEvap_REF.T-273.15))
+            OutEvap_Tdew = HAPropsSI("Tdp","T",OutEvap.T,"P",OutEvap.p,"W",OutEvap.ahum)
+            OutEvap_Twet = HAPropsSI("B","T",OutEvap.T,"P",OutEvap.p,"W",OutEvap.ahum)
+            print(f'Ahum:{InEvap.ahum:.3e}[kg/kg], Rhum_in:{InEvap_rhum*100:.3f}[%], Tdew_in:{InEvap_Tdew-273.15:.3f}[℃], Twet_in:{InEvap_Twet-273.15:.3f}[℃] -> Rhum_out:{OutEvap_rhum*100:.3f}[%], Tdew_out:{OutEvap_Tdew-273.15:.3f}[℃], Twet_out:{OutEvap_Twet-273.15:.3f}[℃]')
+        print('---------------------------------------------------------------------------')
+        print(f'Pcomp_in: {OutEvap_REF.p/1.0e5:.3f} [bar], Pcomp_out: {InCond_REF.p/1.0e5:.3f} [bar]')
+        print(f'Pvalve_in: {OutCond_REF.p/1.0e5:.3f} [bar], Pvalve_out: {InEvap_REF.p/1.0e5:.3f} [bar]')
+        print(f'Tcomp_in: {OutEvap_REF.T-273.15:.3f} [℃], Tcomp_out: {InCond_REF.T-273.15:.3f} [℃]')
+        x_evap_in = PropsSI("Q","P",InEvap_REF.p,"H",InEvap_REF.h,InEvap_REF.fluidmixture)        
+        print(f'Tvalve_in: {OutCond_REF.T-273.15:.3f} [℃], Tvalve_out: {InEvap_REF.T-273.15:.3f} [℃] (xvalve_out: {x_evap_in:.3f})')
         Tlow = PropsSI('T','P',0.5*(OutEvap_REF.p+InEvap_REF.p),'Q',0.5,OutEvap_REF.fluidmixture)
         try:
             Thigh = PropsSI('T','P',0.5*(OutCond_REF.p+InCond_REF.p),'Q',0.5,OutCond_REF.fluidmixture)
         except:
             Thigh = 0
-        print('Ts_low: {:.3f} [℃], Ts_high: {:.3f} [℃], mdot: {:.3f}[kg/s]'.format(Tlow-273.15,Thigh-273.15, OutEvap_REF.m))
-        print('Cond_UA: {:.3f} [W/℃], Evap_UA: {:.3f} [W/℃]'.format(outputs.cond_UA, outputs.evap_UA))
+        print(f'Ts_low: {Tlow-273.15:.3f} [℃], Ts_high: {Thigh-273.15:.3f} [℃], mdot: {OutEvap_REF.m:.3f}[kg/s]')
         if inputs.layout == 'inj' or inputs.layout == '2comp':
-            print('T_inter: {:.3f} [℃] / P_inter: {:.3f} [bar]'.format(outputs.incomp_high_T-273.15, outputs.incomp_high_p/1.0e5))
-
-
+            print(f'T_inter: {outputs.incomp_high_T-273.15:.3f} [℃] / P_inter: {outputs.incomp_high_p/1.0e5:.3f} [bar]')
+        print('---------------------------------------------------------------------------')
+        print(f'Cond_UA: {outputs.cond_UA:.3f} [W/℃], Evap_UA: {outputs.evap_UA:.3f} [W/℃]')
+        comp_in_d = PropsSI("D","T",OutEvap_REF.T,"P",OutEvap_REF.p,OutEvap_REF.fluidmixture)
+        print(f'Vdis comp: {OutEvap_REF.m/comp_in_d*1.0e6/60:.3f}[cc/rev]')
+        print(' ')
 class VCHP_cascade(VCHP):
     def __init__(self, InCond, OutCond, InEvap, OutEvap, inputs_t, inputs_b):
         self.InCond = InCond
