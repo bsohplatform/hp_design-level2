@@ -880,7 +880,6 @@ class VCHP():
             
             
     def Post_Processing(self, InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs):
-        print(' ')
         print('---------------------------------------------------------------------------')
         print(f'Heating COP:{outputs.COP_heating:.3f}, Cooling COP:{outputs.COP_heating-1:.3f}')
         print(f'Refrigerant:{OutCond_REF.fluidmixture}')
@@ -914,11 +913,23 @@ class VCHP():
             OutEvap_Twet = HAPropsSI("B","T",OutEvap.T,"P",OutEvap.p,"W",OutEvap.ahum)
             print(f'Ahum:{InEvap.ahum:.3e}[kg/kg], Rhum_in:{InEvap_rhum*100:.3f}[%], Tdew_in:{InEvap_Tdew-273.15:.3f}[℃], Twet_in:{InEvap_Twet-273.15:.3f}[℃] -> Rhum_out:{OutEvap_rhum*100:.3f}[%], Tdew_out:{OutEvap_Tdew-273.15:.3f}[℃], Twet_out:{OutEvap_Twet-273.15:.3f}[℃]')
         print('---------------------------------------------------------------------------')
-        print(f'Pcomp_in: {OutEvap_REF.p/1.0e5:.3f} [bar], Pcomp_out: {InCond_REF.p/1.0e5:.3f} [bar]')
-        print(f'Pvalve_in: {OutCond_REF.p/1.0e5:.3f} [bar], Pvalve_out: {InEvap_REF.p/1.0e5:.3f} [bar]')
-        print(f'Tcomp_in: {OutEvap_REF.T-273.15:.3f} [℃], Tcomp_out: {InCond_REF.T-273.15:.3f} [℃]')
+        if inputs.layout == 'ihx':
+            ihx_cold_out_p_line = f'Pihx_cold_out: {outputs.ihx_cold_out_p/1.0e5:.3f} [bar]'
+            ihx_cold_out_T_line = f'Tihx_cold_out: {outputs.ihx_cold_out_T-273.15:.3f} [℃]'
+            ihx_hot_out_p_line = f'Pihx_hot_out: {outputs.ihx_hot_out_p/1.0e5:.3f} [bar]'
+            ihx_hot_out_T_line = f'Tihx_hot_out: {outputs.ihx_hot_out_T-273.15:.3f} [℃]'
+        else:
+            ihx_cold_out_p_line = ''
+            ihx_cold_out_T_line = ''
+            ihx_hot_out_p_line = ''
+            ihx_hot_out_T_line = ''
+        
+        print(f'Pevap_out: {OutEvap_REF.p/1.0e5:.3f} [bar], {ihx_cold_out_p_line}, Pcomp_out: {InCond_REF.p/1.0e5:.3f} [bar]')
+        print(f'Pcond_out: {OutCond_REF.p/1.0e5:.3f} [bar], {ihx_hot_out_p_line}, Pvalve_out: {InEvap_REF.p/1.0e5:.3f} [bar]')
+        print(f'Tevap_out: {OutEvap_REF.T-273.15:.3f} [℃], {ihx_cold_out_T_line}, Tcomp_out: {InCond_REF.T-273.15:.3f} [℃]')
         x_evap_in = PropsSI("Q","P",InEvap_REF.p,"H",InEvap_REF.h,InEvap_REF.fluidmixture)        
-        print(f'Tvalve_in: {OutCond_REF.T-273.15:.3f} [℃], Tvalve_out: {InEvap_REF.T-273.15:.3f} [℃] (xvalve_out: {x_evap_in:.3f})')
+        print(f'Tcond_out: {OutCond_REF.T-273.15:.3f} [℃], {ihx_hot_out_T_line}, Tvalve_out: {InEvap_REF.T-273.15:.3f} [℃] (xvalve_out: {x_evap_in:.3f})')
+            
         Tlow = PropsSI('T','P',0.5*(OutEvap_REF.p+InEvap_REF.p),'Q',0.5,OutEvap_REF.fluidmixture)
         try:
             Thigh = PropsSI('T','P',0.5*(OutCond_REF.p+InCond_REF.p),'Q',0.5,OutCond_REF.fluidmixture)
@@ -931,6 +942,7 @@ class VCHP():
         print(f'Cond_UA: {outputs.cond_UA:.3f} [W/℃], Evap_UA: {outputs.evap_UA:.3f} [W/℃]')
         comp_in_d = PropsSI("D","T",OutEvap_REF.T,"P",OutEvap_REF.p,OutEvap_REF.fluidmixture)
         print(f'Vdis comp: {OutEvap_REF.m/comp_in_d*1.0e6/60:.3f}[cc/rev]')
+        print('---------------------------------------------------------------------------')
         print(' ')
 class VCHP_cascade(VCHP):
     def __init__(self, InCond, OutCond, InEvap, OutEvap, inputs_t, inputs_b):
@@ -1239,80 +1251,72 @@ class VCHP_cascade(VCHP):
         fig_ts.savefig(ts_file+'.png',dpi=300)
         
     def Post_Processing(self, InCond, OutCond, InEvap, OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b):
-        print('------Top Cycle------')
+        print('')
+        print('<<<<<  Top Cycle  >>>>>>')
         super().Post_Processing(InCond, OutCond, InCond_REF_b, OutCond_REF_b, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t)
-        print('')
-        print('------Bottom Cycle------')
-        super().Post_Processing(InEvap_REF_t, OutEvap_REF_t, InEvap, OutEvap, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b)
         
+        print('<<<<<  Bottom Cycle  >>>>>')
+        super().Post_Processing(InEvap_REF_t, OutEvap_REF_t, InEvap, OutEvap, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b)
         COP_cascade = (self.OutCond.q)/(outputs_t.Wcomp - outputs_t.Wexpand + outputs_b.Wcomp - outputs_b.Wexpand)
-        print('')
         print('Combination COP:{:.3f}'.format(COP_cascade))
+        print('')
 
 if __name__ == '__main__':
     
-    evapfluid = 'air'
-    inevap_T = 25.1+273.15
-    inevap_p = 103000
-    inevap_hum = 0.024
-    inevap_ahum = HAPropsSI("W","T",inevap_T,"P",inevap_p,"R",inevap_hum)
+    evapfluid = 'Water'
+    inevap_T = 12.0+273.15
+    inevap_p = 101300
 
-    outevap_T = 0
+    outevap_T = 7.0+273.15
     outevap_p = 101300
-    outevap_ahum = inevap_ahum
     
-    evap_cmh = 36000
-
-    d_hum_evap = HAPropsSI("Vha","T",inevap_T, "P", inevap_p, "R", inevap_hum)
-    evap_m = evap_cmh/3600*d_hum_evap
-
-    InEvap = ProcessFluid(Y={evapfluid:1.0,},m = evap_m, T = inevap_T, p = inevap_p, ahum = inevap_ahum)
-    OutEvap = ProcessFluid(Y={evapfluid:1.0,},m = evap_m, T = outevap_T, p = outevap_p, ahum = outevap_ahum)
+    #evap_v = 463.48
+    #evap_m = evap_v*PropsSI("D","T",inevap_T,"P",inevap_p,evapfluid)/1000/60
+    evap_m = 7.56
+    evap_v = evap_m/(PropsSI("D","T",inevap_T,"P",inevap_p,evapfluid)/1000/60)
+    print(evap_v)
     
-    condfluid = 'air'
+    InEvap = ProcessFluid(Y={evapfluid:1.0,},m = evap_m, T = inevap_T, p = inevap_p)
+    OutEvap = ProcessFluid(Y={evapfluid:1.0,},m = evap_m, T = outevap_T, p = outevap_p)
+    
+    condfluid = 'Water'
 
-    incond_T = 59.4+273.15
+    incond_T = 32+273.15
     incond_p = 101300
-    incond_hum = 0.068
-    incond_ahum = HAPropsSI("W","T",incond_T,"P",incond_p,"R",incond_hum)
     
-    outcond_T = 120+273.15
+    outcond_T = 0
     outcond_p = 101300
-    outcond_hum = 0.007
-    outcond_ahum = incond_ahum
     
-    cond_cmh = 36000
+    #cond_v = 606.72
+    #cond_m = cond_v*PropsSI("D","T",incond_T,"P",incond_p,condfluid)/1000/60
+    cond_m = 9.0
+    cond_v = cond_m/(PropsSI("D","T",incond_T,"P",incond_p,condfluid)/1000/60)
+    print(cond_v)
     
-    d_hum_cond = HAPropsSI("Vha","T",incond_T, "P", incond_p, "W", incond_ahum)
-    cond_m = cond_cmh/3600*d_hum_cond
-    
-    InCond = ProcessFluid(Y={condfluid:1.0,},m = cond_m, T = incond_T, p = incond_p, ahum=incond_ahum)
-    OutCond = ProcessFluid(Y={condfluid:1.0,},m = cond_m, T = outcond_T, p = outcond_p, ahum=outcond_ahum)
+    InCond = ProcessFluid(Y={condfluid:1.0,},m = cond_m, T = incond_T, p = incond_p)
+    OutCond = ProcessFluid(Y={condfluid:1.0,},m = cond_m, T = outcond_T, p = outcond_p)
     
     inputs = Settings()
-    inputs.Y = {'REFPROP::R1233zd(E)':1.0,}
+    inputs.Y = {'REFPROP::R134a':1.0,}
     inputs.second = 'process'
     inputs.cycle = 'vcc'
     inputs.DSC = 1.0
-    inputs.DSH = 10.0
-    inputs.cond_type = 'fthe'
-    inputs.cond_dp = 0.0
-    inputs.cond_T_lm = 35.0
-    inputs.cond_N_row = 5
-    inputs.cond_N_turn = 5
+    inputs.DSH = 3.0
+    inputs.cond_type = 'phe'
+    inputs.cond_dp = 0.01
+    inputs.cond_T_pp = 1.5
     
-    inputs.evap_type = 'fthe'
-    inputs.evap_dp = 0.0
-    inputs.evap_T_lm = 15.0
-    inputs._N_row = 5
-    inputs.evap_N_turn = 5
-    inputs.layout = 'inj'
+    inputs.evap_type = 'phe'
+    inputs.evap_dp = 0.01
+    inputs.evap_T_pp = 1.0
+    inputs.layout = 'bas'
     
-    inputs.comp_eff = 0.75    
+    inputs.comp_eff = 0.73
+    inputs.mech_eff = 0.97
     
-    vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
-    vchp_basic()
-    
+    vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)    
+    (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs)=vchp_basic()
+    vchp_basic.Post_Processing(InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs)
     '''
     evapfluid = 'water'
     inevapT = 70.0+273.15
