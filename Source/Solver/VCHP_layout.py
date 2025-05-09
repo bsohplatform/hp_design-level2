@@ -1370,7 +1370,7 @@ if __name__ == '__main__':
     
     #evap_v = 463.48
     #evap_m = evap_v*PropsSI("D","T",inevap_T,"P",inevap_p,evapfluid)/1000/60
-    evap_m = 7.56
+    evap_m = 0.0
     evap_v = evap_m/(PropsSI("D","T",inevap_T,"P",inevap_p,evapfluid)/1000/60)
     print(evap_v)
     
@@ -1382,12 +1382,12 @@ if __name__ == '__main__':
     incond_T = 32+273.15
     incond_p = 101300
     
-    outcond_T = 0
+    outcond_T = 37+273.15
     outcond_p = 101300
     
     #cond_v = 606.72
     #cond_m = cond_v*PropsSI("D","T",incond_T,"P",incond_p,condfluid)/1000/60
-    cond_m = 9.0
+    cond_m = 0.38
     cond_v = cond_m/(PropsSI("D","T",incond_T,"P",incond_p,condfluid)/1000/60)
     print(cond_v)
     
@@ -1399,17 +1399,17 @@ if __name__ == '__main__':
     inputs.second = 'process'
     inputs.cycle = 'vcc'
     inputs.DSC = 1.0
-    inputs.DSH = 3.0
+    inputs.DSH = 5.0
     inputs.cond_type = 'phe'
     inputs.cond_dp = 0.01
-    inputs.cond_T_pp = 1.5
+    inputs.cond_T_pp = 2.0
     
     inputs.evap_type = 'phe'
     inputs.evap_dp = 0.01
-    inputs.evap_T_pp = 1.0
+    inputs.evap_T_pp = 2.0
     inputs.layout = 'bas'
     
-    inputs.comp_eff = 0.73
+    inputs.comp_eff = 0.70
     inputs.mech_eff = 0.97
     
     vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)    
