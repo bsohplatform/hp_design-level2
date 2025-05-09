@@ -61,7 +61,6 @@ class VCHP():
         no_Evapm = 0
         no_OutEvapT = 0
         
-        
         if inputs.second == 'steam':
             (InCond, OutCond) = self.Steam_module(InCond, OutCond, inputs)
             
@@ -501,6 +500,45 @@ class VCHP():
                 expand_high = CP.Compander_module(InExpand, InEvap_REF)
                 expand_high.EXPAND(eff_isen = inputs.expand_eff, eff_mech = inputs.mech_eff)
                 InEvap_REF = expand_high.primary_out
+            elif inputs.layout == 'part_cool':
+                
+                pcx_cold_in = deepcopy(InEvap_REF)
+                OutPCX_hot = deepcopy(InEvap_REF)
+                OutPCX_cold = deepcopy(InEvap_REF)
+                
+                pcx_cold_in.p = InEvap_REF.p/(1-inputs.pcx_cold_dp)
+                cold_expand = CP.Compander_module(OutCond_REF, pcx_cold_in)
+                cold_expand.EXPAND(eff_isen = 0.0, eff_mech = 0.0)
+                pcx_cold_in = cold_expand.primary_out
+                
+                OutPCX_hot.p = OutCond_REF.p*(1-inputs.pcx_hot_dp)
+                pcx_hot_out_hideal = PropsSI("H","T",pcx_cold_in.T,"P",OutPCX_hot.p,OutPCX_hot.fluidmixture)
+                pcx_cold_out_hideal = PropsSI("H","T",OutCond_REF.T,"P",OutPCX_cold.p,OutPCX_cold.fluidmixture)
+                
+                if (OutCond_REF.h-pcx_hot_out_hideal)*(1-inputs.pcx_frac) > (pcx_cold_out_hideal-pcx_cold_in.h)*inputs.pcx_frac:
+                    # hot 측 열용량이 더 큰 경우
+                    OutPCX_cold.T = OutCond_REF.T-inputs.pcx_T_pp
+                    OutPCX_cold.h = PropsSI("H","T",OutPCX_cold.T,"P",OutPCX_cold.p,OutPCX_cold.fluidmixture)
+                    OutPCX_hot.h = OutCond_REF.h - (OutPCX_cold.h - pcx_cold_in.h)*inputs.pcx_frac/(1-inputs.pcx_frac)
+                    OutPCX_hot.T = PropsSI("T","H",OutPCX_hot.h,"P",OutPCX_hot.p,OutPCX_hot.fluidmixture)
+                else:
+                    # cold 측 열용량이 더 큰 경우
+                    OutPCX_hot.T = pcx_cold_in.T+inputs.pcx_T_pp
+                    OutPCX_hot.h = PropsSI("H","T",OutPCX_hot.T,"P",OutPCX_hot.p,OutPCX_hot.fluidmixture)
+                    OutPCX_cold.h = OutCond_REF.h+(OutCond_REF.h-OutPCX_hot.h)*(1-inputs.pcx_frac)/inputs.pcx_frac
+                    OutPCX_cold.T = PropsSI("T","H",OutPCX_cold.h,"P",OutPCX_cold.p,OutPCX_cold.fluidmixture)
+                
+                expand = CP.Compander_module(OutPCX_hot, InEvap_REF)
+                expand.EXPAND(eff_isen = 0.0, eff_mech = 0.0)
+                InEvap_REF = expand.primary_out
+                
+                InComp = deepcopy(OutEvap_REF)
+                InComp.h = OutEvap_REF.h*(1-inputs.pcx_frac)+OutPCX_cold.h*inputs.pcx_frac
+                InComp.T = PropsSI("T","H",InComp.h,"P",InComp.p,InComp.fluidmixture)               
+                comp = CP.Compander_module(InComp, InCond_REF)
+                (inputs.DSH, cond_a) = comp.COMP(eff_isen = inputs.comp_eff, eff_mech = inputs.mech_eff, DSH = inputs.DSH)
+                InCond_REF = comp.primary_out
+                
             else:
                 if inputs.layout == 'ihx':
                     InComp = deepcopy(OutEvap_REF)
@@ -541,6 +579,18 @@ class VCHP():
                     outputs.Wcomp = comp_low.Pspecific*OutEvap_REF.m + comp_high.Pspecific*InCond_REF.m
                     outputs.Wcomp_top = comp_high.Pspecific*InCond_REF.m
                     outputs.Wexpand = expand_high.Pspecific*OutCond_REF.m
+                elif inputs.layout == 'part_cool':
+                    InCond_REF.m  = InEvap_REF.m/(1-inputs.pcx_frac)
+                    OutCond_REF.m = InEvap_REF.m/(1-inputs.pcx_frac)
+                    
+                    pcx_cold_in.m = OutCond_REF.m*inputs.pcx_frac
+                    OutPCX_hot.m = OutCond_REF.m*(1-inputs.pcx_frac)
+                    OutPCX_cold.m = OutCond_REF.m*inputs.pcx_frac
+                    InComp.m = InCond_REF.m
+                    
+                    outputs.Wcomp = comp.Pspecific*InCond_REF.m
+                    outputs.Wexpand = (cold_expand.Pspecific*inputs.pcx_frac + expand.Pspecific*(1-inputs.pcx_frac))*InCond_REF.m
+                    
                 else:
                     InCond_REF.m = InEvap_REF.m
                     OutCond_REF.m = InEvap_REF.m
@@ -613,11 +663,21 @@ class VCHP():
                     outputs.Wexpand = expand_high.Pspecific*OutCond_REF.m + expand_low.Pspecific*InEvap_REF.m
                     outputs.Wexpand_bot = expand_low.Pspecific*InEvap_REF.m
                 elif inputs.layout == '2comp':
-                    InCond_REF.m = InCond_REF.m
-                    OutCond_REF.m = InCond_REF.m
+                    InEvap_REF.m = InCond_REF.m
+                    OutEvap_REF.m = InCond_REF.m
                     outputs.Wcomp = comp_low.Pspecific*OutEvap_REF.m + comp_high.Pspecific*InCond_REF.m
                     outputs.Wcomp_top = comp_high.Pspecific*InCond_REF.m
                     outputs.Wexpand = expand_high.Pspecific*OutCond_REF.m
+                elif inputs.layout == 'part_cool':
+                    InEvap_REF.m = InCond_REF.m*(1-inputs.pcx_frac)
+                    OutEvap_REF.m = InCond_REF.m*(1-inputs.pcx_frac)
+                    pcx_cold_in.m = OutCond_REF.m*inputs.pcx_frac
+                    OutPCX_hot.m = OutCond_REF.m*(1-inputs.pcx_frac)
+                    OutPCX_cold.m = OutCond_REF.m*inputs.pcx_frac
+                    InComp.m = InCond_REF.m
+                    
+                    outputs.Wcomp = comp.Pspecific*InCond_REF.m
+                    outputs.Wexpand = (cold_expand.Pspecific*inputs.pcx_frac + expand.Pspecific*(1-inputs.pcx_frac))*InCond_REF.m
                 else:
                     InEvap_REF.m = InCond_REF.m
                     OutEvap_REF.m = InCond_REF.m
@@ -745,8 +805,22 @@ class VCHP():
             outputs.incomp_high_T = InComp_high.T
             outputs.incomp_high_p = InComp_high.p
             outputs.incomp_high_h = InComp_high.h
-            outputs.incomp_high_s = InComp_high.s        
-        
+            outputs.incomp_high_s = InComp_high.s
+        elif inputs.layout == 'part_cool':
+            outputs.pcx_cold_in_T = pcx_cold_in.T
+            outputs.pcx_cold_in_p = pcx_cold_in.p
+            outputs.pcx_cold_in_h = pcx_cold_in.h
+            outputs.pcx_hot_out_T = OutPCX_hot.T
+            outputs.pcx_hot_out_p = OutPCX_hot.p
+            outputs.pcx_hot_out_h = OutPCX_hot.h
+            outputs.pcx_cold_out_T = OutPCX_cold.T
+            outputs.pcx_cold_out_p = OutPCX_cold.p
+            outputs.pcx_cold_out_h = OutPCX_cold.h
+            outputs.incomp_T = InComp.T
+            outputs.incomp_p = InComp.p
+            outputs.incomp_h = InComp.h
+            outputs.qpcx = (OutPCX_cold.h - pcx_cold_in.h)*pcx_cold_in.m
+            
         return (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs)
     
     def Plot_diagram(self, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs, ts_file, ph_file, coeff):
@@ -862,6 +936,18 @@ class VCHP():
                 T_points = [outputs.flash_liq_T, InEvap_REF.T, OutEvap_REF_Tvap, OutEvap_REF.T, outputs.outcomp_low_T, outcomp_low_Tvap, outputs.flash_liq_T, outputs.outexpand_high_T, outcomp_low_Tvap, outputs.incomp_high_T, InCond_REF.T]+outputs.cond_Tarray+[OutCond_REF.T, outputs.outexpand_high_T] 
                 h_points = [outputs.flash_liq_h, InEvap_REF.h, OutEvap_REF.h, outputs.outcomp_low_h, outputs.flash_liq_h, outputs.outexpand_high_h, outputs.incomp_high_h, InCond_REF.h]+cond_harray+[OutCond_REF.h, outputs.outexpand_high_h]
                 p_points = [outputs.flash_liq_p, InEvap_REF.p, OutEvap_REF.p, outputs.outcomp_low_p, outputs.flash_liq_p, outputs.outexpand_high_p, outputs.incomp_high_p, InCond_REF.p]+outputs.cond_parray+[OutCond_REF.p, outputs.outexpand_high_p]
+        
+        elif inputs.layout == 'part_cool':
+            if inputs.cycle == 'vcc':
+                pcx_cold_in_s = PropsSI("S","H",outputs.pcx_cold_in_h,"P",outputs.pcx_cold_in_p,OutCond_REF.fluidmixture)
+                pcx_hot_out_s = PropsSI("S","H",outputs.pcx_hot_out_h,"P",outputs.pcx_hot_out_p,OutCond_REF.fluidmixture)
+                incomp_s = PropsSI("S","H",outputs.incomp_h,"P",outputs.incomp_p,OutCond_REF.fluidmixture)
+                
+                s_points = [OutEvap_REF_svap, OutEvap_REF.s, InCond_REF.s, InCond_REF_svap, OutCond_REF_sliq, OutCond_REF.s, pcx_cold_in_s, OutCond_REF.s, pcx_hot_out_s, InEvap_REF.s, OutEvap_REF_svap, OutEvap_REF.s, incomp_s]
+                T_points = [OutEvap_REF_Tvap, OutEvap_REF.T, InCond_REF.T, InCond_REF_Tvap, OutCond_REF_Tliq, OutCond_REF.T, outputs.pcx_cold_in_T, OutCond_REF.T, outputs.pcx_hot_out_T, InEvap_REF.T, OutEvap_REF_Tvap, OutEvap_REF.T, outputs.incomp_T]
+                h_points = [OutEvap_REF.h, InCond_REF.h, OutCond_REF.h, outputs.pcx_cold_in_h, OutCond_REF.h, outputs.pcx_hot_out_h, InEvap_REF.h, OutEvap_REF.h, outputs.incomp_h]
+                p_points = [OutEvap_REF.p, InCond_REF.p, OutCond_REF.p, outputs.pcx_cold_in_p, OutCond_REF.p, outputs.pcx_hot_out_p, InEvap_REF.p, OutEvap_REF.p, outputs.incomp_p]
+        
         else:
             if inputs.cycle == 'vcc':
                 s_points = [OutEvap_REF_svap, OutEvap_REF.s, InCond_REF.s, InCond_REF_svap, OutCond_REF_sliq, OutCond_REF.s, InEvap_REF.s, OutEvap_REF_svap]
@@ -887,7 +973,9 @@ class VCHP():
         print(f'Q cooling: {OutEvap_REF.q/1000:.3f} [kW] ({OutEvap_REF.q/3516.8525:.3f} [usRT])')
         print(f'Q comp: {outputs.Wcomp/1000:.3f} [kW]')
         if inputs.layout == 'ihx':
-            print(f'Q IHX: {outputs.qihx/1000:.3f} [kW]')    
+            print(f'Q IHX: {outputs.qihx/1000:.3f} [kW]')
+        if inputs.layout == 'part_cool':
+            print(f'Q PCX: {outputs.qpcx/1000:.3f} [kW]')
         print('---------------------------------------------------------------------------')
         if inputs.second == 'steam':
             print(f'Steam mass flow: {inputs.m_steam:.4f} [kg/s] ({inputs.m_steam*3.6:.2f} [ton/hr])')
@@ -913,23 +1001,33 @@ class VCHP():
             OutEvap_Twet = HAPropsSI("B","T",OutEvap.T,"P",OutEvap.p,"W",OutEvap.ahum)
             print(f'Ahum:{InEvap.ahum:.3e}[kg/kg], Rhum_in:{InEvap_rhum*100:.3f}[%], Tdew_in:{InEvap_Tdew-273.15:.3f}[℃], Twet_in:{InEvap_Twet-273.15:.3f}[℃] -> Rhum_out:{OutEvap_rhum*100:.3f}[%], Tdew_out:{OutEvap_Tdew-273.15:.3f}[℃], Twet_out:{OutEvap_Twet-273.15:.3f}[℃]')
         print('---------------------------------------------------------------------------')
-        if inputs.layout == 'ihx':
-            ihx_cold_out_p_line = f'Pihx_cold_out: {outputs.ihx_cold_out_p/1.0e5:.3f} [bar]'
-            ihx_cold_out_T_line = f'Tihx_cold_out: {outputs.ihx_cold_out_T-273.15:.3f} [℃]'
-            ihx_hot_out_p_line = f'Pihx_hot_out: {outputs.ihx_hot_out_p/1.0e5:.3f} [bar]'
-            ihx_hot_out_T_line = f'Tihx_hot_out: {outputs.ihx_hot_out_T-273.15:.3f} [℃]'
-        else:
-            ihx_cold_out_p_line = ''
-            ihx_cold_out_T_line = ''
-            ihx_hot_out_p_line = ''
-            ihx_hot_out_T_line = ''
         
-        print(f'Pevap_out: {OutEvap_REF.p/1.0e5:.3f} [bar], {ihx_cold_out_p_line}, Pcomp_out: {InCond_REF.p/1.0e5:.3f} [bar]')
-        print(f'Pcond_out: {OutCond_REF.p/1.0e5:.3f} [bar], {ihx_hot_out_p_line}, Pvalve_out: {InEvap_REF.p/1.0e5:.3f} [bar]')
-        print(f'Tevap_out: {OutEvap_REF.T-273.15:.3f} [℃], {ihx_cold_out_T_line}, Tcomp_out: {InCond_REF.T-273.15:.3f} [℃]')
-        x_evap_in = PropsSI("Q","P",InEvap_REF.p,"H",InEvap_REF.h,InEvap_REF.fluidmixture)        
-        print(f'Tcond_out: {OutCond_REF.T-273.15:.3f} [℃], {ihx_hot_out_T_line}, Tvalve_out: {InEvap_REF.T-273.15:.3f} [℃] (xvalve_out: {x_evap_in:.3f})')
+        print(f'Tevap_out: {OutEvap_REF.T-273.15:.3f} [℃], Pevap_out: {OutEvap_REF.p/1.0e5:.3f} [bar], mevap_out {OutEvap_REF.m:.3f} [kg/s]')
+        if inputs.layout == 'ihx':
+            print(f'Tihx_cold_out: {outputs.ihx_cold_out_T-273.15:.3f} [℃], Pihx_cold_out: {outputs.ihx_cold_out_p/1.0e5:.3f} [bar], mihx_cold_out: {OutEvap_REF.m:.3f} [kg/s]')
+        elif inputs.layout == 'part_cool':
+            print(f'Tcomp_in: {outputs.incomp_T-273.15:.3f} [℃], Pcomp_in: {outputs.incomp_p/1.0e5:.3f} [bar], mcomp_in: {InCond_REF.m:.3f} [kg/s]')
+        print(f'Tcond_in: {InCond_REF.T-273.15:.3f} [℃], Pcond_in: {InCond_REF.p/1.0e5:.3f} [bar], mcond_in {InCond_REF.m:.3f} [kg/s]')
+        print(f'Tcond_out: {OutCond_REF.T-273.15:.3f} [℃], Pcond_out: {OutCond_REF.p/1.0e5:.3f} [bar], mcond_out {OutCond_REF.m:.3f} [kg/s]')
+        if inputs.layout == 'ihx':
+            print(f'Tihx_hot_out: {outputs.ihx_hot_out_T-273.15:.3f} [℃], Pihx_hot_out: {outputs.ihx_hot_out_p/1.0e5:.3f} [bar], mihx_hot_out: {OutCond_REF.m:.3f} [kg/s]')
+        elif inputs.layout == 'part_cool':
+            x_pcx_cold_in = PropsSI("Q","P",outputs.pcx_cold_in_p,"H",outputs.pcx_cold_in_h,OutCond_REF.fluidmixture)
+            x_pcx_cold_out = PropsSI("Q","P",outputs.pcx_cold_out_p,"H",outputs.pcx_cold_out_h,OutCond_REF.fluidmixture)
+            print(f'Tpcx_cold_in: {outputs.pcx_cold_in_T-273.15:.3f} [℃] (xpcx_cold_in: {x_pcx_cold_in:.3f}), Ppcx_cold_in: {outputs.pcx_cold_in_p/1.0e5:.3f} [bar], mpcx_cold_in: {OutCond_REF.m*inputs.pcx_frac:.3f} [kg/s]')
+            print(f'Tpcx_cold_out: {outputs.pcx_cold_out_T-273.15:.3f} [℃] (xpcx_cold_out: {x_pcx_cold_out:.3f}), Ppcx_cold_out: {outputs.pcx_cold_out_p/1.0e5:.3f} [bar], mpcx_cold_out: {OutCond_REF.m*inputs.pcx_frac:.3f} [kg/s]')
+            print(f'Tpcx_hot_out: {outputs.pcx_hot_out_T-273.15:.3f} [℃], Ppcx_hot_out: {outputs.pcx_hot_out_p/1.0e5:.3f} [bar], mpcx_hot_out: {OutCond_REF.m*(1-inputs.pcx_frac):.3f} [kg/s]')
             
+        x_evap_in = PropsSI("Q","P",InEvap_REF.p,"H",InEvap_REF.h,InEvap_REF.fluidmixture)
+        print(f'Tevap_in: {InEvap_REF.T-273.15:.3f} [℃] (xevap_in: {x_evap_in:.3f}), Pvalve_out: {InEvap_REF.p/1.0e5:.3f} [bar], mevap_in {InEvap_REF.m:.3f} [kg/s]')
+        print(f'DSH_evap_out: {OutEvap_REF.T-PropsSI("T","Q",1.0,"P",OutEvap_REF.p,OutEvap_REF.fluidmixture):.3f} [℃], DSC_cond_out: {PropsSI("T","Q",0.0,"P",OutCond_REF.p,OutCond_REF.fluidmixture)-OutCond_REF.T:.3f} [℃]')
+        if inputs.layout == 'ihx':
+            print(f'DSH_ihx_cold_side: {outputs.ihx_cold_out_T-PropsSI("T","Q",1.0,"P",outputs.ihx_cold_out_p,OutEvap_REF.fluidmixture):.3f} [℃]')
+            print(f'DSC_ihx_hot_side: {PropsSI("T","Q",0.0,"P",outputs.ihx_hot_out_p,OutCond_REF.fluidmixture)-outputs.ihx_hot_out_T:.3f} [℃]')
+        elif inputs.layout == 'part_cool':
+            print(f'DSC_pcx_hot_side: {PropsSI("T","Q",0.0,"P",outputs.pcx_hot_out_p,OutCond_REF.fluidmixture)-outputs.pcx_hot_out_T:.3f} [℃]')
+            print(f'DSH_comp_in: {outputs.incomp_T-PropsSI("T","Q",1.0,"P",OutEvap_REF.p,OutEvap_REF.fluidmixture):.3f} [℃]')
+        
         Tlow = PropsSI('T','P',0.5*(OutEvap_REF.p+InEvap_REF.p),'Q',0.5,OutEvap_REF.fluidmixture)
         try:
             Thigh = PropsSI('T','P',0.5*(OutCond_REF.p+InCond_REF.p),'Q',0.5,OutCond_REF.fluidmixture)
