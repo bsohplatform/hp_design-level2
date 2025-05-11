@@ -1387,13 +1387,13 @@ if __name__ == '__main__':
     coeff = 0.999
     
     evapfluid = 'water'
-    inevap_T = 12+273.15
+    inevap_T = 14.11+273.15
     inevap_p = 103000
     
-    outevap_T = 7+273.15
+    outevap_T = 9.7+273.15
     outevap_p = 101300
     
-    evap_v = 460 #LPM
+    evap_v = 463 #LPM
     evap_m = PropsSI("D","T",inevap_T,"P",103000,evapfluid)*evap_v/60/1000
     
     InEvap = ProcessFluid(Y={evapfluid:1.0,},m = evap_m, T = inevap_T, p = inevap_p)
@@ -1401,14 +1401,14 @@ if __name__ == '__main__':
     
     condfluid = 'water'
 
-    incond_T = 32.0+273.15
+    incond_T = 32.16+273.15
     incond_p = 101300
     
-    outcond_T = 37.0+273.15
+    outcond_T = 0
     outcond_p = 101300
     
-    cond_v = 0.0 #LPM/hr
-    cond_m = PropsSI("D","T",incond_T,"P",103000,condfluid)*cond_v/3600
+    cond_v = 550 #LPM/hr
+    cond_m = PropsSI("D","T",incond_T,"P",103000,condfluid)*cond_v/60/1000
     
     InCond = ProcessFluid(Y={condfluid:1.0,},m = cond_m, T = incond_T, p = incond_p)
     OutCond = ProcessFluid(Y={condfluid:1.0,},m = cond_m, T = outcond_T, p = outcond_p)
@@ -1417,6 +1417,7 @@ if __name__ == '__main__':
     inputs.Y = {'REFPROP::R134a':1.0,}
     inputs.second = 'process'
     inputs.cycle = 'vcc'
+<<<<<<< HEAD
     inputs.DSC = 1.0
     inputs.DSH = 7.0
     inputs.cond_type = 'phe'
@@ -1430,6 +1431,21 @@ if __name__ == '__main__':
     
     inputs.comp_eff = 0.7
     inputs.mech_eff = 0.95
+=======
+    inputs.DSC = 1.14
+    inputs.DSH = 3
+    inputs.cond_type = 'phe'
+    inputs.cond_dp = 0.01
+    inputs.cond_T_pp = 3
+    
+    inputs.evap_type = 'phe'
+    inputs.evap_dp = 0.01
+    inputs.evap_T_pp = 1
+    inputs.layout = 'bas'
+    
+    inputs.comp_eff = 0.68
+    inputs.mech_eff = 0.98
+>>>>>>> 38d9c26 (no message)
     
     vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)    
     (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs)=vchp_basic()
