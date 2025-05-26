@@ -2,7 +2,8 @@ from cmath import sqrt
 import sys
 import os
 from CoolProp.CoolProp import PropsSI
-
+from VCHP_layout import VCHP, VCHP_cascade
+from HP_dataclass import ProcessFluid, Settings, Outputs
 from PySide6.QtCore import QSize, Qt, QFile
 from PySide6.QtGui import QFont, QIcon, QPixmap
 from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QTableWidgetItem, QMessageBox
