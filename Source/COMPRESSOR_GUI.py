@@ -1,7 +1,8 @@
 from PySide6.QtCore import QSize, Qt, QFile
 from PySide6.QtGui import QFont, QIcon, QPixmap
 from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QTableWidgetItem, QMessageBox
-from PySide6.QtUiTools import loadUiType
+from PySide6.QtUiTools import QUiLoader
+
 from CoolProp.CoolProp import PropsSI
 import pandas as pd
 import math
@@ -16,87 +17,93 @@ def resource_path(relative_path):
     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
 
-form = resource_path("COMPRESSOR.ui")
-form_class = loadUiType(form)[0]
-
-class compressorWindow(QMainWindow, form_class):
+class compressorWindow(QMainWindow):
     def __init__(self, Pevap, Pcond, Tcomp_in, mdot, Refrigerant, Pevap_2, Pcond_2, Tcomp_in_2, mdot_2, Refrigerant_2, layout_type):
         super().__init__()
-        self.setupUi(self)
+        loader = QUiLoader()
+        ui_file = QFile(resource_path('COMPRESSOR.ui'))
+        ui_file.open(QFile.ReadOnly)
+        self.ui = loader.load(ui_file, self)
+        ui_file.close()
+        
+        self.setCentralWidget(self.ui)
+        self.ui.show()
+        
         self.setWindowTitle("COMPRESSOR_RECOMMANDATION")        
-        comp_data = pd.read_csv('.\\DBs\\Compressor_DB\\Comp_DB.csv')
+        
+        comp_data = pd.read_csv(resource_path('DBs/Compressor_DB/Comp_DB.csv'))
         self.point_list = ['Point1','Point2','Point3','Point4','Point5','Point6','Point7','Point8','Point9','Point10','Point11','Point12']
         min_row_idx = self.compressor_recommand(Pevap, Pcond, Tcomp_in, mdot, Refrigerant, comp_data, 'Operation_boundary')
         company = str(comp_data['Company'].loc[min_row_idx])
         model_name = str(comp_data['Model'].loc[min_row_idx])
         
-        self.pdf_path=".\\DBs\\Compressor_DB\\"+company[0]+"_"+model_name+".pdf"
-        self.operation_boundary.setPixmap(QPixmap(".\\DBs\\Compressor_DB\\Figs\\Operation_boundary.png").scaledToHeight(300))
+        self.pdf_path=resource_path("DBs/Compressor_DB/"+company[0]+"_"+model_name+".pdf")
+        self.ui.operation_boundary.setPixmap(QPixmap(resource_path("DBs\\Compressor_DB\\Figs\\Operation_boundary.png")).scaledToHeight(300))
         
-        self.model_text.setText(company+'  '+model_name)
-        self.rotation_text.setText('3600')
+        self.ui.model_text.setText(company+'  '+model_name)
+        self.ui.rotation_text.setText('3600')
         if pd.isna(comp_data['Discharge'].iloc[min_row_idx]):
-            self.volumeflow_text.setText('-')
+            self.ui.volumeflow_text.setText('-')
         else:
-            self.volumeflow_text.setText(str(comp_data['Discharge'].iloc[min_row_idx]))
+            self.ui.volumeflow_text.setText(str(comp_data['Discharge'].iloc[min_row_idx]))
         if pd.isna(comp_data['Diameter_Suction'].iloc[min_row_idx]):
-            self.suction_text.setText('-')
+            self.ui.suction_text.setText('-')
         else:
-            self.suction_text.setText(str(comp_data['Diameter_Suction'].iloc[min_row_idx]))        
+            self.ui.suction_text.setText(str(comp_data['Diameter_Suction'].iloc[min_row_idx]))        
         if pd.isna(comp_data['Diameter_Discharge'].iloc[min_row_idx]):
-            self.discharge_text.setText('-')
+            self.ui.discharge_text.setText('-')
         else:
-            self.discharge_text.setText(str(comp_data['Diameter_Discharge'].iloc[min_row_idx]))
+            self.ui.discharge_text.setText(str(comp_data['Diameter_Discharge'].iloc[min_row_idx]))
         if pd.isna(comp_data['Voltage'].iloc[min_row_idx]):
-            self.voltage_text.setText('-')
+            self.ui.voltage_text.setText('-')
         else:
-            self.voltage_text.setText(str(comp_data['Voltage'].iloc[min_row_idx]))    
+            self.ui.voltage_text.setText(str(comp_data['Voltage'].iloc[min_row_idx]))    
         if pd.isna(comp_data['Enclosure_class'].iloc[min_row_idx]):
-            self.IPclass_text.setText('-')
+            self.ui.IPclass_text.setText('-')
         else:
-            self.IPclass_text.setText(str(comp_data['Enclosure_class'].iloc[min_row_idx]))
+            self.ui.IPclass_text.setText(str(comp_data['Enclosure_class'].iloc[min_row_idx]))
         if pd.isna(comp_data['Oil_type'].iloc[min_row_idx]):
-            self.oil_text.setText('-')
+            self.ui.oil_text.setText('-')
         else:
-            self.oil_text.setText(str(comp_data['Oil_type'].iloc[min_row_idx]))
+            self.ui.oil_text.setText(str(comp_data['Oil_type'].iloc[min_row_idx]))
         
-        self.comp_spec_btn.clicked.connect(self.open_specification)
+        self.ui.comp_spec_btn.clicked.connect(self.open_specification)
         
         if layout_type == 'cas' or layout_type == 'inj':
-            self.comp_tab.setTabText(0, '압축기 스펙(Bot)')
-            self.comp_tab.setTabText(1, '압축기 스펙(Top)')
+            self.ui.comp_tab.setTabText(0, '압축기 스펙(Bot)')
+            self.ui.comp_tab.setTabText(1, '압축기 스펙(Top)')
             min_row_idx_2 = self.compressor_recommand(Pevap_2, Pcond_2, Tcomp_in_2, mdot_2, Refrigerant_2, comp_data, 'Operation_boundary_2')
             company_2 = str(comp_data['Company'].loc[min_row_idx_2])
             model_name_2 = str(comp_data['Model'].loc[min_row_idx_2])
-            self.comp_picture.setPixmap(QPixmap(".\\DBs\\Compressor_DB\\"+company_2[0]+"_"+model_name_2+".pdf").scaledToHeight(180))
-            self.operation_boundary.setPixmap(QPixmap(".\\DBs\\Compressor_DB\\Figs\\Operation_boundary_2.png").scaledToWidth(431))
+            self.ui.comp_picture.setPixmap(QPixmap(resource_path("DBs/Compressor_DB/"+company_2[0]+"_"+model_name_2+".pdf")).scaledToHeight(180))
+            self.ui.operation_boundary.setPixmap(QPixmap(resource_path("DBs/Compressor_DB/Figs/Operation_boundary_2.png")).scaledToWidth(431))
             
-            self.model_text_2.setText(company_2+'  '+model_name_2)
-            self.rotation_text_2.setText('3600')
+            self.ui.model_text_2.setText(company_2+'  '+model_name_2)
+            self.ui.rotation_text_2.setText('3600')
             if pd.isna(comp_data['Discharge'].iloc[min_row_idx_2]):
-                self.volumeflow_text_2.setText('-')
+                self.ui.volumeflow_text_2.setText('-')
             else:
-                self.volumeflow_text_2.setText(str(comp_data['Discharge'].iloc[min_row_idx_2]))
+                self.ui.volumeflow_text_2.setText(str(comp_data['Discharge'].iloc[min_row_idx_2]))
             if pd.isna(comp_data['Diameter_Suction'].iloc[min_row_idx_2]):
-                self.suction_text_2.setText('-')
+                self.ui.suction_text_2.setText('-')
             else:
-                self.suction_text_2.setText(str(comp_data['Diameter_Suction'].iloc[min_row_idx_2]))        
+                self.ui.suction_text_2.setText(str(comp_data['Diameter_Suction'].iloc[min_row_idx_2]))        
             if pd.isna(comp_data['Diameter_Discharge'].iloc[min_row_idx_2]):
-                self.discharge_text_2.setText('-')
+                self.ui.discharge_text_2.setText('-')
             else:
-                self.discharge_text_2.setText(str(comp_data['Diameter_Discharge'].iloc[min_row_idx_2]))
+                self.ui.discharge_text_2.setText(str(comp_data['Diameter_Discharge'].iloc[min_row_idx_2]))
             if pd.isna(comp_data['Voltage'].iloc[min_row_idx_2]):
-                self.voltage_text_2.setText('-')
+                self.ui.voltage_text_2.setText('-')
             else:
-                self.voltage_text_2.setText(str(comp_data['Voltage'].iloc[min_row_idx_2]))    
+                self.ui.voltage_text_2.setText(str(comp_data['Voltage'].iloc[min_row_idx_2]))    
             if pd.isna(comp_data['Enclosure_class'].iloc[min_row_idx_2]):
-                self.IPclass_text_2.setText('-')
+                self.ui.IPclass_text_2.setText('-')
             else:
-                self.IPclass_text_2.setText(str(comp_data['Enclosure_class'].iloc[min_row_idx_2]))
+                self.ui.IPclass_text_2.setText(str(comp_data['Enclosure_class'].iloc[min_row_idx_2]))
             if pd.isna(comp_data['Oil_type'].iloc[min_row_idx_2]):
-                self.oil_text_2.setText('-')
+                self.ui.oil_text_2.setText('-')
             else:
-                self.oil_text_2.setText(str(comp_data['Oil_type'].iloc[min_row_idx_2]))
+                self.ui.oil_text_2.setText(str(comp_data['Oil_type'].iloc[min_row_idx_2]))
     
     def open_specification(self):
         try:

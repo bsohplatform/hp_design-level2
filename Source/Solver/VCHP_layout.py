@@ -845,8 +845,10 @@ class VCHP():
         ax_ts.plot([i/1.0e3 for i in s_points], [i-273.15 for i in T_points],'bo-')
         ax_ph.plot([i/1.0e3 for i in h_points], [i/1.0e5 for i in p_points],'bo-')
         
-        fig_ph.savefig('.'+ph_file+'.png',dpi=300)
-        fig_ts.savefig('.'+ts_file+'.png',dpi=300)
+        fig_ph.savefig('./Figs/'+ph_file+'.png',dpi=300)
+        fig_ts.savefig('./Figs/'+ts_file+'.png',dpi=300)
+        
+        
         
     def Dome_Draw(self, fluid, coeff=0.999):
         P_crit = PropsSI('PCRIT','',0,'',0,fluid)
