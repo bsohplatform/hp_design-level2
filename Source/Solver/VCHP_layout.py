@@ -352,7 +352,7 @@ class VCHP():
         
         while evap_a: 
             OutEvap_REF.p = 0.5*(evap_p_lb+evap_p_ub)
-            InEvap_REF.p = OutEvap_REF.p/(1.0-inputs.evap_dp)
+            InEvap_REF.p = OutEvap_REF.p+inputs.evap_dp
             
             OutEvap_REF_Tvap = PropsSI('T','P',OutEvap_REF.p, 'Q', 1.0, OutEvap_REF.fluidmixture)
             OutEvap_REF.T = OutEvap_REF_Tvap + inputs.DSH
@@ -411,7 +411,7 @@ class VCHP():
         cond_a = 1
         while cond_a:
             InCond_REF.p = 0.5*(cond_p_ub+cond_p_lb)
-            OutCond_REF.p = InCond_REF.p*(1-inputs.cond_dp)
+            OutCond_REF.p = InCond_REF.p-inputs.cond_dp
             
             if OutCond_REF.p > OutCond_REF.p_crit:
                 OutCond_REF.T = 0.10753154*((OutCond_REF.p - OutCond_REF.p_crit)/OutCond_REF.p_crit) + 0.004627621995008088
@@ -448,7 +448,7 @@ class VCHP():
                 OutComp_low.p = inter_p
                 
                 comp_low = CP.Compander_module(OutEvap_REF, OutComp_low)
-                (inputs.DSH, cond_a) = comp_low.COMP(eff_isen = inputs.comp_eff, eff_mech = inputs.mech_eff, DSH = inputs.DSH)
+                (inputs.DSH, cond_a) = comp_low.COMP(eff_isen = inputs.comp_eff, DSH = inputs.DSH)
                 OutComp_low = comp_low.primary_out
                 
                 InComp_high = deepcopy(OutComp_low)
@@ -458,13 +458,13 @@ class VCHP():
                 InComp_high.s = PropsSI('S','T',InComp_high.T, 'P', InComp_high.p, InComp_high.fluidmixture)
                 
                 comp_high = CP.Compander_module(InComp_high, InCond_REF)
-                (inputs.DSH, cond_a)= comp_high.COMP(eff_isen = inputs.comp_top_eff, eff_mech = inputs.mech_eff, DSH = inputs.DSH)
+                (inputs.DSH, cond_a)= comp_high.COMP(eff_isen = inputs.comp_top_eff, DSH = inputs.DSH)
                 InCond_REF = comp_high.primary_out
                 
                 OutExpand_high = deepcopy(OutCond_REF)
                 OutExpand_high.p = inter_p
                 expand_high = CP.Compander_module(OutCond_REF, OutExpand_high)
-                expand_high.EXPAND(eff_isen=inputs.expand_eff, eff_mech = inputs.mech_eff)
+                expand_high.EXPAND(eff_isen=inputs.expand_eff)
                 OutExpand_high = expand_high.primary_out
                 
                 Flash_liq = deepcopy(OutExpand_high) # 팽창 후 2-phase 중 liq 상만 두번째 팽창기 입구로
@@ -474,7 +474,7 @@ class VCHP():
                     Flash_liq.s = PropsSI('S','P',OutExpand_high.p,'Q',0.0, OutExpand_high.fluidmixture) 
 
                 expand_low = CP.Compander_module(Flash_liq, InEvap_REF)
-                expand_low.EXPAND(eff_isen=inputs.expand_bot_eff, eff_mech = inputs.mech_eff)
+                expand_low.EXPAND(eff_isen=inputs.expand_bot_eff)
                 InEvap_REF = expand_low.primary_out
                 
             elif inputs.layout == '2comp':
@@ -483,7 +483,7 @@ class VCHP():
                 OutComp_low.p = inter_p
                 
                 comp_low = CP.Compander_module(OutEvap_REF, OutComp_low)
-                (inputs.DSH, cond_a) = comp_low.COMP(eff_isen = inputs.comp_eff, eff_mech = inputs.mech_eff, DSH = inputs.DSH)
+                (inputs.DSH, cond_a) = comp_low.COMP(eff_isen = inputs.comp_eff, DSH = inputs.DSH)
                 OutComp_low = comp_low.primary_out
                 
                 InComp_high = deepcopy(OutComp_low)
@@ -493,12 +493,12 @@ class VCHP():
                 InComp_high.s = PropsSI('S','T',InComp_high.T, 'P', InComp_high.p, InComp_high.fluidmixture)
                 
                 comp_high = CP.Compander_module(InComp_high, InCond_REF)
-                (inputs.DSH, cond_a) = comp_high.COMP(eff_isen = inputs.comp_top_eff, eff_mech = inputs.mech_eff, DSH = inputs.DSH)
+                (inputs.DSH, cond_a) = comp_high.COMP(eff_isen = inputs.comp_top_eff, DSH = inputs.DSH)
                 InCond_REF = comp_high.primary_out
                 
                 InExpand = OutCond_REF
                 expand_high = CP.Compander_module(InExpand, InEvap_REF)
-                expand_high.EXPAND(eff_isen = inputs.expand_eff, eff_mech = inputs.mech_eff)
+                expand_high.EXPAND(eff_isen = inputs.expand_eff)
                 InEvap_REF = expand_high.primary_out
             elif inputs.layout == 'part_cool':
                 
@@ -506,12 +506,12 @@ class VCHP():
                 OutPCX_hot = deepcopy(InEvap_REF)
                 OutPCX_cold = deepcopy(InEvap_REF)
                 
-                pcx_cold_in.p = InEvap_REF.p/(1-inputs.pcx_cold_dp)
+                pcx_cold_in.p = InEvap_REF.p+inputs.pcx_cold_dp
                 cold_expand = CP.Compander_module(OutCond_REF, pcx_cold_in)
-                cold_expand.EXPAND(eff_isen = 0.0, eff_mech = 0.0)
+                cold_expand.EXPAND(eff_isen = 0.0)
                 pcx_cold_in = cold_expand.primary_out
                 
-                OutPCX_hot.p = OutCond_REF.p*(1-inputs.pcx_hot_dp)
+                OutPCX_hot.p = OutCond_REF.p-inputs.pcx_hot_dp
                 pcx_hot_out_hideal = PropsSI("H","T",pcx_cold_in.T,"P",OutPCX_hot.p,OutPCX_hot.fluidmixture)
                 pcx_cold_out_hideal = PropsSI("H","T",OutCond_REF.T,"P",OutPCX_cold.p,OutPCX_cold.fluidmixture)
                 
@@ -529,22 +529,22 @@ class VCHP():
                     OutPCX_cold.T = PropsSI("T","H",OutPCX_cold.h,"P",OutPCX_cold.p,OutPCX_cold.fluidmixture)
                 
                 expand = CP.Compander_module(OutPCX_hot, InEvap_REF)
-                expand.EXPAND(eff_isen = 0.0, eff_mech = 0.0)
+                expand.EXPAND(eff_isen = 0.0)
                 InEvap_REF = expand.primary_out
                 
                 InComp = deepcopy(OutEvap_REF)
                 InComp.h = OutEvap_REF.h*(1-inputs.pcx_frac)+OutPCX_cold.h*inputs.pcx_frac
                 InComp.T = PropsSI("T","H",InComp.h,"P",InComp.p,InComp.fluidmixture)               
                 comp = CP.Compander_module(InComp, InCond_REF)
-                (inputs.DSH, cond_a) = comp.COMP(eff_isen = inputs.comp_eff, eff_mech = inputs.mech_eff, DSH = inputs.DSH)
+                (inputs.DSH, cond_a) = comp.COMP(eff_isen = inputs.comp_eff, DSH = inputs.DSH)
                 InCond_REF = comp.primary_out
                 
             else:
                 if inputs.layout == 'ihx':
                     InComp = deepcopy(OutEvap_REF)
-                    InComp.p = InComp.p*(1.0-inputs.ihx_cold_dp)
+                    InComp.p = InComp.p-inputs.ihx_cold_dp
                     InExpand = deepcopy(OutCond_REF)
-                    InExpand.p = InExpand.p*(1.0-inputs.ihx_hot_dp)
+                    InExpand.p = InExpand.p-inputs.ihx_hot_dp
                     IHX = HX.Heatexchanger_module(OutCond_REF, InExpand, 0, OutEvap_REF, InComp, 0)
                     IHX.SIMPHX(eff_HX = inputs.ihx_eff)
                 
@@ -555,12 +555,12 @@ class VCHP():
                     InExpand = OutCond_REF
                 
                 comp = CP.Compander_module(InComp, InCond_REF)
-                (inputs.DSH, cond_a) = comp.COMP(eff_isen = inputs.comp_eff, eff_mech = inputs.mech_eff, DSH = inputs.DSH)
+                (inputs.DSH, cond_a) = comp.COMP(eff_isen = inputs.comp_eff, DSH = inputs.DSH)
                 InCond_REF = comp.primary_out
                 
                 
                 expand = CP.Compander_module(InExpand, InEvap_REF)
-                expand.EXPAND(eff_isen = inputs.expand_eff, eff_mech = inputs.mech_eff)
+                expand.EXPAND(eff_isen = inputs.expand_eff)
                 InEvap_REF = expand.primary_out
                 
             if (no_input == 'InCondT') or (no_input == 'OutCondT') or (no_input == 'Condm'):
@@ -570,32 +570,41 @@ class VCHP():
                     InCond_REF.m = InEvap_REF.m/(1.0-outputs.inter_x)
                     OutCond_REF.m = InCond_REF.m
                     outputs.Wcomp = comp_low.Pspecific*OutEvap_REF.m + comp_high.Pspecific*InCond_REF.m
+                    outputs.Wcomp /= inputs.mech_eff
                     outputs.Wcomp_top = comp_high.Pspecific*InCond_REF.m
+                    outputs.Wcomp_top /= inputs.mech_eff
                     outputs.Wexpand = expand_high.Pspecific*OutCond_REF.m + expand_low.Pspecific*InEvap_REF.m
+                    outputs.Wexpand *= inputs.mech_eff
                     outputs.Wexpand_bot = expand_low.Pspecific*InEvap_REF.m
+                    outputs.Wexpand_bot *= inputs.mech_eff
                 elif inputs.layout == '2comp':
                     InCond_REF.m = InEvap_REF.m
                     OutCond_REF.m = InEvap_REF.m
                     outputs.Wcomp = comp_low.Pspecific*OutEvap_REF.m + comp_high.Pspecific*InCond_REF.m
+                    outputs.Wcomp /= inputs.mech_eff
                     outputs.Wcomp_top = comp_high.Pspecific*InCond_REF.m
+                    outputs.Wcomp_top /= inputs.mech_eff
                     outputs.Wexpand = expand_high.Pspecific*OutCond_REF.m
+                    outputs.Wexpand *= inputs.mech_eff
                 elif inputs.layout == 'part_cool':
                     InCond_REF.m  = InEvap_REF.m/(1-inputs.pcx_frac)
                     OutCond_REF.m = InEvap_REF.m/(1-inputs.pcx_frac)
-                    
                     pcx_cold_in.m = OutCond_REF.m*inputs.pcx_frac
                     OutPCX_hot.m = OutCond_REF.m*(1-inputs.pcx_frac)
                     OutPCX_cold.m = OutCond_REF.m*inputs.pcx_frac
                     InComp.m = InCond_REF.m
                     
                     outputs.Wcomp = comp.Pspecific*InCond_REF.m
+                    outputs.Wcomp /= inputs.mech_eff
                     outputs.Wexpand = (cold_expand.Pspecific*inputs.pcx_frac + expand.Pspecific*(1-inputs.pcx_frac))*InCond_REF.m
-                    
+                    outputs.Wexpand *= inputs.mech_eff
                 else:
                     InCond_REF.m = InEvap_REF.m
                     OutCond_REF.m = InEvap_REF.m
                     outputs.Wcomp = comp.Pspecific*InCond_REF.m
+                    outputs.Wcomp /= inputs.mech_eff
                     outputs.Wexpand = expand.Pspecific*InEvap_REF.m
+                    outputs.Wexpand *= inputs.mech_eff
                     
                 InEvap_REF.q = -InEvap.q
                 OutEvap_REF.q = -OutEvap.q
@@ -659,15 +668,22 @@ class VCHP():
                     InEvap_REF.m = InCond_REF.m*(1.0 - outputs.inter_x)
                     OutEvap_REF.m = InCond_REF.m*(1.0 - outputs.inter_x)
                     outputs.Wcomp = comp_low.Pspecific*OutEvap_REF.m + comp_high.Pspecific*InCond_REF.m
+                    outputs.Wcomp /= inputs.mech_eff
                     outputs.Wcomp_top = comp_high.Pspecific*InCond_REF.m
+                    outputs.Wcomp_top /= inputs.mech_eff
                     outputs.Wexpand = expand_high.Pspecific*OutCond_REF.m + expand_low.Pspecific*InEvap_REF.m
+                    outputs.Wexpand *= inputs.mech_eff
                     outputs.Wexpand_bot = expand_low.Pspecific*InEvap_REF.m
+                    outputs.Wexpand_bot *= inputs.mech_eff
                 elif inputs.layout == '2comp':
                     InEvap_REF.m = InCond_REF.m
                     OutEvap_REF.m = InCond_REF.m
                     outputs.Wcomp = comp_low.Pspecific*OutEvap_REF.m + comp_high.Pspecific*InCond_REF.m
+                    outputs.Wcomp /= inputs.mech_eff
                     outputs.Wcomp_top = comp_high.Pspecific*InCond_REF.m
+                    outputs.Wcomp_top /= inputs.mech_eff
                     outputs.Wexpand = expand_high.Pspecific*OutCond_REF.m
+                    outputs.Wexpand *= inputs.mech_eff
                 elif inputs.layout == 'part_cool':
                     InEvap_REF.m = InCond_REF.m*(1-inputs.pcx_frac)
                     OutEvap_REF.m = InCond_REF.m*(1-inputs.pcx_frac)
@@ -677,12 +693,16 @@ class VCHP():
                     InComp.m = InCond_REF.m
                     
                     outputs.Wcomp = comp.Pspecific*InCond_REF.m
+                    outputs.Wcomp /= inputs.mech_eff
                     outputs.Wexpand = (cold_expand.Pspecific*inputs.pcx_frac + expand.Pspecific*(1-inputs.pcx_frac))*InCond_REF.m
+                    outputs.Wexpand *= inputs.mech_eff
                 else:
                     InEvap_REF.m = InCond_REF.m
                     OutEvap_REF.m = InCond_REF.m
                     outputs.Wcomp = comp.Pspecific*InCond_REF.m
+                    outputs.Wcomp /= inputs.mech_eff
                     outputs.Wexpand = expand.Pspecific*InEvap_REF.m
+                    outputs.Wexpand *= inputs.mech_eff
                 
                 InCond_REF.q = -InCond.q
                 OutCond_REF.q = -InCond.q
@@ -1155,7 +1175,7 @@ class VCHP_cascade(VCHP):
                         OutEvap_REF_t.p = results_array[-1][1]
                         cascade_a = 0
                     
-                    InEvap_REF_t.p = OutEvap_REF_t.p/(1.0 - inputs_t.evap_dp)
+                    InEvap_REF_t.p = OutEvap_REF_t.p+inputs_t.evap_dp
         
         return(InCond, OutCond, InEvap, OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, outputs_t, outputs_b)
     
@@ -1163,7 +1183,7 @@ class VCHP_cascade(VCHP):
         cond_b_ph = 1
         
         OutEvap_REF_t.p = evap_t_p_input
-        InEvap_REF_t.p = OutEvap_REF_t.p/(1.0 - inputs_t.evap_dp)
+        InEvap_REF_t.p = OutEvap_REF_t.p+inputs_t.evap_dp
         
         OutEvap_REF_t_Tvap = PropsSI('T','P',OutEvap_REF_t.p, 'Q', 1.0, OutEvap_REF_t.fluidmixture)
         OutEvap_REF_t.T = OutEvap_REF_t_Tvap + inputs_t.DSH
@@ -1260,7 +1280,7 @@ class VCHP_cascade(VCHP):
     def TopCycle_HighPressure_solver(self, cond_p_lb, cond_p_ub, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs):
         
         InCond_REF.p = 0.5*(cond_p_ub+cond_p_lb)
-        OutCond_REF.p = InCond_REF.p*(1-inputs.cond_dp)
+        OutCond_REF.p = InCond_REF.p-inputs.cond_dp
         
         if OutCond_REF.p > OutCond_REF.p_crit:
             OutCond_REF.T = 0.10753154*((OutCond_REF.p - OutCond_REF.p_crit)/OutCond_REF.p_crit) + 0.004627621995008088
@@ -1281,9 +1301,9 @@ class VCHP_cascade(VCHP):
         
         if inputs.layout == 'ihx':
             InComp = deepcopy(OutEvap_REF)
-            InComp.p = InComp.p*(1.0-inputs.ihx_cold_dp)
+            InComp.p = InComp.p-inputs.ihx_cold_dp
             InExpand = deepcopy(OutCond_REF)
-            InExpand.p = InExpand.p*(1.0-inputs.ihx_hot_dp)
+            InExpand.p = InExpand.p-inputs.ihx_hot_dp
             IHX = HX.Heatexchanger_module(OutCond_REF, InExpand, 0, OutEvap_REF, InComp, 0)
             IHX.SIMPHX(eff_HX = inputs.ihx_eff)
         
@@ -1294,12 +1314,12 @@ class VCHP_cascade(VCHP):
             InExpand = OutCond_REF
             
         comp = CP.Compander_module(InComp, InCond_REF)
-        (inputs.DSH, cond_a) = comp.COMP(eff_isen = inputs.comp_eff, eff_mech = inputs.mech_eff, DSH = inputs.DSH)
+        (inputs.DSH, cond_a) = comp.COMP(eff_isen = inputs.comp_eff, DSH = inputs.DSH)
         InCond_REF = comp.primary_out
         
         
         expand = CP.Compander_module(InExpand, InEvap_REF)
-        expand.EXPAND(eff_isen = inputs.expand_eff, eff_mech = inputs.mech_eff)
+        expand.EXPAND(eff_isen = inputs.expand_eff)
         InEvap_REF = expand.primary_out
             
         if inputs.layout == 'ihx':
@@ -1314,7 +1334,9 @@ class VCHP_cascade(VCHP):
             outputs.ihx_cold_out_s = InComp.s
             
         outputs.Wcomp = comp.Pspecific
+        outputs.Wcomp /= inputs.mech_eff
         outputs.Wexpand = expand.Pspecific
+        outputs.Wexpand *= inputs.mech_eff
         
         return (InCond_REF, OutCond_REF, InEvap_REF, outputs)
     
@@ -1364,15 +1386,14 @@ class VCHP_cascade(VCHP):
 if __name__ == '__main__':
     
     evapfluid = 'Water'
-    inevap_T = 12.0+273.15
-    inevap_p = 101300
+    inevap_T = 12.387+273.15
+    inevap_p = 167000
 
-    outevap_T = 7.0+273.15
-    outevap_p = 101300
+    outevap_T = 7.312+273.15
+    outevap_p = 165000
     
-    #evap_v = 463.48
-    #evap_m = evap_v*PropsSI("D","T",inevap_T,"P",inevap_p,evapfluid)/1000/60
-    evap_m = 0.0
+    evap_v = 339.844
+    evap_m = evap_v*PropsSI("D","T",inevap_T,"P",inevap_p,evapfluid)/1000/60
     evap_v = evap_m/(PropsSI("D","T",inevap_T,"P",inevap_p,evapfluid)/1000/60)
     print(evap_v)
     
@@ -1381,16 +1402,14 @@ if __name__ == '__main__':
     
     condfluid = 'Water'
 
-    incond_T = 32+273.15
-    incond_p = 101300
+    incond_T = 29.737+273.15
+    incond_p = 236000
     
-    outcond_T = 37+273.15
-    outcond_p = 101300
+    outcond_T = 0
+    outcond_p = 215000
     
-    #cond_v = 606.72
-    #cond_m = cond_v*PropsSI("D","T",incond_T,"P",incond_p,condfluid)/1000/60
-    cond_m = 0.38
-    cond_v = cond_m/(PropsSI("D","T",incond_T,"P",incond_p,condfluid)/1000/60)
+    cond_v = 429.641
+    cond_m = cond_v*PropsSI("D","T",incond_T,"P",incond_p,condfluid)/1000/60
     print(cond_v)
     
     InCond = ProcessFluid(Y={condfluid:1.0,},m = cond_m, T = incond_T, p = incond_p)
@@ -1401,18 +1420,18 @@ if __name__ == '__main__':
     inputs.second = 'process'
     inputs.cycle = 'vcc'
     inputs.DSC = 1.0
-    inputs.DSH = 5.0
+    inputs.DSH = 7.0
     inputs.cond_type = 'phe'
-    inputs.cond_dp = 0.01
-    inputs.cond_T_pp = 2.0
+    inputs.cond_dp = 30.0e3
+    inputs.cond_T_pp = 1.5
     
     inputs.evap_type = 'phe'
-    inputs.evap_dp = 0.01
-    inputs.evap_T_pp = 2.0
+    inputs.evap_dp = 15.0e3
+    inputs.evap_T_pp = 0.8
     inputs.layout = 'bas'
     
-    inputs.comp_eff = 0.70
-    inputs.mech_eff = 0.97
+    inputs.comp_eff = 0.7
+    inputs.mech_eff = 0.95
     
     vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)    
     (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs)=vchp_basic()

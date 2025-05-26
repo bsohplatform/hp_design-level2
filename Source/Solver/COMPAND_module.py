@@ -6,7 +6,7 @@ class Compander_module:
         self.primary_in = primary_in
         self.primary_out = primary_out
         
-    def COMP(self, eff_isen: float, eff_mech: float, DSH):
+    def COMP(self, eff_isen: float, DSH):
         h_comp_out_isen = PropsSI('H','P',self.primary_out.p,'S',self.primary_in.s,self.primary_in.fluidmixture)
         self.primary_out.h = (h_comp_out_isen - self.primary_in.h)/eff_isen + self.primary_in.h
         self.primary_out.T = PropsSI('T','H',self.primary_out.h,'P',self.primary_out.p,self.primary_in.fluidmixture)
@@ -21,12 +21,12 @@ class Compander_module:
         else:
             cond_a = 1
             
-        self.Pspecific = (self.primary_out.h - self.primary_in.h)/eff_mech
+        self.Pspecific = (self.primary_out.h - self.primary_in.h)
         
         return (DSH, cond_a)
         
         
-    def EXPAND(self, eff_isen: float, eff_mech: float):
+    def EXPAND(self, eff_isen: float):
         if eff_isen > 0.0:
             h_expand_out_isen = PropsSI('H','P',self.primary_out.p,'S', self.primary_in.s, self.primary_in.fluidmixture)
             self.primary_out.h = self.primary_in.h - (self.primary_in.h - h_expand_out_isen)*eff_isen
@@ -47,4 +47,4 @@ class Compander_module:
             self.primary_out.h = self.primary_in.h
         
         self.primary_out.T = PropsSI('T','H',self.primary_out.h,'P',self.primary_out.p,self.primary_in.fluidmixture)            
-        self.Pspecific = (self.primary_in.h - self.primary_out.h)*eff_mech
+        self.Pspecific = (self.primary_in.h - self.primary_out.h)

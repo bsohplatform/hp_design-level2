@@ -1,10 +1,8 @@
 from cmath import sqrt
 import sys
 import os
-sys.path.append('.\\Solver')
 from CoolProp.CoolProp import PropsSI
-from VCHP_layout import VCHP, VCHP_cascade
-from HP_dataclass import ProcessFluid, Settings, Outputs
+
 from PySide6.QtCore import QSize, Qt, QFile
 from PySide6.QtGui import QFont, QIcon, QPixmap
 from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QTableWidgetItem, QMessageBox
@@ -13,6 +11,10 @@ from PySide6.QtUiTools import QUiLoader
 def resource_path(relative_path):
     base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))    
     return os.path.join(base_path, relative_path)
+
+sys.path.append(resource_path('Solver'))
+from VCHP_layout import VCHP, VCHP_cascade
+from HP_dataclass import ProcessFluid, Settings, Outputs
 
 class WindowClass(QMainWindow):
     def __init__(self):
@@ -631,22 +633,22 @@ class WindowClass(QMainWindow):
                 QMessageBox.warning(self, '입력문 검토', '응축기 압력강하를 입력하세요.', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
-                self.inputs_t.cond_dp = float(self.ui.cond_dp_edit.text())/100.0
+                self.inputs_t.cond_dp = float(self.ui.cond_dp_edit.text())*1000.0
             if self.ui.cas_cold_dp_edit.text() == '':
                 QMessageBox.warning(self, '입력문 검토', '캐스케이드 열교환기 저온측 압력강하를 입력하세요.', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
-                self.inputs_t.evap_dp = float(self.ui.cas_cold_dp_edit.text())/100.0
+                self.inputs_t.evap_dp = float(self.ui.cas_cold_dp_edit.text())*1000.0
             if self.ui.cas_hot_dp_edit.text() == '':
                 QMessageBox.warning(self, '입력문 검토', '캐스케이드 열교환기 고온측 압력강하를 입력하세요.', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
-                self.inputs_b.cond_dp = float(self.ui.cas_hot_dp_edit.text())/100.0
+                self.inputs_b.cond_dp = float(self.ui.cas_hot_dp_edit.text())*1000.0
             if self.ui.evap_dp_edit.text() == '':
                 QMessageBox.warning(self, '입력문 검토', '증발기 압력강하를 입력하세요.', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:                
-                self.inputs_b.evap_dp = float(self.ui.evap_dp_edit.text())/100.0
+                self.inputs_b.evap_dp = float(self.ui.evap_dp_edit.text())*1000.0
             
             if self.ui.cond_phe_radio.isChecked():
                 if self.ui.cond_T_pp_edit.text() == '':
@@ -766,12 +768,12 @@ class WindowClass(QMainWindow):
                 QMessageBox.warning(self, '입력문 검토', '응축기 압력강하를 입력하세요.', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
-                self.inputs.cond_dp = float(self.ui.cond_dp_edit.text())/100.0
+                self.inputs.cond_dp = float(self.ui.cond_dp_edit.text())*1000.0
             if self.ui.evap_dp_edit.text() == '':
                 QMessageBox.warning(self, '입력문 검토', '증발기 압력강하를 입력하세요.', QMessageBox.Yes)
                 self.message_chk = self.message_chk+1
             else:
-                self.inputs.evap_dp = float(self.ui.evap_dp_edit.text())/100.0
+                self.inputs.evap_dp = float(self.ui.evap_dp_edit.text())*1000.0
             
             self.inputs.cond_N_element = 30
             self.inputs.evap_N_element = 30
@@ -817,6 +819,11 @@ class WindowClass(QMainWindow):
                     self.message_chk = self.message_chk+1
                 else:
                     self.inputs.comp_eff = float(self.ui.comp_eff_edit.text())/100.0
+                if self.ui.motor_eff_edit.text() == '':
+                    QMessageBox.warning(self, '입력문 검토', '모터 효율을 입력하세요.', QMessageBox.Yes)
+                    self.message_chk = self.message_chk+1
+                else:
+                    self.inputs.mech_eff = float(self.ui.motor_eff_edit.text())/100.0
                 if self.ui.expand_eff_edit.text() == '':
                     QMessageBox.warning(self, '입력문 검토', '팽창기 등엔트로피 효율을 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
@@ -843,12 +850,12 @@ class WindowClass(QMainWindow):
                     QMessageBox.warning(self, '입력문 검토', '내부열교환기 고온측 압력강하를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
-                    self.inputs.ihx_hot_dp = float(self.ui.IHX_hot_dp_edit.text())/100.0
+                    self.inputs.ihx_hot_dp = float(self.ui.IHX_hot_dp_edit.text())*1000.0
                 if self.ui.IHX_cold_dp_edit.text() == '':
                     QMessageBox.warning(self, '입력문 검토', '내부열교환기 저온측 압력강하를 입력하세요.', QMessageBox.Yes)
                     self.message_chk = self.message_chk+1
                 else:
-                    self.inputs.ihx_cold_dp = float(self.ui.IHX_cold_dp_edit.text())/100.0
+                    self.inputs.ihx_cold_dp = float(self.ui.IHX_cold_dp_edit.text())*1000.0
             elif self.layout_type == 'inj':
                 self.inputs.layout = 'inj'
                 if self.ui.comp_top_eff_edit.text() == '':
@@ -1234,6 +1241,8 @@ class WindowClass(QMainWindow):
         self.ui.COP_h_edit.setText(str(round(self.outputs.COP_heating,2)))
         COP_c = abs(self.OutEvap.q)/(self.outputs.Wcomp - self.outputs.Wexpand)
         self.ui.COP_c_edit.setText(str(round(COP_c,2)))
+        kwusRT = (self.outputs.Wcomp - self.outputs.Wexpand)/1.0E3/abs(self.OutEvap.q/3516.8525)
+        self.ui.kwusRT_edit.setText(str(round(kwusRT,2)))
         
         self.ui.REF_table.setItem(0, 0, QTableWidgetItem(str(round(self.OutEvap_REF.T-273.15,1))))
         self.ui.REF_table.setItem(0, 1, QTableWidgetItem(str(round(self.InCond_REF.T-273.15,1))))
@@ -1546,41 +1555,41 @@ class WindowClass(QMainWindow):
             self.ui.cond_out_p_edit.setEnabled(False)
         else:
             self.process_type = 'process'
-            self.ui.evap_in_T_edit.setText('12.0')
+            self.ui.evap_in_T_edit.setText('12.387')
         
-            self.ui.evap_in_p_edit.setText('1.563')
-            self.ui.evap_in_m_edit.setText('')
+            self.ui.evap_in_p_edit.setText('1.67')
+            self.ui.evap_in_m_edit.setText('5.661')
             
-            self.ui.evap_out_T_edit.setText('7')
-            self.ui.evap_out_p_edit.setText('1.013')
+            self.ui.evap_out_T_edit.setText('7.312')
+            self.ui.evap_out_p_edit.setText('1.65')
             
             if self.cycle_type == 'vcc':
                 self.ui.cond_fluid_table.setItem(0, 0, QTableWidgetItem('Water'))
-                self.ui.cond_in_T_edit.setText('32.0')
-                self.ui.cond_out_T_edit.setText('37.0')
+                self.ui.cond_in_T_edit.setText('29.737')
+                self.ui.cond_out_T_edit.setText('')
             else:
                 self.ui.cond_fluid_table.setItem(0, 0, QTableWidgetItem('air'))
                 self.ui.cond_in_T_edit.setText('120.0')
                 self.ui.cond_out_T_edit.setText('160.0')
             
             self.ui.cond_fluid_table.setItem(0, 1, QTableWidgetItem('1.0'))
-            self.ui.cond_in_p_edit.setText('1.333')
-            self.ui.cond_in_m_edit.setText('9.0')
-            self.ui.cond_out_p_edit.setText('1.013')
+            self.ui.cond_in_p_edit.setText('2.36')
+            self.ui.cond_in_m_edit.setText('7.131')
+            self.ui.cond_out_p_edit.setText('2.15')
             
-            self.ui.DSH_top_edit.setText('10.0')
+            self.ui.DSH_top_edit.setText('7.0')
             if self.cycle_type == 'vcc':
                 self.ui.DSC_edit.setText('1.0')
             else:
                 self.ui.DSC_edit.setText('')
                 
-            self.ui.DSH_edit.setText('10.0')
+            self.ui.DSH_edit.setText('7.0')
             self.ui.DSC_bot_edit.setText('1.0')
             
-            self.ui.cond_dp_edit.setText('1.0')
-            self.ui.cas_cold_dp_edit.setText('1.0')
-            self.ui.cas_hot_dp_edit.setText('1.0')
-            self.ui.evap_dp_edit.setText('1.0')
+            self.ui.cond_dp_edit.setText('30.0')
+            self.ui.cas_cold_dp_edit.setText('10.0')
+            self.ui.cas_hot_dp_edit.setText('10.0')
+            self.ui.evap_dp_edit.setText('15.0')
             
             if self.ui.cond_phe_radio.isChecked():
                 self.ui.cond_T_pp_edit.setText('1.5')
@@ -1600,12 +1609,14 @@ class WindowClass(QMainWindow):
                 self.ui.evap_T_pp_edit.setText('15.0')
                 self.ui.evap_N_row_edit.setText('5')
                     
-            self.ui.comp_top_eff_edit.setText('75.0')
-            self.ui.comp_eff_edit.setText('75.0')
-            self.ui.comp_bot_eff_edit.setText('75.0')
+            self.ui.comp_top_eff_edit.setText('70.0')
+            self.ui.comp_eff_edit.setText('70.0')
+            self.ui.motor_eff_edit.setText('95.0')
+            self.ui.comp_bot_eff_edit.setText('70.0')
             self.ui.expand_top_eff_edit.setText('0.0')
             self.ui.expand_eff_edit.setText('0.0')
             self.ui.expand_bot_eff_edit.setText('0.0')
+            
             
             self.ui.IHX_eff_edit.setText('90.0')
             self.ui.IHX_hot_dp_edit.setText('1.0')
@@ -1678,50 +1689,56 @@ class WindowClass(QMainWindow):
             maxT_bot = self.OutCond_REF_b.T
             minT_bot = self.InEvap_REF_b.T
             maxD_bot = PropsSI('D','T',maxT_bot,'P',maxP_bot,self.OutCond_REF_b.fluidmixture)
-            Q_bot = self.OutCond_REF_b.m/maxD_bot*3600.0
-            Kv_bot = Q_bot*sqrt(maxD_bot*10/maxdP_bot)
+            V_bot = self.OutCond_REF_b.m/maxD_bot*3600.0
+            Kv_bot = V_bot*sqrt(maxD_bot*10/maxdP_bot)
+            Qbot = self.OutCond_b.q
             maxdP_top = self.OutCond_REF_t.p - self.InEvap_REF_t.p
             maxP_top = self.OutCond_REF_t.p
             maxT_top = self.OutCond_REF_t.T
             minT_top = self.InEvap_REF_t.T
             maxD_top = PropsSI('D','T',maxT_top,'P',maxP_top,self.OutCond_REF_t.fluidmixture)
-            Q_top = self.OutCond_REF_t.m/maxD_top*3600.0
-            Kv_top = Q_top*sqrt(maxD_top*10/maxdP_top)
-            self.valve = valveWindow(maxdP_bot, maxP_bot, maxT_bot, minT_bot, Kv_bot, maxdP_top, maxP_top, maxT_top, minT_top, Kv_top, self.layout_type)
+            V_top = self.OutCond_REF_t.m/maxD_top*3600.0
+            Kv_top = V_top*sqrt(maxD_top*10/maxdP_top)
+            Qtop = self.OutCond_t.q
+            self.valve = valveWindow(Qbot, maxdP_bot, maxP_bot, maxT_bot, minT_bot, Kv_bot, Qtop, maxdP_top, maxP_top, maxT_top, minT_top, Kv_top, self.layout_type)
         elif self.layout_type == 'inj':
             maxdP_bot = (self.outputs.flash_liq_p - self.InEvap_REF.p)
             maxP_bot = self.outputs.flash_liq_p
             maxT_bot = self.outputs.flash_liq_T
             minT_bot = self.InEvap_REF.p
             maxD_bot = PropsSI('D','T',maxT_bot,'Q',0.0, self.OutCond_REF.fluidmixture)
-            Q_bot = self.InEvap_REF.m/maxD_bot*3600.0
-            Kv_bot = Q_bot*sqrt(maxD_bot*10/maxdP_bot)
+            V_bot = self.InEvap_REF.m/maxD_bot*3600.0
+            Kv_bot = V_bot*sqrt(maxD_bot*10/maxdP_bot)
+            Qbot = self.OutCond.q
             maxdP_top = (self.OutCond_REF.p - self.outputs.outexpand_high_p)
             maxP_top = self.OutCond_REF.p
             maxT_top = self.OutCond_REF.T
             minT_top = self.outputs.outexpand_high_T
             maxD_top = PropsSI('D','T',maxT_top,'P',maxP_top,self.OutCond_REF.fluidmixture)
-            Q_top = self.OutCond_REF.m/maxD_top*3600.0
-            Kv_top = Q_top*sqrt(maxD_top*10/maxdP_top)
-            self.valve = valveWindow(maxdP_bot, maxP_bot, maxT_bot, minT_bot, Kv_bot, maxdP_top, maxP_top, maxT_top, minT_top, Kv_top, self.layout_type)
+            V_top = self.OutCond_REF.m/maxD_top*3600.0
+            Kv_top = V_top*sqrt(maxD_top*10/maxdP_top)
+            Qtop = self.OutCond.q
+            self.valve = valveWindow(Qbot, maxdP_bot, maxP_bot, maxT_bot, minT_bot, Kv_bot, Qbot, maxdP_top, maxP_top, maxT_top, minT_top, Kv_top, self.layout_type)
         elif self.layout_type == 'ihx':
             maxdP_bot = (self.outputs.ihx_cold_out_p - self.InEvap_REF.p)
             maxP_bot = self.outputs.ihx_cold_out_p
             maxT_bot = self.outputs.ihx_cold_out_T
             minT_bot = self.InEvap_REF.T
             maxD_bot = PropsSI('D','T',maxT_bot,'P',maxP_bot, self.OutCond_REF.fluidmixture)
-            Q_bot = self.OutCond_REF.m/maxD_bot*3600.0
-            Kv_bot = Q_bot*sqrt(maxD_bot*10/maxdP_bot)
-            self.valve = valveWindow(maxdP_bot, maxP_bot, maxT_bot, minT_bot, Kv_bot, maxdP_bot, maxP_bot, maxT_bot, minT_bot, Kv_bot, self.layout_type)
+            V_bot = self.OutCond_REF.m/maxD_bot*3600.0
+            Kv_bot = V_bot*sqrt(maxD_bot*10/maxdP_bot)
+            Qbot = self.OutCond.q
+            self.valve = valveWindow(Qbot, maxdP_bot, maxP_bot, maxT_bot, minT_bot, Kv_bot, Qbot, maxdP_bot, maxP_bot, maxT_bot, minT_bot, Kv_bot, self.layout_type)
         else:
             maxdP_bot = (self.OutCond_REF.p - self.InEvap_REF.p)
             maxP_bot = self.OutCond_REF.p
             maxT_bot = self.OutCond_REF.T
             minT_bot = self.InEvap_REF.T
             maxD_bot = PropsSI('D','T',maxT_bot,'P',maxP_bot, self.OutCond_REF.fluidmixture)
-            Q_bot = self.OutCond_REF.m/maxD_bot*3600.0
-            Kv_bot = Q_bot*sqrt(maxD_bot*10/maxdP_bot)
-            self.valve = valveWindow(maxdP_bot, maxP_bot, maxT_bot, minT_bot, Kv_bot, maxdP_bot, maxP_bot, maxT_bot, minT_bot, Kv_bot, self.layout_type)
+            V_bot = self.OutCond_REF.m/maxD_bot*3600.0
+            Kv_bot = V_bot*sqrt(maxD_bot*10/maxdP_bot)
+            Qbot = self.OutCond.q
+            self.valve = valveWindow(Qbot, maxdP_bot, maxP_bot, maxT_bot, minT_bot, Kv_bot, Qbot, maxdP_bot, maxP_bot, maxT_bot, minT_bot, Kv_bot, self.layout_type)
                 
         self.valve.show()
     

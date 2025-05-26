@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1298</width>
-    <height>910</height>
+    <width>1300</width>
+    <height>915</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -917,7 +917,7 @@
           </font>
          </property>
          <property name="text">
-          <string>압력강하 [%]</string>
+          <string>압력강하 [kPa]</string>
          </property>
         </widget>
        </item>
@@ -1600,7 +1600,7 @@
           </font>
          </property>
          <property name="text">
-          <string>고온측 △P [%]</string>
+          <string>고온측 △P [kPa]</string>
          </property>
         </widget>
        </item>
@@ -1637,7 +1637,7 @@
           </font>
          </property>
          <property name="text">
-          <string>저온측 △P [%]</string>
+          <string>저온측 △P [kPa]</string>
          </property>
         </widget>
        </item>
@@ -1986,7 +1986,7 @@
           </font>
          </property>
          <property name="text">
-          <string>고온 압력강하 [%]</string>
+          <string>고온 압력강하 [kPa]</string>
          </property>
         </widget>
        </item>
@@ -2075,7 +2075,7 @@
           </font>
          </property>
          <property name="text">
-          <string>저온 압력강하 [%]</string>
+          <string>저온 압력강하 [kPa]</string>
          </property>
         </widget>
        </item>
@@ -2229,7 +2229,7 @@
           </font>
          </property>
          <property name="text">
-          <string>압력강하 [%]</string>
+          <string>압력강하 [kPa]</string>
          </property>
         </widget>
        </item>
@@ -3323,6 +3323,72 @@
       <string>입력 삭제</string>
      </property>
     </widget>
+    <widget class="QGroupBox" name="motor_group">
+     <property name="geometry">
+      <rect>
+       <x>830</x>
+       <y>490</y>
+       <width>181</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+     <widget class="QLabel" name="motor_eff_label">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>190</width>
+        <height>15</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>굴림</family>
+        <pointsize>8</pointsize>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>모터 효율 [%]</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="motor_eff_edit">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>113</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>HY견고딕</family>
+        <pointsize>8</pointsize>
+        <italic>false</italic>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border-color: rgb(0, 0, 0);</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </widget>
     <zorder>layout_fig_tab2</zorder>
     <zorder>process_fig_tab2</zorder>
     <zorder>ProtoLay_btn</zorder>
@@ -3363,6 +3429,7 @@
     <zorder>Calcstart_btn</zorder>
     <zorder>Example_btn</zorder>
     <zorder>Input_delete_btn</zorder>
+    <zorder>motor_group</zorder>
    </widget>
    <widget class="QWidget" name="results_tab">
     <attribute name="title">
@@ -4925,8 +4992,8 @@
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>131</width>
-       <height>91</height>
+       <width>261</width>
+       <height>101</height>
       </rect>
      </property>
      <property name="title">
@@ -5008,6 +5075,55 @@
       <property name="geometry">
        <rect>
         <x>0</x>
+        <y>70</y>
+        <width>121</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>HY견고딕</family>
+        <pointsize>10</pointsize>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border-color: rgb(255, 255, 255);</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLabel" name="kwusRT_label">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>50</y>
+        <width>131</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>HY견고딕</family>
+        <pointsize>10</pointsize>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>kW/usRT</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="kwusRT_edit">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>130</x>
         <y>70</y>
         <width>121</width>
         <height>21</height>
