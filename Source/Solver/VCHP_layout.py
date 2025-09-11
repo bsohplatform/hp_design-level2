@@ -304,7 +304,10 @@ class VCHP():
                 if self.evap_conv_err == 1:
                     if self.evap_err > 0:
                         inter_frac_lb = self.inter_frac
-                        break
+                    else:
+                        inter_frac_ub = self.inter_frac
+                    inputs.tol += 0.001
+                    break
                 else:
                     if iii == 0:
                         COP_o = outputs.COP_heating
@@ -1385,50 +1388,50 @@ class VCHP_cascade(VCHP):
 
 if __name__ == '__main__':
     
-    evapfluid = 'Water'
-    inevap_T = 12.387+273.15
+    evapfluid = 'water'
+    inevap_T = 12.0+273.15
     inevap_p = 167000
 
-    outevap_T = 7.312+273.15
+    outevap_T = 0
     outevap_p = 165000
     
-    evap_v = 339.844
-    evap_m = evap_v*PropsSI("D","T",inevap_T,"P",inevap_p,evapfluid)/1000/60
-    evap_v = evap_m/(PropsSI("D","T",inevap_T,"P",inevap_p,evapfluid)/1000/60)
-    print(evap_v)
+    #evap_v = 339.844
+    #evap_m = evap_v*PropsSI("D","T",inevap_T,"P",inevap_p,evapfluid)/1000/60
+    evap_m = 1.0
     
     InEvap = ProcessFluid(Y={evapfluid:1.0,},m = evap_m, T = inevap_T, p = inevap_p)
     OutEvap = ProcessFluid(Y={evapfluid:1.0,},m = evap_m, T = outevap_T, p = outevap_p)
     
     condfluid = 'Water'
 
-    incond_T = 29.737+273.15
+    incond_T = 45.0 + 273.15
     incond_p = 236000
     
-    outcond_T = 0
+    outcond_T = 50.0 + 273.15
     outcond_p = 215000
     
-    cond_v = 429.641
-    cond_m = cond_v*PropsSI("D","T",incond_T,"P",incond_p,condfluid)/1000/60
-    print(cond_v)
+    #cond_v = 429.641
+    #cond_m = cond_v*PropsSI("D","T",incond_T,"P",incond_p,condfluid)/1000/60
+    cond_m = 1.0
     
     InCond = ProcessFluid(Y={condfluid:1.0,},m = cond_m, T = incond_T, p = incond_p)
     OutCond = ProcessFluid(Y={condfluid:1.0,},m = cond_m, T = outcond_T, p = outcond_p)
     
     inputs = Settings()
-    inputs.Y = {'REFPROP::R134a':1.0,}
+    inputs.Y = {'R134a':1.0,}
     inputs.second = 'process'
     inputs.cycle = 'vcc'
     inputs.DSC = 1.0
-    inputs.DSH = 7.0
+    inputs.DSH = 10.0
     inputs.cond_type = 'phe'
     inputs.cond_dp = 30.0e3
-    inputs.cond_T_pp = 1.5
-    
+    inputs.cond_T_pp = 2.0
+    inputs.cond_N_element = 30
     inputs.evap_type = 'phe'
     inputs.evap_dp = 15.0e3
-    inputs.evap_T_pp = 0.8
-    inputs.layout = 'bas'
+    inputs.evap_T_pp = 2.0
+    inputs.evap_N_element = 30
+    inputs.layout = 'inj'
     
     inputs.comp_eff = 0.7
     inputs.mech_eff = 0.95

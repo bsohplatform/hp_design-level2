@@ -1574,7 +1574,7 @@ class WindowClass(QMainWindow):
             
             self.ui.cond_fluid_table.setItem(0, 1, QTableWidgetItem('1.0'))
             self.ui.cond_in_p_edit.setText('2.36')
-            self.ui.cond_in_m_edit.setText('7.131')
+            self.ui.cond_in_m_edit.setText('7.130')
             self.ui.cond_out_p_edit.setText('2.15')
             
             self.ui.DSH_top_edit.setText('7.0')
