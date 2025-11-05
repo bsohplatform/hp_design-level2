@@ -17,7 +17,7 @@ class VCHP():
         self.inputs = inputs
         self.amb_P = 101300.0
     
-    def __call__(self):
+    def __call__(self, inj_opt_flag=1):
         outputs = Outputs()
         
         InCond_REF = ProcessFluid(Y=self.inputs.Y)
@@ -42,7 +42,8 @@ class VCHP():
         evap_ph = 0
         cond_ph = 0
         if self.inputs.layout == 'inj':
-            (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs) = self.Injection_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, self.inputs, outputs, no_input, cond_ph, evap_ph)
+            if inj_opt_flag == 1:
+                (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs) = self.Injection_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, self.inputs, outputs, no_input, cond_ph, evap_ph)                
         elif self.inputs.layout == '2comp':
             (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs) = self.Comp_2stage_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, self.inputs, outputs, no_input, cond_ph, evap_ph)
         else:
@@ -295,32 +296,32 @@ class VCHP():
         while frac_a:
             for iii in range(2):
                 if iii == 0:
-                    self.inter_frac = 0.5*(inter_frac_lb+inter_frac_ub)*(1-dfrac)
+                    inputs.inter_frac = 0.5*(inter_frac_lb+inter_frac_ub)*(1-dfrac)
                 else:
-                    self.inter_frac = 0.5*(inter_frac_lb+inter_frac_ub)*(1+dfrac)
+                    inputs.inter_frac = 0.5*(inter_frac_lb+inter_frac_ub)*(1+dfrac)
                 
                 (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs) = self.Cycle_Solver(InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs, no_input, cond_ph, evap_ph)
                 
                 if self.evap_conv_err == 1:
                     if self.evap_err > 0:
-                        inter_frac_lb = self.inter_frac
+                        inter_frac_lb = inputs.inter_frac
                     else:
-                        inter_frac_ub = self.inter_frac
+                        inter_frac_ub = inputs.inter_frac
                     inputs.tol += 0.001
                     break
                 else:
                     if iii == 0:
                         COP_o = outputs.COP_heating
-                        frac_o = self.inter_frac
+                        frac_o = inputs.inter_frac
                     else:
-                        dCOP = ((outputs.COP_heating - COP_o)/outputs.COP_heating)/((self.inter_frac - frac_o)/self.inter_frac)
+                        dCOP = ((outputs.COP_heating - COP_o)/outputs.COP_heating)/((inputs.inter_frac - frac_o)/inputs.inter_frac)
                         if dCOP > 0:
-                            inter_frac_lb = self.inter_frac
+                            inter_frac_lb = inputs.inter_frac
                         else:
-                            inter_frac_ub = self.inter_frac
-                           
-                        results_array.append([0.5*(COP_o + outputs.COP_heating), 0.5*(frac_o + self.inter_frac), dCOP])
-                        
+                            inter_frac_ub = inputs.inter_frac
+
+                        results_array.append([0.5*(COP_o + outputs.COP_heating), 0.5*(frac_o + inputs.inter_frac), dCOP])
+
                         if len(results_array) > 2:
                             if results_array[-2][0] > results_array[-1][0] and results_array[-2][0] > results_array[-3][0]:
                                 outputs.COP_heating = results_array[-2][0]
@@ -339,7 +340,6 @@ class VCHP():
         return (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs)
     
     def Comp_2stage_Solver(self, InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs, no_input, cond_ph, evap_ph):
-        self.inter_frac = inputs.frac
         (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs) = self.Cycle_Solver(InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs, no_input, cond_ph, evap_ph)
         
         return (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs)
@@ -441,7 +441,7 @@ class VCHP():
                     self.cond_p_err = 0 
     
             if inputs.layout == 'inj':
-                inter_p = InEvap_REF.p + self.inter_frac*(OutCond_REF.p - InEvap_REF.p)
+                inter_p = InEvap_REF.p*(OutCond_REF.p/InEvap_REF.p)**inputs.inter_frac
                 inter_h_vap = PropsSI('H','P',inter_p,'Q',1.0, OutCond_REF.fluidmixture)
                 outputs.inter_h_vap = inter_h_vap
                 inter_h_liq = PropsSI('H','P',inter_p,'Q',0.0, OutCond_REF.fluidmixture)
@@ -456,7 +456,7 @@ class VCHP():
                 
                 InComp_high = deepcopy(OutComp_low)
                 
-                InComp_high.h = OutComp_low.h*((1.0-outputs.inter_x)*(1-inputs.liq_frac)+outputs.inter_x*(1-inputs.vap_frac))+inter_h_vap*outputs.inter_x*inputs.vap_frac+inter_h_liq*(1-outputs.inter_x)*inputs.liq_frac
+                InComp_high.h = OutComp_low.h*((1.0-outputs.inter_x)*(1-inputs.liq_frac)+outputs.inter_x*(1-inputs.vap_frac))+(inter_h_liq*(1.0-outputs.inter_x)*inputs.liq_frac+inter_h_vap*outputs.inter_x*inputs.vap_frac)
                 InComp_high.T = PropsSI('T','P',InComp_high.p,'H',InComp_high.h, InComp_high.fluidmixture)
                 InComp_high.s = PropsSI('S','T',InComp_high.T, 'P', InComp_high.p, InComp_high.fluidmixture)
                 
@@ -471,7 +471,7 @@ class VCHP():
                 OutExpand_high = expand_high.primary_out
                 
                 Flash_liq = deepcopy(OutExpand_high) # 팽창 후 2-phase 중 liq 상만 두번째 팽창기 입구로
-                Flash_liq.h = (inter_h_liq*(1-inputs.liq_frac)*(1-outputs.inter_x)+inter_h_vap*(1-inputs.vap_frac)*outputs.inter_x)/((1-inputs.liq_frac)*(1-outputs.inter_x)+(1-inputs.vap_frac)*outputs.inter_x)
+                Flash_liq.h = (inter_h_liq*(1.0-outputs.inter_x)*(1-inputs.liq_frac)+inter_h_vap*outputs.inter_x*(1-inputs.vap_frac))/((1.0-outputs.inter_x)*(1-inputs.liq_frac)+outputs.inter_x*(1-inputs.vap_frac))
                 Flash_liq.T = PropsSI('T','P',OutExpand_high.p,'Q',0.0, OutExpand_high.fluidmixture)
                 if inputs.expand_bot_eff > 0.0:
                     Flash_liq.s = PropsSI('S','P',OutExpand_high.p,'Q',0.0, OutExpand_high.fluidmixture) 
@@ -481,7 +481,7 @@ class VCHP():
                 InEvap_REF = expand_low.primary_out
                 
             elif inputs.layout == '2comp':
-                inter_p = InEvap_REF.p + self.inter_frac*(OutCond_REF.p - InEvap_REF.p)
+                inter_p = InEvap_REF.p*(OutCond_REF.p/InEvap_REF.p)**inputs.inter_frac
                 OutComp_low = deepcopy(OutEvap_REF)
                 OutComp_low.p = inter_p
                 
@@ -570,7 +570,7 @@ class VCHP():
                 InEvap_REF.m = InEvap.q/(InEvap_REF.h - OutEvap_REF.h)
                 OutEvap_REF.m = InEvap_REF.m
                 if inputs.layout == 'inj':
-                    InCond_REF.m = InEvap_REF.m/(1.0-outputs.inter_x)
+                    InCond_REF.m = InEvap_REF.m/((1.0-outputs.inter_x)*(1-inputs.liq_frac)+outputs.inter_x*(1-inputs.vap_frac))
                     OutCond_REF.m = InCond_REF.m
                     outputs.Wcomp = comp_low.Pspecific*OutEvap_REF.m + comp_high.Pspecific*InCond_REF.m
                     outputs.Wcomp /= inputs.mech_eff
@@ -668,8 +668,8 @@ class VCHP():
                 InCond_REF.m = InCond.q/(InCond_REF.h - OutCond_REF.h)
                 OutCond_REF.m = InCond_REF.m
                 if inputs.layout == 'inj':
-                    InEvap_REF.m = InCond_REF.m*(1.0 - outputs.inter_x)
-                    OutEvap_REF.m = InCond_REF.m*(1.0 - outputs.inter_x)
+                    InEvap_REF.m = InCond_REF.m*((1.0-outputs.inter_x)*(1-inputs.liq_frac)+outputs.inter_x*(1-inputs.vap_frac))
+                    OutEvap_REF.m = InEvap_REF.m
                     outputs.Wcomp = comp_low.Pspecific*OutEvap_REF.m + comp_high.Pspecific*InCond_REF.m
                     outputs.Wcomp /= inputs.mech_eff
                     outputs.Wcomp_top = comp_high.Pspecific*InCond_REF.m
@@ -1064,7 +1064,10 @@ class VCHP():
         print('---------------------------------------------------------------------------')
         print(f'Cond_UA: {outputs.cond_UA:.3f} [W/℃], Evap_UA: {outputs.evap_UA:.3f} [W/℃]')
         comp_in_d = PropsSI("D","T",OutEvap_REF.T,"P",OutEvap_REF.p,OutEvap_REF.fluidmixture)
-        print(f'Vdis comp: {OutEvap_REF.m/comp_in_d*1.0e6/60:.3f}[cc/rev]')
+        print(f'Vdis comp @60hz: {OutEvap_REF.m/comp_in_d*1.0e6/60:.3f}[cc/rev] / Qflow comp: {OutEvap_REF.m/comp_in_d*3600:.2f}[m3/h]')
+        if inputs.layout == 'inj':
+            comp2_in_d = PropsSI("D","T",outputs.incomp_high_T,"P",outputs.incomp_high_p,OutEvap_REF.fluidmixture)
+            print(f'Vdis comp2 @60hz: {OutCond_REF.m/comp2_in_d*1.0e6/60:.3f}[cc/rev] / Qflow comp: {OutCond_REF.m/comp2_in_d*3600:.2f}[m3/h]')
         print('---------------------------------------------------------------------------')
         print(' ')
 class VCHP_cascade(VCHP):
