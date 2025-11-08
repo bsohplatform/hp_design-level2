@@ -47,7 +47,7 @@ class valveWindow(QMainWindow):
         
         valve_data = pd.read_csv(resource_path('DBs/valves/Danfoss_Valve.csv'),encoding='cp949')
         bb = valve_data[(valve_data['minQ'] < minQ_bot) & (valve_data['maxQ'] > maxQ_bot) & (valve_data['maxdP'] > maxdP_bot) & (valve_data['maxP'] > maxP_bot) & (valve_data['maxT'] > maxT_bot) & (valve_data['minT'] < minT_bot)]
-        bb['valve_score'] = ((valve_data['minQ']-minQ_bot)/valve_data['minQ'])**2+((valve_data['maxQ']-maxQ_bot)/valve_data['maxQ'])**2+((bb['maxdP']-maxdP_bot)/bb['maxdP'])**2+((bb['maxP']-maxP_bot)/bb['maxP'])**2+((bb['maxT']-maxT_bot)/bb['maxT'])**2+((minT_bot-bb['minT'])/bb['minT'])**2
+        bb['valve_score'] = ((bb['minQ']-minQ_bot)/bb['minQ'])**2+((bb['maxQ']-maxQ_bot)/bb['maxQ'])**2+((bb['maxdP']-maxdP_bot)/bb['maxdP'])**2+((bb['maxP']-maxP_bot)/bb['maxP'])**2+((bb['maxT']-maxT_bot)/bb['maxT'])**2+((minT_bot-bb['minT'])/bb['minT'])**2
         
         kv_min_idx = bb['valve_score'].idxmin()
         self.ui.valve_bot_fig.setPixmap(QPixmap(resource_path("DBs/valves/Figs/"+valve_data.iloc[kv_min_idx]['Fig']+".png")).scaledToHeight(220))
