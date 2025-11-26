@@ -1386,7 +1386,7 @@ class VCHP_cascade(VCHP):
         print('<<<<<  Bottom Cycle  >>>>>')
         super().Post_Processing(InEvap_REF_t, OutEvap_REF_t, InEvap, OutEvap, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b)
         COP_cascade = (self.OutCond.q)/(outputs_t.Wcomp - outputs_t.Wexpand + outputs_b.Wcomp - outputs_b.Wexpand)
-        print('Combination COP:{:.3f}'.format(COP_cascade))
+        print('Cascade Heating COP:{:.3f}'.format(COP_cascade))
         print('')
 
 if __name__ == '__main__':
