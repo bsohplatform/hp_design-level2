@@ -120,7 +120,14 @@ class Settings:
     # 수렴오차
     tol: float = 1.0e-3
     
-    
+    # 부피 계산
+    V_evap: float = 0.0
+    V_evap2comp: float = 0.0
+    V_comp2cond: float = 0.0
+    V_cond: float = 0.0
+    V_cond2eev: float = 0.0
+    V_eev2evap: float = 0.0
+
 @dataclass
 class Outputs:
     COP_heating: float = 0.0

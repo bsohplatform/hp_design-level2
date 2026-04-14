@@ -377,6 +377,7 @@ class VCHP():
                 evap.PHE(N_element= inputs.evap_N_element)
                 self.evap_err = (inputs.evap_T_pp - evap.T_pp)/inputs.evap_T_pp
             
+            outputs.d_evap = evap.d_avg
             OutEvap_REF = evap.primary_out
             
             if evap.T_rvs == 1:
@@ -775,6 +776,9 @@ class VCHP():
                 (outputs.cond_Tarray, outputs.cond_parray) = cond.PHE(N_element=inputs.cond_N_element)
                 self.cond_err = (inputs.cond_T_pp - cond.T_pp)/inputs.cond_T_pp
             
+            outputs.d_cond = cond.d_avg
+            if cond_ph != 0:
+                outputs.d_cond_sec = cond.d_avg_sec
             OutCond_REF = cond.primary_out
             
             if cond.T_rvs == 1:
@@ -846,6 +850,23 @@ class VCHP():
             
         return (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs)
     
+    def Ref_Charge_Calc(self, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs):
+        M_evap = inputs.V_evap*outputs.d_evap
+        M_evap2comp = inputs.V_evap2comp*PropsSI("D","T",OutEvap_REF.T,"P",OutEvap_REF.p, OutEvap_REF.fluidmixture)
+        M_comp2cond = inputs.V_comp2cond*PropsSI("D","T",InCond_REF.T,"P",InCond_REF.p, InCond_REF.fluidmixture)
+        M_cond = inputs.V_cond*outputs.d_cond
+        M_cond2eev = inputs.V_cond2eev*PropsSI("D","T",OutCond_REF.T,"P",OutCond_REF.p, OutCond_REF.fluidmixture)
+        M_eev2evap = inputs.V_eev2evap*PropsSI("D","T",InEvap_REF.T,"P",InEvap_REF.p, OutEvap_REF.fluidmixture)
+        M_total = M_evap + M_evap2comp + M_comp2cond + M_cond + M_cond2eev + M_eev2evap
+
+        print(f'M_evap: {M_evap:.3f} [kg]')
+        print(f'M_evap2comp: {M_evap2comp:.3f} [kg]')
+        print(f'M_comp2cond: {M_comp2cond:.3f} [kg]')
+        print(f'M_cond: {M_cond:.3f} [kg]')
+        print(f'M_cond2eev: {M_cond2eev:.3f} [kg]')
+        print(f'M_eev2evap: {M_eev2evap:.3f} [kg]')
+        print(f'M_total: {M_total:.3f} [kg]')
+
     def Plot_diagram(self, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs, ts_file, ph_file, coeff):
         (p_array, h_array, T_array, s_array) = self.Dome_Draw(list(inputs.Y.keys())[0], coeff)
         (p_points, h_points, T_points, s_points) = self.Diagram_Draw(InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs)
@@ -1203,7 +1224,9 @@ class VCHP_cascade(VCHP):
         if (no_input == 'InEvapT') or (no_input == 'OutEvapT') or (no_input == 'Evapm'):
             (InCond, OutCond, InEvap_dummy, OutEvap_dummy, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, outputs_t) = super().HighPressure_Solver(InCond, OutCond, InEvap, OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t, no_input, cond_t_ph)
             (InEvap_REF_t, OutEvap_REF_t, InEvap, OutEvap, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, outputs_b) = super().Cycle_Solver(InEvap_REF_t, OutEvap_REF_t, InEvap, OutEvap, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b, no_input, cond_b_ph, evap_b_ph)
-                
+            outputs_t.d_evap = outputs_b.d_cond_sec
+            
+            
         elif (no_input == 'InCondT') or (no_input == 'OutCondT') or (no_input == 'Condm'):
             if inputs_t.cycle == 'scc':
                 cond_p_ub = min(5*InCond_REF_t.p_crit, 1.0e8)
@@ -1219,6 +1242,7 @@ class VCHP_cascade(VCHP):
             while cond_a_t:
                 (InCond_REF_t, OutCond_REF_t, InEvap_REF_t, outputs_t) = self.TopCycle_HighPressure_solver(cond_p_lb, cond_p_ub, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t)
                 (InEvap_REF_t, OutEvap_REF_t, InEvap, OutEvap, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, outputs_b) = super().Cycle_Solver(InEvap_REF_t, OutEvap_REF_t, InEvap, OutEvap, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b, 'Condm', cond_b_ph, evap_b_ph)
+                outputs_t.d_evap = outputs_b.d_cond_sec
                 
                 InCond_REF_t.m = InEvap_REF_t.m
                 OutCond_REF_t.m = InEvap_REF_t.m
@@ -1260,6 +1284,7 @@ class VCHP_cascade(VCHP):
                     (outputs_t.cond_Tarray, outputs_t.cond_parray) = cond_t.PHE(N_element=inputs_t.cond_N_element)
                     cond_err = (inputs_t.cond_T_pp - cond_t.T_pp)/inputs_t.cond_T_pp
                 
+                outputs_t.d_cond = cond_t.d_avg        
                 OutCond_REF_t = cond_t.primary_out
                 
                 if cond_t.T_rvs == 1:
@@ -1346,6 +1371,13 @@ class VCHP_cascade(VCHP):
         
         return (InCond_REF, OutCond_REF, InEvap_REF, outputs)
     
+    def Ref_Charge_Calc(self, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b):
+        print('----------Top Cycle Charge----------')
+        super().Ref_Charge_Calc(InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t)
+        print(' ')
+        print('----------Bot Cycle Charge----------')
+        super().Ref_Charge_Calc(InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b)
+
     def Plot_diagram(self, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b, ts_file, ph_file, coeff = 1.0):
         (p_array_t, h_array_t, T_array_t, s_array_t) = super().Dome_Draw(InCond_REF_t.fluidmixture, coeff)
         (p_array_b, h_array_b, T_array_b, s_array_b) = super().Dome_Draw(InCond_REF_b.fluidmixture, coeff)
