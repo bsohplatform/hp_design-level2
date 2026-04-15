@@ -1389,202 +1389,53 @@ class VCHP_cascade(VCHP):
 if __name__ == '__main__':
     
     evapfluid = 'water'
-    inevap_T = 12.0+273.15
-    inevap_p = 167000
+    inevap_T = 21.3+273.15
+    inevap_p = 110000
 
     outevap_T = 0
-    outevap_p = 165000
+    outevap_p = 110000
     
-    #evap_v = 339.844
-    #evap_m = evap_v*PropsSI("D","T",inevap_T,"P",inevap_p,evapfluid)/1000/60
-    evap_m = 1.0
+    evap_m = 1.2
+    evap_m = evap_m/3600*PropsSI("D","T",inevap_T,"P",inevap_p,evapfluid)
     
     InEvap = ProcessFluid(Y={evapfluid:1.0,},m = evap_m, T = inevap_T, p = inevap_p)
     OutEvap = ProcessFluid(Y={evapfluid:1.0,},m = evap_m, T = outevap_T, p = outevap_p)
     
     condfluid = 'Water'
 
-    incond_T = 45.0 + 273.15
-    incond_p = 236000
+    incond_T = 52.7 + 273.15
+    incond_p = 210000
     
-    outcond_T = 50.0 + 273.15
-    outcond_p = 215000
+    outcond_T = 57.2 + 273.15
+    outcond_p = 200000
     
     #cond_v = 429.641
     #cond_m = cond_v*PropsSI("D","T",incond_T,"P",incond_p,condfluid)/1000/60
-    cond_m = 1.0
+    cond_m = 1.89
+    cond_m = cond_m/3600*PropsSI("D","T",incond_T,"P",incond_p,condfluid)
     
     InCond = ProcessFluid(Y={condfluid:1.0,},m = cond_m, T = incond_T, p = incond_p)
     OutCond = ProcessFluid(Y={condfluid:1.0,},m = cond_m, T = outcond_T, p = outcond_p)
     
     inputs = Settings()
-    inputs.Y = {'R134a':1.0,}
+    inputs.Y = {'REFPROP::KETEP_3src_ref.MIX':1.0,}
     inputs.second = 'process'
     inputs.cycle = 'vcc'
     inputs.DSC = 1.0
-    inputs.DSH = 10.0
+    inputs.DSH = 5.0
     inputs.cond_type = 'phe'
-    inputs.cond_dp = 30.0e3
+    inputs.cond_dp = 10.0e4
     inputs.cond_T_pp = 2.0
     inputs.cond_N_element = 30
     inputs.evap_type = 'phe'
-    inputs.evap_dp = 15.0e3
-    inputs.evap_T_pp = 2.0
+    inputs.evap_dp = 10.0e4
+    inputs.evap_T_pp = 1.2
     inputs.evap_N_element = 30
-    inputs.layout = 'inj'
+    inputs.layout = 'bas'
     
-    inputs.comp_eff = 0.7
-    inputs.mech_eff = 0.95
+    inputs.comp_eff = 0.75
+    inputs.mech_eff = 1.0
     
     vchp_basic = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)    
     (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs)=vchp_basic()
     vchp_basic.Post_Processing(InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs)
-    '''
-    evapfluid = 'water'
-    inevapT = 70.0+273.15
-    inevapp = 101300
-    evapm = 0
-    InEvap = ProcessFluid(Y={evapfluid:1.0,},m = evapm, T = inevapT, p = inevapp)
-    
-    outevapT = 65.0+273.15
-    outevapp = 101300
-    OutEvap = ProcessFluid(Y={evapfluid:1.0,},m = evapm, T = outevapT, p = outevapp)
-    
-    condfluid = 'air'
-
-    incond_T = 59.4+273.15
-    incond_p = 101300
-    incond_hum = 0.068
-    incond_ahum = HAPropsSI("W","T",incond_T,"P",incond_p,"R",incond_hum)
-    
-    outcond_T = 120+273.15
-    outcond_p = 101300
-    outcond_hum = 0.007
-    outcond_ahum = incond_ahum
-    
-    cond_cmh = 36000
-    
-    d_hum_cond = HAPropsSI("Vha","T",incond_T, "P", incond_p, "W", incond_ahum)
-    cond_m = cond_cmh/3600*d_hum_cond
-    
-    InCond = ProcessFluid(Y={condfluid:1.0,},m = cond_m, T = incond_T, p = incond_p, ahum=incond_ahum)
-    OutCond = ProcessFluid(Y={condfluid:1.0,},m = cond_m, T = outcond_T, p = outcond_p, ahum=outcond_ahum)
-    
-    inputs = Settings()
-    inputs.Y = {'REFPROP::R1233zd(E)':1.0,}
-    inputs.second = 'process'
-    inputs.cycle = 'vcc' 
-    
-    inputs.DSH = 8.0
-    inputs.DSC = 1.0
-    inputs.cond_dp = 0.01
-    inputs.evap_dp = 0.01
-    inputs.evap_type = 'phe'
-    inputs.cond_type = 'fthe'
-    inputs.evap_T_pp = 0.1
-    inputs.cond_T_lm = 25.0
-    inputs.cond_N_row = 5
-    inputs.cond_N_turn = 5
-    inputs.layout = 'bas'
-    inputs.comp_eff = 0.75
-    
-    bas = VCHP(InCond, OutCond, InEvap, OutEvap, inputs)
-    (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs) = bas()
-    bas.Post_Processing(InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs)
-    a = 0
-    
-    
-    evapfluid = 'air'
-    inevap_T = 25.1+273.15
-    inevap_p = 103000
-    inevap_hum = 0.024
-    inevap_ahum = HAPropsSI("W","T",inevap_T,"P",inevap_p,"R",inevap_hum)
-
-            outevap_T = 0 
-            outevap_p = 101300
-            outevap_ahum = inevap_ahum
-            
-            evap_cmh = 36000
-
-            d_hum_evap = HAPropsSI("Vha","T",inevap_T, "P", inevap_p, "R", inevap_hum)
-            evap_m = evap_cmh/3600*d_hum_evap
-
-            InEvap = ProcessFluid(Y={evapfluid:1.0,},m = evap_m, T = inevap_T, p = inevap_p, ahum = inevap_ahum)
-            OutEvap = ProcessFluid(Y={evapfluid:1.0,},m = evap_m, T = outevap_T, p = outevap_p, ahum = outevap_ahum)
-
-            condfluid = 'air'
-
-            incond_T = 59.4+273.15 # 고온 공기 입구 온도
-            incond_p = 101300
-            incond_hum = 0.068
-            incond_ahum = HAPropsSI("W","T",incond_T,"P",incond_p,"R",incond_hum)
-            
-            outcond_T = 120.00+273.15 # 고온 공기 출구 온도
-            outcond_p = 101300
-            outcond_hum = 0.007
-            outcond_ahum = incond_ahum
-            
-            cond_cmh = 12420
-            
-            d_hum_cond = HAPropsSI("Vha","T",incond_T, "P", incond_p, "R", incond_hum)
-            cond_m = cond_cmh/3600*d_hum_cond
-            
-            InCond = ProcessFluid(Y={condfluid:1.0,},m = cond_m, T = incond_T, p = incond_p, ahum=incond_ahum)
-            OutCond = ProcessFluid(Y={condfluid:1.0,},m = cond_m, T = outcond_T, p = outcond_p, ahum=outcond_ahum)
-            
-
-            inputs_t = Settings()
-            inputs_t.Y = {'REFPROP::'+t_r:1.0,}
-            inputs_t.second = 'process'
-            inputs_t.cycle = 'vcc'
-            inputs_t.cond_type = 'fthe'
-            inputs_t.evap_type = 'phe'
-            inputs_t.cond_dp = 20.0e3
-            inputs_t.evap_dp = 20.0e3
-            inputs_t.cond_T_lm = 32.0 # Top 사이클 응축 LMTD
-            inputs_t.evap_T_pp = 5.0
-            inputs_t.comp_eff = 0.68
-            inputs_t.layout = 'inj'
-            # 플래시 탱크 중간압 비율
-            inputs_t.inter_frac = 0.45
-            # 기체 유입 비율
-            inputs_t.vap_frac = 1.0
-            # 액체 유입 비율
-            inputs_t.liq_frac = 0.0
-            
-
-            inputs_t.DSC = 1.0
-            inputs_t.DSH = 10.0
-            
-            inputs_b = Settings()
-            inputs_b.Y = {'REFPROP::'+b_r:1.0,}
-            inputs_b.second = 'process'
-            inputs_b.cycle = 'vcc'
-            inputs_b.cond_type = 'phe'
-            inputs_b.evap_type = 'fthe'
-            inputs_b.cond_dp = 20.0e3
-            inputs_b.evap_dp = 20.0e3
-            inputs_b.cond_T_pp = 5.0
-            inputs_b.evap_T_lm = 12.5  # Bottom 사이클 응축 LMTD
-            inputs_b.comp_eff = 0.625
-            inputs_b.layout = 'bas'
-            inputs_b.DSC = 1.0
-            inputs_b.DSH = 5.0
-            
-            T_crit_b = CP.PropsSI("TCRIT","",0,"",0,"REFPROP::"+b_r)
-            evap_t_p_input = max(CP.PropsSI("P","T",min(0.8*inevap_T+0.2*outcond_T,T_crit_b*0.95),"Q",1.0,"REFPROP::"+t_r),101300)
-            
-            a2a_120 = VCHP_cascade(InCond, OutCond, InEvap, OutEvap, inputs_t, inputs_b)
-            
-            (InCond, OutCond, InEvap, OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, outputs_t, outputs_b)=a2a_120(opt_flag=0, evap_t_p_input=evap_t_p_input)
-            
-            a2a_120.Post_Processing(InCond, OutCond, InEvap, OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b)
-            ts_file = 'TS_'+t_r+'_'+b_r
-            ph_file = 'PH_'+t_r+'_'+b_r
-            coeff = 0.95
-            a2a_120.Plot_diagram(InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b, ts_file, ph_file, coeff)
-            print('---------------------------------------------------------------------------')
-            print('')
-            print(f'Simultaneous Heating and Cooling COP: {(OutCond.q-OutEvap.q)/(outputs_t.Wcomp+outputs_b.Wcomp):.3f}')
-            print('')
-            print('---------------------------------------------------------------------------')
