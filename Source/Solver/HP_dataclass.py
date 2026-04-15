@@ -100,7 +100,7 @@ class Settings:
     ihx_hot_dp: float = 0.01
     
     # 증기 인젝션 스펙
-    vap_frac: float = 0.5
+    vap_frac: float = 1.0
     liq_frac: float = 0.0
     
     # 증기 공정 조건 입력
