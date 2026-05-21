@@ -174,16 +174,16 @@ class WindowClass(QMainWindow):
             self.ui.layout_fig_tab2.setPixmap(QPixmap(resource_path("Figs/Basic.png")).scaledToHeight(500))
             self.layout_type = 'bas'
             self.Bas_batch()
-        elif self.ihx_radio.isChecked():
-            self.layout_fig_tab2.setPixmap(QPixmap(resource_path("Figs/IHX.png")).scaledToHeight(500))
+        elif self.ui.ihx_radio.isChecked():
+            self.ui.layout_fig_tab2.setPixmap(QPixmap(resource_path("Figs/IHX.png")).scaledToHeight(500))
             self.layout_type = 'ihx'
             self.IHX_batch()
-        elif self.inj_radio.isChecked():
-            self.layout_fig_tab2.setPixmap(QPixmap(resource_path("Figs/Injection.png")).scaledToHeight(500))
+        elif self.ui.inj_radio.isChecked():
+            self.ui.layout_fig_tab2.setPixmap(QPixmap(resource_path("Figs/Injection.png")).scaledToHeight(500))
             self.layout_type = 'inj'
             self.Inj_batch()
-        elif self.cas_radio.isChecked():
-            self.layout_fig_tab2.setPixmap(QPixmap(resource_path("Figs/Cascade.png")).scaledToHeight(500))
+        elif self.ui.cas_radio.isChecked():
+            self.ui.layout_fig_tab2.setPixmap(QPixmap(resource_path("Figs/Cascade.png")).scaledToHeight(500))
             self.layout_type = 'cas'
             self.Cas_batch()
             
