@@ -396,6 +396,7 @@ class VCHP():
                 evap_a = 0
                 
         outputs.COP_heating = abs(OutCond.q)/(outputs.Wcomp - outputs.Wexpand)
+        outputs.COP_cooling = abs(OutEvap.q)/(outputs.Wcomp - outputs.Wexpand)
         outputs.DSH = inputs.DSH
         outputs.evap_UA = evap.UA
         
@@ -1013,7 +1014,7 @@ class VCHP():
             
     def Post_Processing(self, InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs):
         print('---------------------------------------------------------------------------')
-        print(f'Heating COP:{outputs.COP_heating:.3f}, Cooling COP:{outputs.COP_heating-1:.3f}')
+        print(f'Heating COP:{outputs.COP_heating:.3f}, Cooling COP:{outputs.COP_cooling:.3f}')
         print(f'Refrigerant:{OutCond_REF.fluidmixture}')
         print(f'Q heating: {OutCond.q/1000:.3f} [kW] ({OutCond.q/3516.8525:.3f} [usRT])')
         print(f'Q cooling: {OutEvap_REF.q/1000:.3f} [kW] ({OutEvap_REF.q/3516.8525:.3f} [usRT])')
@@ -1053,6 +1054,9 @@ class VCHP():
             print(f'Tihx_cold_out: {outputs.ihx_cold_out_T-273.15:.3f} [℃], Pihx_cold_out: {outputs.ihx_cold_out_p/1.0e5:.3f} [bar], mihx_cold_out: {OutEvap_REF.m:.3f} [kg/s]')
         elif inputs.layout == 'part_cool':
             print(f'Tcomp_in: {outputs.incomp_T-273.15:.3f} [℃], Pcomp_in: {outputs.incomp_p/1.0e5:.3f} [bar], mcomp_in: {InCond_REF.m:.3f} [kg/s]')
+        elif inputs.layout == 'inj':
+            print(f'Toutcomp_s1: {outputs.outcomp_low_T-273.15:.3f} [℃], Poutcomp_s1: {outputs.outcomp_low_p/1.0e5:.3f} [bar], mcomp_s1: {OutEvap_REF.m:.3f} [kg/s]')
+            print(f'Tincomp_s2: {outputs.incomp_high_T-273.15:.3f} [℃], Pincomp_s2: {outputs.incomp_high_p/1.0e5:.3f} [bar], mcomp_s2: {InCond_REF.m:.3f} [kg/s]')
         print(f'Tcond_in: {InCond_REF.T-273.15:.3f} [℃], Pcond_in: {InCond_REF.p/1.0e5:.3f} [bar], mcond_in {InCond_REF.m:.3f} [kg/s]')
         print(f'Tcond_out: {OutCond_REF.T-273.15:.3f} [℃], Pcond_out: {OutCond_REF.p/1.0e5:.3f} [bar], mcond_out {OutCond_REF.m:.3f} [kg/s]')
         if inputs.layout == 'ihx':
@@ -1063,6 +1067,8 @@ class VCHP():
             print(f'Tpcx_cold_in: {outputs.pcx_cold_in_T-273.15:.3f} [℃] (xpcx_cold_in: {x_pcx_cold_in:.3f}), Ppcx_cold_in: {outputs.pcx_cold_in_p/1.0e5:.3f} [bar], mpcx_cold_in: {OutCond_REF.m*inputs.pcx_frac:.3f} [kg/s]')
             print(f'Tpcx_cold_out: {outputs.pcx_cold_out_T-273.15:.3f} [℃] (xpcx_cold_out: {x_pcx_cold_out:.3f}), Ppcx_cold_out: {outputs.pcx_cold_out_p/1.0e5:.3f} [bar], mpcx_cold_out: {OutCond_REF.m*inputs.pcx_frac:.3f} [kg/s]')
             print(f'Tpcx_hot_out: {outputs.pcx_hot_out_T-273.15:.3f} [℃], Ppcx_hot_out: {outputs.pcx_hot_out_p/1.0e5:.3f} [bar], mpcx_hot_out: {OutCond_REF.m*(1-inputs.pcx_frac):.3f} [kg/s]')
+        elif inputs.layout == 'inj':
+            print(f'Tflash: {outputs.flash_liq_T-273.15:.3f} [℃], Pflash: {outputs.flash_liq_p/1.0e5:.3f} [bar], mflash: {OutCond_REF.m-OutEvap_REF.m:.3f} [kg/s]')
             
         x_evap_in = PropsSI("Q","P",InEvap_REF.p,"H",InEvap_REF.h,InEvap_REF.fluidmixture)
         print(f'Tevap_in: {InEvap_REF.T-273.15:.3f} [℃] (xevap_in: {x_evap_in:.3f}), Pvalve_out: {InEvap_REF.p/1.0e5:.3f} [bar], mevap_in {InEvap_REF.m:.3f} [kg/s]')
@@ -1079,9 +1085,7 @@ class VCHP():
             Thigh = PropsSI('T','P',0.5*(OutCond_REF.p+InCond_REF.p),'Q',0.5,OutCond_REF.fluidmixture)
         except:
             Thigh = 0
-        print(f'Ts_low: {Tlow-273.15:.3f} [℃], Ts_high: {Thigh-273.15:.3f} [℃], mdot: {OutEvap_REF.m:.3f}[kg/s]')
-        if inputs.layout == 'inj' or inputs.layout == '2comp':
-            print(f'T_inter: {outputs.incomp_high_T-273.15:.3f} [℃] / P_inter: {outputs.incomp_high_p/1.0e5:.3f} [bar]')
+        print(f'Ts_low: {Tlow-273.15:.3f} [℃], Ts_high: {Thigh-273.15:.3f}')
         print('---------------------------------------------------------------------------')
         print(f'Cond_UA: {outputs.cond_UA:.3f} [W/℃], Evap_UA: {outputs.evap_UA:.3f} [W/℃]')
         comp_in_d = PropsSI("D","T",OutEvap_REF.T,"P",OutEvap_REF.p,OutEvap_REF.fluidmixture)
@@ -1168,7 +1172,8 @@ class VCHP_cascade(VCHP):
                     
                 (InCond, OutCond, InEvap, OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, outputs_t, outputs_b) = self.Cascade_solver(InCond, OutCond, InEvap, OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_t, inputs_b, outputs_t, outputs_b, no_input, cond_t_ph, evap_b_ph, evap_t_p_input)
                 
-                outputs_t.COP_heating = OutCond.q/(outputs_t.Wcomp - outputs_t.Wexpand)
+                outputs_t.COP_heating = abs(OutCond.q)/(outputs_t.Wcomp - outputs_t.Wexpand)
+                outputs_t.COP_cooling = abs(OutEvap.q)/(outputs_t.Wcomp - outputs_t.Wexpand)
                 
                 COP_cascade = OutCond.q/(outputs_t.Wcomp - outputs_t.Wexpand + outputs_b.Wcomp - outputs_b.Wexpand)
                 
@@ -1302,7 +1307,8 @@ class VCHP_cascade(VCHP):
                     cond_conv_err = 1
                     cond_a_t = 0
             
-        outputs_t.COP_heating = OutCond.q/(outputs_t.Wcomp - outputs_t.Wexpand)
+        outputs_t.COP_heating = abs(OutCond.q)/(outputs_t.Wcomp - outputs_t.Wexpand)
+        outputs_t.COP_cooling = abs(OutEvap.q)/(outputs_t.Wcomp - outputs_t.Wexpand)
         outputs_t.DSH = OutEvap_REF_t.T - OutEvap_REF_t_Tvap
         
         return(InCond, OutCond, InEvap, OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, outputs_t, outputs_b)
@@ -1479,8 +1485,6 @@ if __name__ == '__main__':
             inputs_t.evap_T_pp = 5.0
             inputs_t.comp_eff = 0.68
             inputs_t.layout = 'inj'
-            # 플래시 탱크 중간압 비율
-            inputs_t.inter_frac = 0.45
             # 기체 유입 비율
             inputs_t.vap_frac = 1.0
             # 액체 유입 비율
