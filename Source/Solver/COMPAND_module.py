@@ -1,12 +1,12 @@
 from CoolProp.CoolProp import PropsSI
 
 class Compander_module:
-    
+
     def __init__(self, primary_in, primary_out):
         self.primary_in = primary_in
         self.primary_out = primary_out
-        
-    def COMP(self, eff_isen: float, DSH):
+
+    def COMP(self, eff_isen, DSH):
         h_comp_out_isen = PropsSI('H','P',self.primary_out.p,'S',self.primary_in.s,self.primary_in.fluidmixture)
         self.primary_out.h = (h_comp_out_isen - self.primary_in.h)/eff_isen + self.primary_in.h
         self.primary_out.T = PropsSI('T','H',self.primary_out.h,'P',self.primary_out.p,self.primary_in.fluidmixture)
