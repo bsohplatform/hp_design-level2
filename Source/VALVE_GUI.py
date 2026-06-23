@@ -14,6 +14,36 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
+def _recommend_valve(valve_data, Q, maxdP, maxP, maxT, minT, margin=1.15):
+    """운전 조건과 마진을 적용해 최적 밸브의 인덱스를 반환."""
+    maxdP = maxdP * margin / 1.0e5
+    maxP  = maxP  * margin / 1.0e5
+    maxT  = maxT  * margin - 273.15
+    minT  = minT  / margin - 273.15
+    minQ  = Q / 1.0e3 * 0.15
+    maxQ  = 2 * Q / 1.0e3 - minQ
+
+    candidates = valve_data[
+        (valve_data['minQ']  < minQ)  &
+        (valve_data['maxQ']  > maxQ)  &
+        (valve_data['maxdP'] > maxdP) &
+        (valve_data['maxP']  > maxP)  &
+        (valve_data['maxT']  > maxT)  &
+        (valve_data['minT']  < minT)
+    ].copy()
+
+    candidates['valve_score'] = (
+        ((candidates['minQ']  - minQ)  / candidates['minQ'])**2  +
+        ((candidates['maxQ']  - maxQ)  / candidates['maxQ'])**2  +
+        ((candidates['maxdP'] - maxdP) / candidates['maxdP'])**2 +
+        ((candidates['maxP']  - maxP)  / candidates['maxP'])**2  +
+        ((candidates['maxT']  - maxT)  / candidates['maxT'])**2  +
+        ((minT - candidates['minT'])   / candidates['minT'])**2
+    )
+
+    return candidates['valve_score'].idxmin()
+
+
 class valveWindow(QMainWindow):
     def __init__(self, Qbot, maxdP_bot, maxP_bot, maxT_bot, minT_bot, Kv_bot, Qtop, maxdP_top, maxP_top, maxT_top, minT_top, Kv_top, layout_type):
         super().__init__()
@@ -22,34 +52,16 @@ class valveWindow(QMainWindow):
         ui_file.open(QFile.ReadOnly)
         self.ui = loader.load(ui_file, self)
         ui_file.close()
-        
+
         self.setCentralWidget(self.ui)
         self.ui.show()
-        
+
         self.setWindowTitle("VALVE_RECOMMANDATION")
-        
+
         margin = 1.15
-        
-        maxdP_bot = maxdP_bot*margin/1.0e5
-        maxP_bot = maxP_bot*margin/1.0e5
-        maxT_bot = maxT_bot*margin - 273.15
-        minT_bot = minT_bot/margin - 273.15
-        minQ_bot = Qbot/1.0e3*0.15
-        maxQ_bot = 2*Qbot/1.0e3-minQ_bot
-        Kv_bot = Kv_bot*margin
-        maxdP_top = maxdP_top*margin/1.0e5
-        maxP_top = maxP_top*margin/1.0e5
-        maxT_top = maxT_top*margin - 273.15
-        minT_top = minT_top/margin - 273.15
-        minQ_top = Qtop/1.0e3*0.15
-        maxQ_top = 2*Qtop/1.0e3-minQ_top
-        Kv_top = Kv_top*margin
-        
-        valve_data = pd.read_csv(resource_path('DBs/valves/Danfoss_Valve.csv'),encoding='cp949')
-        bb = valve_data[(valve_data['minQ'] < minQ_bot) & (valve_data['maxQ'] > maxQ_bot) & (valve_data['maxdP'] > maxdP_bot) & (valve_data['maxP'] > maxP_bot) & (valve_data['maxT'] > maxT_bot) & (valve_data['minT'] < minT_bot)].copy()
-        bb['valve_score'] = ((bb['minQ']-minQ_bot)/bb['minQ'])**2+((bb['maxQ']-maxQ_bot)/bb['maxQ'])**2+((bb['maxdP']-maxdP_bot)/bb['maxdP'])**2+((bb['maxP']-maxP_bot)/bb['maxP'])**2+((bb['maxT']-maxT_bot)/bb['maxT'])**2+((minT_bot-bb['minT'])/bb['minT'])**2
-        
-        kv_min_idx = bb['valve_score'].idxmin()
+        valve_data = pd.read_csv(resource_path('DBs/valves/Danfoss_Valve.csv'), encoding='cp949')
+
+        kv_min_idx = _recommend_valve(valve_data, Qbot, maxdP_bot, maxP_bot, maxT_bot, minT_bot, margin)
         self.ui.valve_bot_fig.setPixmap(QPixmap(resource_path("DBs/valves/Figs/"+valve_data.iloc[kv_min_idx]['Fig']+".png")).scaledToHeight(220))
         self.ui.model.setText(valve_data.iloc[kv_min_idx]['Brand']+' '+valve_data.iloc[kv_min_idx]['Model'])
         self.ui.NS.setText(str(valve_data.iloc[kv_min_idx]['minQ']))
@@ -68,10 +80,7 @@ class valveWindow(QMainWindow):
         self.ui.connect_possible.setText(valve_data.iloc[kv_min_idx]['connect_possible'])
         
         if layout_type == 'cas' or layout_type == 'inj':
-            tt = valve_data[(valve_data['minQ'] < minQ_top) & (valve_data['maxQ'] > maxQ_top) & (valve_data['maxdP'] > maxdP_top) & (valve_data['maxP'] > maxP_top) & (valve_data['maxT'] > maxT_top) & (valve_data['minT'] < minT_top)]
-            tt['valve_score'] = ((valve_data['minQ']-minQ_top)/valve_data['minQ'])**2+((valve_data['maxQ']-maxQ_top)/valve_data['maxQ'])**2+((tt['maxdP']-maxdP_top)/tt['maxdP'])**2+((tt['maxP']-maxP_top)/tt['maxP'])**2+((tt['maxT']-maxT_top)/tt['maxT'])**2+((minT_top-tt['minT'])/tt['minT'])**2
-            
-            kv_min_idx = tt['valve_score'].idxmin()
+            kv_min_idx = _recommend_valve(valve_data, Qtop, maxdP_top, maxP_top, maxT_top, minT_top, margin)
             self.ui.bot_top_tab.setTabText(0, '밸브스펙(Bot)')
             self.ui.bot_top_tab.setTabText(1, '밸브스펙(Top)')
             self.ui.valve_top_fig.setPixmap(QPixmap(resource_path("DBs/valves/Figs/"+valve_data.iloc[kv_min_idx]['Fig']+".png")).scaledToHeight(220))

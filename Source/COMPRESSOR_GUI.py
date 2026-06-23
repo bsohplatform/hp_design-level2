@@ -17,6 +17,82 @@ def resource_path(relative_path):
     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
 
+def compressor_recommand(Pevap, Pcond, Tcomp_in, mdot, Refrigerant, comp_data, fig_name):
+    point_list = ['Point1','Point2','Point3','Point4','Point5','Point6','Point7','Point8','Point9','Point10','Point11','Point12']
+    Tevap = PropsSI('T','P',Pevap,'Q',1.0,Refrigerant)
+    Tevap = Tevap - 273.15
+    Tcond = PropsSI('T','P',Pcond,'Q',1.0,Refrigerant)
+    Tcond = Tcond - 273.15
+    tot_list = []
+    ref_list = []
+    flow_list = []
+    limit_list = []
+    for idx in range(len(comp_data)):
+        limit_coeff = comp_data[point_list].loc[idx]
+        distance = 0.0
+        notnull = (limit_coeff.notnull().sum())
+        for point in range(notnull):
+            xy = str(limit_coeff[point_list[point]])
+            x_lim = float(xy[xy.find('(')+1:xy.find(',')])
+            y_lim = float(xy[xy.find(',')+1:xy.find(')')])
+            distance = distance + math.sqrt((x_lim-Tevap)**2+(y_lim-Tcond)**2)
+        distance = distance/math.sqrt(Tevap**2+Tcond**2)
+        vol_flow_db = float(comp_data['Discharge'].loc[idx])
+        Dcomp_in = PropsSI("D","T",Tcomp_in,"P",Pevap,Refrigerant)
+        vol_flow = mdot/Dcomp_in*3600
+        dvol_flow = abs(vol_flow_db-vol_flow)/vol_flow
+        ref_db = str(comp_data['Refrigerant'].loc[idx])
+        if ref_db == Refrigerant:
+            dref = 0.0
+        else:
+            Tcrit = PropsSI('Tcrit','',0,'',0,Refrigerant)
+            try:
+                Tnbp = PropsSI('T','P',101300.0,'Q',0.0,Refrigerant)
+            except:
+                Tnbp = PropsSI('TTRIPLE','',0,'',0,Refrigerant)
+            try:
+                Tcrit_db = PropsSI('Tcrit','',0,'',0,ref_db)
+                try:
+                    Tnbp_db = PropsSI('T','P',101300.0,'Q',0.0,ref_db)
+                except:
+                    Tnbp_db = PropsSI('TTRIPLE','',0,'',0,ref_db)
+            except:
+                Tcrit_db = 0.0
+                Tnbp_db = 0.0
+            dref = math.sqrt((Tcrit_db-Tcrit)**2+(Tnbp_db-Tnbp)**2)/math.sqrt((Tcrit-273.15)**2+(Tnbp-273.15)**2)*10
+        limit_list.append(distance)
+        flow_list.append(dvol_flow)
+        ref_list.append(dref)
+        tot_score = distance + dvol_flow + dref
+        tot_list.append(tot_score)
+    comp_data['Limit_score'] = limit_list
+    comp_data['flow_score'] = flow_list
+    comp_data['Ref_score'] = ref_list
+    comp_data['Tot_score'] = tot_list
+    min_row_idx = comp_data['Tot_score'].idxmin()
+    selected_model = comp_data[point_list].loc[min_row_idx]
+    x_list = []
+    y_list = []
+    notnull = (selected_model.notnull().sum())
+    for point in range(notnull):
+        xy = str(selected_model[point_list[point]])
+        x_lim = float(xy[xy.find('(')+1:xy.find(',')])
+        y_lim = float(xy[xy.find(',')+1:xy.find(')')])
+        x_list.append(x_lim)
+        y_list.append(y_lim)
+    x_list.append(x_list[0])
+    y_list.append(y_list[0])
+    fig_ph, ax_ph = PLT.subplots()
+    ax_ph.plot([i for i in x_list], [i for i in y_list], 'b--')
+    ax_ph.scatter(Tevap, Tcond, color='red', s=100, marker='*', label='Operation Point')
+    ax_ph.set_xlabel('Evaporation Temperature [℃]', fontsize=15)
+    ax_ph.set_ylabel('Condensation Temperature [℃]', fontsize=15)
+    ax_ph.set_title('Compressor Operation Boundary', fontsize=18)
+    ax_ph.tick_params(axis='x', labelsize=13)
+    ax_ph.tick_params(axis='y', labelsize=13)
+    fig_ph.savefig(fig_name + '.png', dpi=500)
+    return min_row_idx
+
 class compressorWindow(QMainWindow):
     def __init__(self, Pevap, Pcond, Tcomp_in, mdot, Refrigerant, Pevap_2, Pcond_2, Tcomp_in_2, mdot_2, Refrigerant_2, layout_type):
         super().__init__()
@@ -69,7 +145,7 @@ class compressorWindow(QMainWindow):
         
         self.ui.comp_spec_btn.clicked.connect(self.open_specification)
         
-        if layout_type == 'cas' or layout_type == 'inj':
+        if layout_type == 'cas':
             self.ui.comp_tab.setTabText(0, '압축기 스펙(Bot)')
             self.ui.comp_tab.setTabText(1, '압축기 스펙(Top)')
             min_row_idx_2 = self.compressor_recommand(Pevap_2, Pcond_2, Tcomp_in_2, mdot_2, Refrigerant_2, comp_data, 'Operation_boundary_2')

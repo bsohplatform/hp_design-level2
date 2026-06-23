@@ -641,15 +641,18 @@ class VCHP():
                 if inputs.layout == 'inj':
                     InCond_REF.m = InEvap_REF.m/((1.0-outputs.inter_x)*(1-inputs.liq_frac)+outputs.inter_x*(1-inputs.vap_frac))
                     OutCond_REF.m = InCond_REF.m
-                    outputs.Wcomp     = (outputs._Psp_comp_low*OutEvap_REF.m + outputs._Psp_comp_high*InCond_REF.m)/inputs.mech_eff
                     outputs.Wcomp_top = outputs._Psp_comp_high*InCond_REF.m/inputs.mech_eff
-                    outputs.Wexpand     = (outputs._Psp_expand_high*OutCond_REF.m + outputs._Psp_expand_low*InEvap_REF.m)*inputs.mech_eff
+                    outputs.Wcomp_bot = outputs._Psp_comp_low*OutEvap_REF.m/inputs.mech_eff
+                    outputs.Wcomp     = outputs.Wcomp_bot + outputs.Wcomp_top
+                    outputs.Wexpand_top = outputs._Psp_expand_high*OutCond_REF.m*inputs.mech_eff
                     outputs.Wexpand_bot = outputs._Psp_expand_low*InEvap_REF.m*inputs.mech_eff
+                    outputs.Wexpand     = outputs.Wexpand_bot + outputs.Wexpand_top
                 elif inputs.layout == '2comp':
                     InCond_REF.m = InEvap_REF.m
                     OutCond_REF.m = InEvap_REF.m
-                    outputs.Wcomp     = (outputs._Psp_comp_low*OutEvap_REF.m + outputs._Psp_comp_high*InCond_REF.m)/inputs.mech_eff
                     outputs.Wcomp_top = outputs._Psp_comp_high*InCond_REF.m/inputs.mech_eff
+                    outputs.Wcomp_bot = outputs._Psp_comp_low*OutEvap_REF.m/inputs.mech_eff
+                    outputs.Wcomp     = outputs.Wcomp_bot + outputs.Wcomp_top
                     outputs.Wexpand   = outputs._Psp_expand_high*OutCond_REF.m*inputs.mech_eff
                 elif inputs.layout == 'part_cool':
                     InCond_REF.m = InEvap_REF.m/(1-inputs.pcx_frac)
@@ -722,15 +725,18 @@ class VCHP():
                 if inputs.layout == 'inj':
                     InEvap_REF.m = InCond_REF.m*((1.0-outputs.inter_x)*(1-inputs.liq_frac)+outputs.inter_x*(1-inputs.vap_frac))
                     OutEvap_REF.m = InEvap_REF.m
-                    outputs.Wcomp     = (outputs._Psp_comp_low*OutEvap_REF.m + outputs._Psp_comp_high*InCond_REF.m)/inputs.mech_eff
                     outputs.Wcomp_top = outputs._Psp_comp_high*InCond_REF.m/inputs.mech_eff
-                    outputs.Wexpand     = (outputs._Psp_expand_high*OutCond_REF.m + outputs._Psp_expand_low*InEvap_REF.m)*inputs.mech_eff
+                    outputs.Wcomp_bot = outputs._Psp_comp_low*OutEvap_REF.m/inputs.mech_eff
+                    outputs.Wcomp     = outputs.Wcomp_bot + outputs.Wcomp_top                    
+                    outputs.Wexpand_top = outputs._Psp_expand_high*OutCond_REF.m*inputs.mech_eff
                     outputs.Wexpand_bot = outputs._Psp_expand_low*InEvap_REF.m*inputs.mech_eff
+                    outputs.Wexpand     = outputs.Wexpand_bot + outputs.Wexpand_top
                 elif inputs.layout == '2comp':
                     InEvap_REF.m = InCond_REF.m
                     OutEvap_REF.m = InCond_REF.m
-                    outputs.Wcomp     = (outputs._Psp_comp_low*OutEvap_REF.m + outputs._Psp_comp_high*InCond_REF.m)/inputs.mech_eff
                     outputs.Wcomp_top = outputs._Psp_comp_high*InCond_REF.m/inputs.mech_eff
+                    outputs.Wcomp_bot = outputs._Psp_comp_low*OutEvap_REF.m/inputs.mech_eff
+                    outputs.Wcomp     = outputs.Wcomp_bot + outputs.Wcomp_top
                     outputs.Wexpand   = outputs._Psp_expand_high*OutCond_REF.m*inputs.mech_eff
                 elif inputs.layout == 'part_cool':
                     InEvap_REF.m = InCond_REF.m*(1-inputs.pcx_frac)
@@ -873,8 +879,8 @@ class VCHP():
         ax_ts.plot([i/1.0e3 for i in s_points], [i-273.15 for i in T_points],'bo-')
         ax_ph.plot([i/1.0e3 for i in h_points], [i/1.0e5 for i in p_points],'bo-')
         
-        fig_ph.savefig('./Figs/'+ph_file+'.png',dpi=300)
-        fig_ts.savefig('./Figs/'+ts_file+'.png',dpi=300)
+        fig_ph.savefig(ph_file+'.png',dpi=300)
+        fig_ts.savefig(ts_file+'.png',dpi=300)
         
         
         
@@ -1086,7 +1092,7 @@ class VCHP_cascade(VCHP):
         self.inputs_b = inputs_b
         self.amb_P = 50000.0
     
-    def __call__(self, opt_flag=1, evap_t_p_input=0):
+    def __call__(self, opt_flag=1, evap_t_T_input=0):
         outputs_t = Outputs()
         outputs_b = Outputs()
         
@@ -1131,6 +1137,7 @@ class VCHP_cascade(VCHP):
         if opt_flag == 1:
             (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF_t, self.OutCond_REF_t, self.InEvap_REF_t, self.OutEvap_REF_t, self.InCond_REF_b, self.OutCond_REF_b, self.InEvap_REF_b, self.OutEvap_REF_b, outputs_t, outputs_b) = self.Cascade_opt(self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, self.inputs_t, self.inputs_b, outputs_t, outputs_b, no_input, cond_t_ph, evap_b_ph)    
         else:
+            evap_t_p_input = CP.PropsSI("P","T",evap_t_T_input,"Q",0.5,OutEvap_REF_t.fluidmixture)
             (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF_t, self.OutCond_REF_t, self.InEvap_REF_t, self.OutEvap_REF_t, self.InCond_REF_b, self.OutCond_REF_b, self.InEvap_REF_b, self.OutEvap_REF_b, outputs_t, outputs_b) = self.Cascade_solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, self.inputs_t, self.inputs_b, outputs_t, outputs_b, no_input, cond_t_ph, evap_b_ph, evap_t_p_input)
         
         return (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF_t, self.OutCond_REF_t, self.InEvap_REF_t, self.OutEvap_REF_t, self.InCond_REF_b, self.OutCond_REF_b, self.InEvap_REF_b, self.OutEvap_REF_b, outputs_t, outputs_b)
@@ -1237,15 +1244,18 @@ class VCHP_cascade(VCHP):
                 if inputs_t.layout == 'inj':
                     InCond_REF_t.m = InEvap_REF_t.m/((1.0-outputs_t.inter_x)*(1-inputs_t.liq_frac)+outputs_t.inter_x*(1-inputs_t.vap_frac))
                     OutCond_REF_t.m = InCond_REF_t.m
-                    outputs_t.Wcomp     = (outputs_t._Psp_comp_low*OutEvap_REF_t.m + outputs_t._Psp_comp_high*InCond_REF_t.m)/inputs_t.mech_eff
                     outputs_t.Wcomp_top = outputs_t._Psp_comp_high*InCond_REF_t.m/inputs_t.mech_eff
-                    outputs_t.Wexpand     = (outputs_t._Psp_expand_high*OutCond_REF_t.m + outputs_t._Psp_expand_low*InEvap_REF_t.m)*inputs_t.mech_eff
+                    outputs_t.Wcomp_bot = outputs_t._Psp_comp_low*OutEvap_REF_t.m/inputs_t.mech_eff
+                    outputs_t.Wcomp     = outputs_t.Wcomp_bot + outputs_t.Wcomp_top
+                    outputs_t.Wexpand_top = outputs_t._Psp_expand_high*OutCond_REF_t.m*inputs_t.mech_eff
                     outputs_t.Wexpand_bot = outputs_t._Psp_expand_low*InEvap_REF_t.m*inputs_t.mech_eff
+                    outputs_t.Wexpand     = outputs_t.Wexpand_bot + outputs_t.Wexpand_top
                 elif inputs_t.layout == '2comp':
                     InCond_REF_t.m = InEvap_REF_t.m
-                    OutCond_REF_t.m = InEvap_REF_t.m
-                    outputs_t.Wcomp     = (outputs_t._Psp_comp_low*OutEvap_REF_t.m + outputs_t._Psp_comp_high*InCond_REF_t.m)/inputs_t.mech_eff
+                    OutCond_REF_t.m = InEvap_REF_t.m                    
                     outputs_t.Wcomp_top = outputs_t._Psp_comp_high*InCond_REF_t.m/inputs_t.mech_eff
+                    outputs_t.Wcomp_bot = outputs_t._Psp_comp_low*OutEvap_REF_t.m/inputs_t.mech_eff
+                    outputs_t.Wcomp     = outputs_t.Wcomp_bot + outputs_t.Wcomp_top
                     outputs_t.Wexpand   = outputs_t._Psp_expand_high*OutCond_REF_t.m*inputs_t.mech_eff
                 elif inputs_t.layout == 'part_cool':
                     InCond_REF_t.m = InEvap_REF_t.m/(1-inputs_t.pcx_frac)
@@ -1371,103 +1381,3 @@ class VCHP_cascade(VCHP):
         COP_cascade = (self.OutCond.q)/(outputs_t.Wcomp - outputs_t.Wexpand + outputs_b.Wcomp - outputs_b.Wexpand)
         print('Cascade Heating COP:{:.3f}'.format(COP_cascade))
         print('')
-
-if __name__ == '__main__':
-    
-    top_ref = ['R1233zd(E)']
-    bot_ref = ['R513a.mix']
-
-    for t_r in top_ref:
-        for b_r in bot_ref:
-            evapfluid = 'air'
-            inevap_T = 25.1+273.15  # 저온 공기 출구 온도
-            inevap_p = 103000
-            inevap_hum = 0.024
-            inevap_ahum = HAPropsSI("W","T",inevap_T,"P",inevap_p,"R",inevap_hum)
-
-            outevap_T = 0 
-            outevap_p = 101300
-            outevap_ahum = inevap_ahum
-            
-            evap_cmh = 36000
-
-            d_hum_evap = HAPropsSI("Vha","T",inevap_T, "P", inevap_p, "R", inevap_hum)
-            evap_m = evap_cmh/3600*d_hum_evap
-
-            InEvap = ProcessFluid(Y={evapfluid:1.0,},m = evap_m, T = inevap_T, p = inevap_p, ahum = inevap_ahum)
-            OutEvap = ProcessFluid(Y={evapfluid:1.0,},m = evap_m, T = outevap_T, p = outevap_p, ahum = outevap_ahum)
-
-            condfluid = 'air'
-
-            incond_T = 59.4+273.15 # 고온 공기 입구 온도
-            incond_p = 101300
-            incond_hum = 0.068
-            incond_ahum = HAPropsSI("W","T",incond_T,"P",incond_p,"R",incond_hum)
-            
-            outcond_T = 120.00+273.15 # 고온 공기 출구 온도
-            outcond_p = 101300
-            outcond_hum = 0.007
-            outcond_ahum = incond_ahum
-            
-            cond_cmh = 12420
-            
-            d_hum_cond = HAPropsSI("Vha","T",incond_T, "P", incond_p, "R", incond_hum)
-            cond_m = cond_cmh/3600*d_hum_cond
-            
-            InCond = ProcessFluid(Y={condfluid:1.0,},m = cond_m, T = incond_T, p = incond_p, ahum=incond_ahum)
-            OutCond = ProcessFluid(Y={condfluid:1.0,},m = cond_m, T = outcond_T, p = outcond_p, ahum=outcond_ahum)
-            
-
-            inputs_t = Settings()
-            inputs_t.Y = {'REFPROP::'+t_r:1.0,}
-            inputs_t.second = 'process'
-            inputs_t.cycle = 'vcc'
-            inputs_t.cond_type = 'fthe'
-            inputs_t.evap_type = 'phe'
-            inputs_t.cond_dp = 20.0e3
-            inputs_t.evap_dp = 20.0e3
-            inputs_t.cond_T_lm = 32.0 # Top 사이클 응축 LMTD
-            inputs_t.evap_T_pp = 5.0
-            inputs_t.comp_eff = 0.68
-            inputs_t.layout = 'inj'
-            # 기체 유입 비율
-            inputs_t.vap_frac = 1.0
-            # 액체 유입 비율
-            inputs_t.liq_frac = 0.0
-            
-
-            inputs_t.DSC = 1.0
-            inputs_t.DSH = 10.0
-            
-            inputs_b = Settings()
-            inputs_b.Y = {'REFPROP::'+b_r:1.0,}
-            inputs_b.second = 'process'
-            inputs_b.cycle = 'vcc'
-            inputs_b.cond_type = 'phe'
-            inputs_b.evap_type = 'fthe'
-            inputs_b.cond_dp = 20.0e3
-            inputs_b.evap_dp = 20.0e3
-            inputs_b.cond_T_pp = 5.0
-            inputs_b.evap_T_lm = 12.5  # Bottom 사이클 응축 LMTD
-            inputs_b.comp_eff = 0.625
-            inputs_b.layout = 'bas'
-            inputs_b.DSC = 1.0
-            inputs_b.DSH = 5.0
-            
-            T_crit_b = CP.PropsSI("TCRIT","",0,"",0,"REFPROP::"+b_r)
-            evap_t_p_input = max(CP.PropsSI("P","T",min(0.8*inevap_T+0.2*outcond_T,T_crit_b*0.95),"Q",1.0,"REFPROP::"+t_r),101300)
-            
-            a2a_120 = VCHP_cascade(InCond, OutCond, InEvap, OutEvap, inputs_t, inputs_b)
-            
-            (InCond, OutCond, InEvap, OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, outputs_t, outputs_b)=a2a_120(opt_flag=0, evap_t_p_input=evap_t_p_input)
-            
-            a2a_120.Post_Processing(InCond, OutCond, InEvap, OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b)
-            ts_file = 'TS_'+t_r+'_'+b_r
-            ph_file = 'PH_'+t_r+'_'+b_r
-            coeff = 0.95
-            a2a_120.Plot_diagram(InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b, ts_file, ph_file, coeff)
-            print('---------------------------------------------------------------------------')
-            print('')
-            print(f'Simultaneous Heating and Cooling COP: {(OutCond.q-OutEvap.q)/(outputs_t.Wcomp+outputs_b.Wcomp):.3f}')
-            print('')
-            print('---------------------------------------------------------------------------')
