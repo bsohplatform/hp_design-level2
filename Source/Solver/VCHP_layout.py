@@ -51,9 +51,6 @@ class VCHP():
         else:
             (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs) = self.Cycle_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, self.inputs, outputs, no_input, cond_ph, evap_ph)
         
-        #self.Post_Processing(outputs)
-        #self.Plot_diagram(self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, self.inputs, outputs)
-        
         return (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs)
         
     def Input_Processing(self, InCond, OutCond, InEvap, OutEvap, inputs):
@@ -1780,3 +1777,7 @@ class VCHP_cascade(VCHP):
         COP_cascade = (self.OutCond.q)/(outputs_t.Wcomp - outputs_t.Wexpand + outputs_b.Wcomp - outputs_b.Wexpand)
         print('Cascade Heating COP:{:.3f}'.format(COP_cascade))
         print('')
+<<<<<<< HEAD
+
+=======
+>>>>>>> 01704a9dc7fc6d7948d33a57473346d9c1582f88
