@@ -102,6 +102,8 @@ class Settings:
     # 증기 인젝션 스펙
     vap_frac: float = 1.0
     liq_frac: float = 0.0
+    dsh_inj: float = 5.0
+    eco_N_element: int = 20
     
     # 증기 공정 조건 입력
     T_steam: float = 120.0

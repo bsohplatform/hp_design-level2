@@ -7,6 +7,9 @@ import matplotlib.pyplot as PLT
 # test 용 import
 from HP_dataclass import ProcessFluid, Settings, Outputs
 
+PI = 3.1415926535
+
+# ── 상용 배관 규격 테이블 ──────────────────────────────────────────────────
 
 class VCHP():
     def __init__(self, InCond, OutCond, InEvap, OutEvap, inputs):
@@ -42,7 +45,7 @@ class VCHP():
         evap_ph = 0
         cond_ph = 0
         if inj_opt_flag == 1:
-            (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs) = self.Injection_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, self.inputs, outputs, no_input, cond_ph, evap_ph)
+            (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs) = self.Injection_Optimizer(self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, self.inputs, outputs, no_input, cond_ph, evap_ph)
         elif self.inputs.layout == '2comp':
             (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF, self.OutCond_REF, self.InEvap_REF, self.OutEvap_REF, outputs) = self.Comp_2stage_Solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, self.inputs, outputs, no_input, cond_ph, evap_ph)
         else:
@@ -286,7 +289,7 @@ class VCHP():
         
         return (InCond, OutCond)
 
-    def Injection_Solver(self, InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs, no_input, cond_ph, evap_ph):
+    def Injection_Optimizer(self, InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs, no_input, cond_ph, evap_ph):
         dfrac = 0.005
         inter_frac_lb = 0.0
         inter_frac_ub = 1.0
@@ -398,6 +401,7 @@ class VCHP():
         outputs.COP_cooling = abs(OutEvap.q)/(outputs.Wcomp - outputs.Wexpand)
         outputs.DSH = inputs.DSH
         outputs.evap_UA = evap.UA
+        outputs.evap_T_pp = evap.T_pp if inputs.evap_type == 'phe' else evap.T_lm
         
         return (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs)
 
@@ -407,9 +411,24 @@ class VCHP():
         OutCond_REF.p = InCond_REF.p - inputs.cond_dp
         
         if isinstance(inputs.comp_eff, (list, tuple)):
-            pe = OutEvap_REF.p/1.0e5
-            pc = InCond_REF.p/1.0e5
-            outputs.comp_eff = inputs.comp_eff[0]+inputs.comp_eff[1]*pe+inputs.comp_eff[2]*pc+inputs.comp_eff[3]*pe**2+inputs.comp_eff[4]*pe*pc+inputs.comp_eff[5]*pc**2+inputs.comp_eff[6]*pe**3+inputs.comp_eff[7]*pc*pe**2+inputs.comp_eff[8]*pe*pc**2+inputs.comp_eff[9]*pc**3
+            # comp_eff = ['T' 또는 'P', c0, ..., c9]
+            #   'P': 압력[bar] 기준 계수, 'T': 포화온도(dew)[°C] 기준 계수
+            #   기준 문자 없이 10계수만 입력하면 압력 기준(기존 호환)
+            if isinstance(inputs.comp_eff[0], str):
+                basis = inputs.comp_eff[0].strip().upper()
+                c = inputs.comp_eff[1:]
+            else:
+                basis = 'P'
+                c = inputs.comp_eff
+            if basis not in ('T', 'P') or len(c) != 10:
+                raise ValueError(f"comp_eff는 ['T' 또는 'P', 10계수] 형식이어야 합니다: {inputs.comp_eff}")
+            if basis == 'T':
+                pe = PropsSI('T','P',OutEvap_REF.p,'Q',1.0,OutEvap_REF.fluidmixture) - 273.15
+                pc = PropsSI('T','P',InCond_REF.p,'Q',1.0,InCond_REF.fluidmixture) - 273.15
+            else:
+                pe = OutEvap_REF.p/1.0e5
+                pc = InCond_REF.p/1.0e5
+            outputs.comp_eff = c[0]+c[1]*pe+c[2]*pc+c[3]*pe**2+c[4]*pe*pc+c[5]*pc**2+c[6]*pe**3+c[7]*pc*pe**2+c[8]*pe*pc**2+c[9]*pc**3
         else:
             outputs.comp_eff = inputs.comp_eff
 
@@ -439,7 +458,7 @@ class VCHP():
 
         cond_a = 1
 
-        if inputs.layout == 'inj':
+        if inputs.layout == 'inj-flash':
             inter_p = InEvap_REF.p*(OutCond_REF.p/InEvap_REF.p)**inputs.inter_frac
             inter_h_vap = PropsSI('H','P',inter_p,'Q',1.0, OutCond_REF.fluidmixture)
             outputs.inter_h_vap = inter_h_vap
@@ -495,7 +514,116 @@ class VCHP():
             outputs.flash_liq_p      = Flash_liq.p
             outputs.flash_liq_h      = Flash_liq.h
             outputs.flash_liq_s      = Flash_liq.s
-
+            outputs.flash_gas_T      = outputs.flash_liq_T
+            outputs.flash_gas_p      = outputs.flash_liq_p
+            outputs.flash_gas_h      = PropsSI("H","P",outputs.flash_gas_p,"Q",1.0,OutCond_REF.fluidmixture)
+            outputs.flash_gas_s      = PropsSI("S","P",outputs.flash_gas_p,"Q",1.0,OutCond_REF.fluidmixture)
+            
+        elif inputs.layout == 'inj-eco':
+            inter_p = InEvap_REF.p*(OutCond_REF.p/InEvap_REF.p)**inputs.inter_frac
+            
+            InEco_cold = deepcopy(OutCond_REF)
+            OutEco_cold = deepcopy(OutCond_REF)
+            InEco_hot = deepcopy(OutCond_REF)
+            OutEco_hot = deepcopy(OutCond_REF)
+            OutComp_low = deepcopy(OutEvap_REF)
+            
+            
+            OutEco_cold.p = inter_p
+            OutEco_cold_T = PropsSI("T","P",OutEco_cold.p,"Q",1.0,OutEco_cold.fluidmixture)+inputs.eco_dsh
+            OutEco_cold.T = OutEco_cold_T
+            OutEco_cold_h = PropsSI("H","P",OutEco_cold.p,"T",OutEco_cold.T,OutEco_cold.fluidmixture)
+            OutEco_cold.h = OutEco_cold_h
+                
+            InEco_cold.p = OutEco_cold.p + inputs.eco_cold_dp
+            InEco_cold.T = PropsSI("T","H",InEco_cold.h,"P",InEco_cold.p,InEco_cold.fluidmixture)
+            
+            eco_frac_lb = 0.0
+            eco_frac_ub = 1.0
+            a_eco = 1
+            while a_eco:
+                eco_frac = 0.5*(eco_frac_lb+eco_frac_ub)
+                OutEco_cold.m = eco_frac    
+                InEco_cold.m = eco_frac
+                InEco_hot.m = 1-eco_frac
+                OutEco_hot.m = 1-eco_frac
+                
+                InEco_cold.q = (OutEco_cold.h - InEco_cold.h)*InEco_cold.m
+                OutEco_cold.q = (OutEco_cold.h - InEco_cold.h)*InEco_cold.m
+                InEco_hot.q = -InEco_cold.q
+                OutEco_hot.q = -InEco_cold.q
+                
+                OutEco_hot.p = OutCond_REF.p - inputs.eco_hot_dp
+                OutEco_hot.h = InEco_hot.h + InEco_hot.q/InEco_hot.m
+                OutEco_hot.T = PropsSI("T","H",OutEco_hot.h,"P",OutEco_hot.p,OutEco_hot.fluidmixture)
+                eco = HX.Heatexchanger_module(InEco_cold, OutEco_cold, 1, InEco_hot, OutEco_hot, 1)
+                eco.PHE(N_element=inputs.eco_N_element)
+                if eco.T_rvs == 1:
+                    OutEco_cold.T = OutEco_cold_T
+                    OutEco_cold.h = OutEco_cold_h
+                    eco_frac_ub = eco_frac
+                else:    
+                    eco_add_dsc = eco.secondary_in.T - eco.secondary_out.T
+                    eco_err = (eco_add_dsc - inputs.eco_add_dsc)/inputs.eco_add_dsc
+                    
+                    if eco_err < 0:
+                        eco_frac_lb = eco_frac
+                    else:
+                        eco_frac_ub = eco_frac
+                        
+                    if abs(eco_err) < inputs.tol:
+                        outputs.eco_T_pp = eco.T_pp
+                        a_eco = 0
+                    elif eco_frac_ub - eco_frac_lb < inputs.tol:
+                        outputs.eco_T_pp = eco.T_pp
+                        a_eco = 0
+            
+            outputs.eco_frac = eco_frac
+            OutComp_low.p = inter_p
+            comp_low = CP.Compander_module(OutEvap_REF, OutComp_low)
+            (inputs.DSH, _) = comp_low.COMP(eff_isen=outputs.comp_eff, DSH=inputs.DSH)
+            OutComp_low = comp_low.primary_out
+            
+            InComp_high = deepcopy(OutComp_low)
+            InComp_high.h = OutComp_low.h*(1-eco_frac)+OutEco_cold.h*eco_frac
+            InComp_high.T = PropsSI("T","H",InComp_high.h,"P",InComp_high.p,InComp_high.fluidmixture)
+            InComp_high.s = PropsSI("S","T",InComp_high.T,"P",InComp_high.p,InComp_high.fluidmixture)
+            
+            comp_high = CP.Compander_module(InComp_high, InCond_REF)
+            (_, _) = comp_high.COMP(eff_isen=outputs.comp_eff, DSH=inputs.DSH)
+            InCond_REF = comp_high.primary_out
+            
+            expand_hot = CP.Compander_module(OutEco_hot, InEvap_REF)
+            expand_hot.EXPAND(eff_isen = 0.0)
+            InEvap_REF = expand_hot.primary_out
+            
+            outputs._Psp_comp_low = comp_low.Pspecific
+            outputs._Psp_comp_high = comp_high.Pspecific
+            outputs._Psp_expand_hot = expand_hot.Pspecific
+            outputs.outcomp_low_T = OutComp_low.T
+            outputs.outcomp_low_p = OutComp_low.p
+            outputs.outcomp_low_h = OutComp_low.h
+            outputs.outcomp_low_s = OutComp_low.s
+            outputs.incomp_high_T = InComp_high.T
+            outputs.incomp_high_p = InComp_high.p
+            outputs.incomp_high_h = InComp_high.h
+            outputs.incomp_high_s = InComp_high.s
+            outputs.ineco_cold_T = InEco_cold.T
+            outputs.ineco_cold_p = InEco_cold.p
+            outputs.ineco_cold_h = InEco_cold.h
+            outputs.outeco_cold_T = OutEco_cold.T
+            outputs.outeco_cold_p = OutEco_cold.p
+            outputs.outeco_cold_h = OutEco_cold.h
+            outputs.ineco_hot_T = InEco_hot.T
+            outputs.ineco_hot_p = InEco_hot.p
+            outputs.ineco_hot_h = InEco_hot.h
+            outputs.outeco_hot_T = OutEco_hot.T
+            outputs.outeco_hot_p = OutEco_hot.p
+            outputs.outeco_hot_h = OutEco_hot.h
+            outputs.eco_UA = eco.UA
+            outputs.eco_T_pp = eco.T_pp
+            
+            
         elif inputs.layout == '2comp':
             inter_p = InEvap_REF.p*(OutCond_REF.p/InEvap_REF.p)**inputs.inter_frac
             OutComp_low = deepcopy(OutEvap_REF)
@@ -599,7 +727,6 @@ class VCHP():
                 outputs.ihx_cold_out_p = InComp.p
                 outputs.ihx_cold_out_h = InComp.h
                 outputs.ihx_cold_out_s = InComp.s
-                outputs._ihx_InComp_h  = InComp.h
             else:
                 InComp   = OutEvap_REF
                 InExpand = OutCond_REF
@@ -638,7 +765,7 @@ class VCHP():
             if (no_input == 'InCondT') or (no_input == 'OutCondT') or (no_input == 'Condm'):
                 InEvap_REF.m = InEvap.q/(InEvap_REF.h - OutEvap_REF.h)
                 OutEvap_REF.m = InEvap_REF.m
-                if inputs.layout == 'inj':
+                if inputs.layout == 'inj-flash':
                     InCond_REF.m = InEvap_REF.m/((1.0-outputs.inter_x)*(1-inputs.liq_frac)+outputs.inter_x*(1-inputs.vap_frac))
                     OutCond_REF.m = InCond_REF.m
                     outputs.Wcomp_top = outputs._Psp_comp_high*InCond_REF.m/inputs.mech_eff
@@ -647,6 +774,14 @@ class VCHP():
                     outputs.Wexpand_top = outputs._Psp_expand_high*OutCond_REF.m*inputs.mech_eff
                     outputs.Wexpand_bot = outputs._Psp_expand_low*InEvap_REF.m*inputs.mech_eff
                     outputs.Wexpand     = outputs.Wexpand_bot + outputs.Wexpand_top
+                elif inputs.layout == 'inj-eco':
+                    InCond_REF.m = InEvap_REF.m/(1-outputs.eco_frac)
+                    OutCond_REF.m = InCond_REF.m
+                    outputs.Wcomp_top = outputs._Psp_comp_high*InCond_REF.m/inputs.mech_eff
+                    outputs.Wcomp_bot = outputs._Psp_comp_low*OutEvap_REF.m/inputs.mech_eff
+                    outputs.Wcomp     = outputs.Wcomp_bot + outputs.Wcomp_top
+                    outputs.Wexpand_hot = outputs._Psp_expand_hot*OutCond_REF.m*(1-outputs.eco_frac)*inputs.mech_eff
+                    outputs.Wexpand   = outputs.Wexpand_hot
                 elif inputs.layout == '2comp':
                     InCond_REF.m = InEvap_REF.m
                     OutCond_REF.m = InEvap_REF.m
@@ -722,7 +857,7 @@ class VCHP():
             elif (no_input == 'InEvapT') or (no_input == 'OutEvapT') or (no_input == 'Evapm'):
                 InCond_REF.m = InCond.q/(InCond_REF.h - OutCond_REF.h)
                 OutCond_REF.m = InCond_REF.m
-                if inputs.layout == 'inj':
+                if inputs.layout == 'inj-flash':
                     InEvap_REF.m = InCond_REF.m*((1.0-outputs.inter_x)*(1-inputs.liq_frac)+outputs.inter_x*(1-inputs.vap_frac))
                     OutEvap_REF.m = InEvap_REF.m
                     outputs.Wcomp_top = outputs._Psp_comp_high*InCond_REF.m/inputs.mech_eff
@@ -731,6 +866,14 @@ class VCHP():
                     outputs.Wexpand_top = outputs._Psp_expand_high*OutCond_REF.m*inputs.mech_eff
                     outputs.Wexpand_bot = outputs._Psp_expand_low*InEvap_REF.m*inputs.mech_eff
                     outputs.Wexpand     = outputs.Wexpand_bot + outputs.Wexpand_top
+                elif inputs.layout == 'inj-eco':
+                    InEvap_REF.m = InCond_REF.m*(1-outputs.eco_frac)
+                    OutEvap_REF.m = InEvap_REF.m
+                    outputs.Wcomp_top = outputs._Psp_comp_high*InCond_REF.m/inputs.mech_eff
+                    outputs.Wcomp_bot = outputs._Psp_comp_low*OutEvap_REF.m/inputs.mech_eff
+                    outputs.Wcomp     = outputs.Wcomp_bot + outputs.Wcomp_top
+                    outputs.Wexpand_hot = outputs._Psp_expand_hot*OutCond_REF.m*(1-outputs.eco_frac)*inputs.mech_eff
+                    outputs.Wexpand   = outputs.Wexpand_hot
                 elif inputs.layout == '2comp':
                     InEvap_REF.m = InCond_REF.m
                     OutEvap_REF.m = InCond_REF.m
@@ -833,29 +976,233 @@ class VCHP():
                 cond_a = 0
 
         outputs.cond_UA = cond.UA
+        outputs.cond_T_pp = cond.T_pp if inputs.cond_type == 'phe' else cond.T_lm
         if inputs.layout == 'ihx':
-            outputs.qihx = (outputs._ihx_InComp_h - OutEvap_REF.h)*OutEvap_REF.m
+            outputs.qihx = (outputs.ihx_cold_out_h - OutEvap_REF.h)*OutEvap_REF.m
+        elif inputs.layout == 'inj-eco':
+            outputs.qeco = (outputs.ineco_hot_h - outputs.outeco_hot_h)*InEvap_REF.m
         elif inputs.layout == 'part_cool':
             outputs.qpcx = (outputs.pcx_cold_out_h - outputs.pcx_cold_in_h)*(OutCond_REF.m*inputs.pcx_frac)
             
         return (InCond, OutCond, InEvap, OutEvap, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, outputs)
-    
-    def Ref_Charge_Calc(self, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs):
-        M_evap = inputs.V_evap*outputs.d_evap
-        M_evap2comp = inputs.V_evap2comp*PropsSI("D","T",OutEvap_REF.T,"P",OutEvap_REF.p, OutEvap_REF.fluidmixture)
-        M_comp2cond = inputs.V_comp2cond*PropsSI("D","T",InCond_REF.T,"P",InCond_REF.p, InCond_REF.fluidmixture)
-        M_cond = inputs.V_cond*outputs.d_cond
-        M_cond2eev = inputs.V_cond2eev*PropsSI("D","T",OutCond_REF.T,"P",OutCond_REF.p, OutCond_REF.fluidmixture)
-        M_eev2evap = inputs.V_eev2evap*PropsSI("D","T",InEvap_REF.T,"P",InEvap_REF.p, OutEvap_REF.fluidmixture)
-        M_total = M_evap + M_evap2comp + M_comp2cond + M_cond + M_cond2eev + M_eev2evap
 
-        print(f'M_evap: {M_evap:.3f} [kg]')
-        print(f'M_evap2comp: {M_evap2comp:.3f} [kg]')
-        print(f'M_comp2cond: {M_comp2cond:.3f} [kg]')
-        print(f'M_cond: {M_cond:.3f} [kg]')
-        print(f'M_cond2eev: {M_cond2eev:.3f} [kg]')
-        print(f'M_eev2evap: {M_eev2evap:.3f} [kg]')
-        print(f'M_total: {M_total:.3f} [kg]')
+    
+    def _find_std_pipe(self, D_calc_m: float, pipe_mat: str) -> dict:
+        """계산 직경(m) 이상인 가장 작은 상용 배관을 반환."""
+        # 동관 ACR (ASTM B280 / KS D 5507): (호칭, OD_mm, ID_mm, wall_mm)
+        COPPER_ACR_TABLE = [
+            ('1/4"',    6.35,  4.83, 0.76),
+            ('3/8"',    9.53,  7.75, 0.89),
+            ('1/2"',   12.70, 10.66, 1.02),
+            ('5/8"',   15.88, 13.84, 1.02),
+            ('3/4"',   19.05, 16.92, 1.07),
+            ('7/8"',   22.22, 19.94, 1.14),
+            ('1-1/8"', 28.58, 26.04, 1.27),
+            ('1-3/8"', 34.93, 32.13, 1.40),
+            ('1-5/8"', 41.28, 38.23, 1.52),
+            ('2-1/8"', 53.98, 50.42, 1.78),
+            ('2-5/8"', 66.68, 62.61, 2.03),
+            ('3-1/8"', 79.38, 75.31, 2.03),
+            ('3-5/8"', 92.08, 87.86, 2.11),
+            ('4-1/8"',104.78, 99.95, 2.41),
+            ('5-1/8"',130.18,124.64, 2.77),
+            ('6-1/8"',155.58,149.38, 3.10),
+        ]
+        # 강관 Sch40 (KS D 3562 / ASTM A53): (호칭경mm, OD_mm, ID_mm, wall_mm)
+        STEEL_SCH40_TABLE = [
+            ( 15,  21.3,  15.8, 2.77),
+            ( 20,  26.7,  20.9, 2.87),
+            ( 25,  33.4,  26.6, 3.38),
+            ( 32,  42.2,  35.1, 3.56),
+            ( 40,  48.3,  40.9, 3.68),
+            ( 50,  60.3,  52.5, 3.91),
+            ( 65,  73.0,  62.7, 5.16),
+            ( 80,  88.9,  77.9, 5.49),
+            (100, 114.3, 102.3, 6.02),
+            (125, 141.3, 128.2, 6.55),
+            (150, 168.3, 154.1, 7.11),
+            (200, 219.1, 202.7, 8.18),
+            (250, 273.1, 254.5, 9.27),
+            (300, 323.9, 303.2,10.31),
+        ]
+        D_mm = D_calc_m * 1000.0
+        if pipe_mat == 'copper':
+            for label, OD_mm, ID_mm, wall_mm in COPPER_ACR_TABLE:
+                if ID_mm >= D_mm:
+                    return {'label': label, 'OD_mm': OD_mm, 'ID_mm': ID_mm, 'wall_mm': wall_mm}
+            r = COPPER_ACR_TABLE[-1]
+            return {'label': r[0]+'↑', 'OD_mm': r[1], 'ID_mm': r[2], 'wall_mm': r[3]}
+        else:  # steel
+            for nom_mm, OD_mm, ID_mm, wall_mm in STEEL_SCH40_TABLE:
+                if ID_mm >= D_mm:
+                    return {'label': f'DN{nom_mm}', 'OD_mm': OD_mm, 'ID_mm': ID_mm, 'wall_mm': wall_mm}
+            r = STEEL_SCH40_TABLE[-1]
+            return {'label': f'DN{r[0]}↑', 'OD_mm': r[1], 'ID_mm': r[2], 'wall_mm': r[3]}
+
+
+    def Pipe_Dia_Calc(self, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs, vg_s=5.0, vg_d=10.0, vl=1.0, pipe_mat='copper'):
+        OutEvap_REF.rho = PropsSI("D","T",OutEvap_REF.T,"P",OutEvap_REF.p, OutEvap_REF.fluidmixture)
+        InCond_REF.rho  = PropsSI("D","T",InCond_REF.T, "P",InCond_REF.p,  InCond_REF.fluidmixture)
+        OutCond_REF.rho = PropsSI("D","T",OutCond_REF.T,"P",OutCond_REF.p, OutCond_REF.fluidmixture)
+        InEvap_REF.rhog = PropsSI("D","P",InEvap_REF.p, "Q", 1.0, OutEvap_REF.fluidmixture)
+        InEvap_REF.rhol = PropsSI("D","P",InEvap_REF.p, "Q", 0.0, OutEvap_REF.fluidmixture)
+        x = PropsSI("Q","P",InEvap_REF.p,"H",InEvap_REF.h,InEvap_REF.fluidmixture)
+        InEvap_REF.rho  = 1/(x/InEvap_REF.rhog+(1-x)/InEvap_REF.rhol)
+
+        OutEvap_REF.D = (4/PI*OutEvap_REF.m/vg_s/OutEvap_REF.rho)**0.5
+        InCond_REF.D  = (4/PI*InCond_REF.m /vg_d/InCond_REF.rho )**0.5
+        OutCond_REF.D = (4/PI*OutCond_REF.m/vl /OutCond_REF.rho)**0.5
+        InEvap_REF.D  = (4/PI*InEvap_REF.m /vg_s/InEvap_REF.rho )**0.5
+
+        pipe_suction   = self._find_std_pipe(OutEvap_REF.D, pipe_mat)
+        pipe_discharge = self._find_std_pipe(InCond_REF.D,  pipe_mat)
+        pipe_liquid    = self._find_std_pipe(OutCond_REF.D, pipe_mat)
+        pipe_expansion = self._find_std_pipe(InEvap_REF.D,  pipe_mat)
+
+        OutEvap_REF.D_std = pipe_suction['ID_mm']   / 1000.0
+        InCond_REF.D_std  = pipe_discharge['ID_mm'] / 1000.0
+        OutCond_REF.D_std = pipe_liquid['ID_mm']    / 1000.0
+        InEvap_REF.D_std  = pipe_expansion['ID_mm'] / 1000.0
+
+        mat_label = '동관 ACR' if pipe_mat == 'copper' else '강관 Sch40'
+        print(f'\n{"─"*65}')
+        print(f'  [배관 직경 계산 결과]  (규격: {mat_label})')
+        print(f'{"─"*65}')
+        print(f'  {"라인":<22}  {"계산값":>8}   {"추천 규격":<9}  ID(mm)  OD(mm)')
+        print(f'  {"─"*60}')
+        print(f'  {"흡입관 (증발기→압축기)":<22}  {OutEvap_REF.D*1000:>7.1f}mm'
+            f'   {pipe_suction["label"]:<9}  {pipe_suction["ID_mm"]:>5.2f}   {pipe_suction["OD_mm"]:>5.2f}')
+        print(f'  {"토출관 (압축기→응축기)":<22}  {InCond_REF.D*1000:>7.1f}mm'
+            f'   {pipe_discharge["label"]:<9}  {pipe_discharge["ID_mm"]:>5.2f}   {pipe_discharge["OD_mm"]:>5.2f}')
+        print(f'  {"액관   (응축기→팽창밸브)":<22}  {OutCond_REF.D*1000:>7.1f}mm'
+            f'   {pipe_liquid["label"]:<9}  {pipe_liquid["ID_mm"]:>5.2f}   {pipe_liquid["OD_mm"]:>5.2f}')
+        print(f'  {"팽창관 (팽창밸브→증발기)":<22}  {InEvap_REF.D*1000:>7.1f}mm'
+            f'   {pipe_expansion["label"]:<9}  {pipe_expansion["ID_mm"]:>5.2f}   {pipe_expansion["OD_mm"]:>5.2f}')
+
+        if inputs.layout == 'inj-flash':
+            outputs.outexpand_high_rhog = PropsSI("D","P",outputs.outexpand_high_p,"Q",1.0,OutEvap_REF.fluidmixture)
+            outputs.outexpand_high_rhol = PropsSI("D","P",outputs.outexpand_high_p,"Q",0.0,OutEvap_REF.fluidmixture)
+            x = PropsSI("Q","P",outputs.outexpand_high_p,"H",outputs.outexpand_high_h,OutCond_REF.fluidmixture)
+            outputs.outexpand_high_rho  = 1/(x/outputs.outexpand_high_rhog+(1-x)/outputs.outexpand_high_rhol)
+            outputs.outexpand_high_D    = (4/PI*OutCond_REF.m/vg_s/outputs.outexpand_high_rho)**0.5
+            outputs.flash_liq_rho       = PropsSI("D","P",outputs.flash_liq_p,"Q",0.0,OutCond_REF.fluidmixture)
+            outputs.flash_liq_D         = (4/PI*InEvap_REF.m/vl/outputs.flash_liq_rho)**0.5
+            outputs.flash_gas_rho       = PropsSI("D","P",outputs.flash_liq_p,"Q",1.0,OutCond_REF.fluidmixture)
+            outputs.flash_gas_D         = (4/PI*(OutCond_REF.m-InEvap_REF.m)/vg_s/outputs.flash_gas_rho)**0.5
+
+            pipe_exp_high  = self._find_std_pipe(outputs.outexpand_high_D, pipe_mat)
+            pipe_flash_liq = self._find_std_pipe(outputs.flash_liq_D,      pipe_mat)
+            pipe_flash_gas = self._find_std_pipe(outputs.flash_gas_D,      pipe_mat)
+            outputs.outexpand_high_D_std = pipe_exp_high['ID_mm']  / 1000.0
+            outputs.flash_liq_D_std      = pipe_flash_liq['ID_mm'] / 1000.0
+            outputs.flash_gas_D_std      = pipe_flash_gas['ID_mm'] / 1000.0
+
+            print(f'  {"인젝션 팽창출구관":<22}  {outputs.outexpand_high_D*1000:>7.1f}mm'
+                f'   {pipe_exp_high["label"]:<9}  {pipe_exp_high["ID_mm"]:>5.2f}   {pipe_exp_high["OD_mm"]:>5.2f}')
+            print(f'  {"플래시탱크 액관":<22}  {outputs.flash_liq_D*1000:>7.1f}mm'
+                f'   {pipe_flash_liq["label"]:<9}  {pipe_flash_liq["ID_mm"]:>5.2f}   {pipe_flash_liq["OD_mm"]:>5.2f}')
+            print(f'  {"플래시탱크 가스관":<22}  {outputs.flash_gas_D*1000:>7.1f}mm'
+                f'   {pipe_flash_gas["label"]:<9}  {pipe_flash_gas["ID_mm"]:>5.2f}   {pipe_flash_gas["OD_mm"]:>5.2f}')
+            
+        elif inputs.layout == 'inj-eco':
+            outputs.ineco_cold_rhog = PropsSI("D","P",outputs.ineco_cold_p, "Q", 1.0, OutCond_REF.fluidmixture)
+            outputs.ineco_cold_rhol = PropsSI("D","P",outputs.ineco_cold_p, "Q", 0.0, OutCond_REF.fluidmixture)
+            x = PropsSI("Q","P",outputs.ineco_cold_p,"H",outputs.ineco_cold_h, OutCond_REF.fluidmixture)
+            outputs.ineco_cold_rho = 1/(x/outputs.ineco_cold_rhog+(1-x)/outputs.ineco_cold_rhol)
+            outputs.outeco_cold_rho = PropsSI("D","P",outputs.outeco_cold_p,"T",outputs.outeco_cold_T,OutCond_REF.fluidmixture)
+            outputs.outeco_hot_rho = PropsSI("D","P",outputs.outeco_hot_p,"T",outputs.outeco_hot_T,OutCond_REF.fluidmixture)
+            outputs.ineco_hot_D   = (4/PI*InEvap_REF.m/vl/OutCond_REF.rho)**0.5
+            outputs.ineev_cold_D  = (4/PI*(OutCond_REF.m - InEvap_REF.m)/vl/OutCond_REF.rho)**0.5
+            outputs.ineco_cold_D  = (4/PI*(OutCond_REF.m - InEvap_REF.m)/vg_s/outputs.ineco_cold_rho)**0.5
+            outputs.outeco_cold_D = (4/PI*(OutCond_REF.m - InEvap_REF.m)/vg_s/outputs.outeco_cold_rho)**0.5
+            outputs.outeco_hot_D  = (4/PI*InEvap_REF.m/vl/outputs.outeco_hot_rho)**0.5
+
+            pipe_ineco_hot   = self._find_std_pipe(outputs.ineco_hot_D,   pipe_mat)
+            pipe_ineev_cold  = self._find_std_pipe(outputs.ineev_cold_D,  pipe_mat)
+            pipe_ineco_cold  = self._find_std_pipe(outputs.ineco_cold_D,  pipe_mat)
+            pipe_outeco_cold = self._find_std_pipe(outputs.outeco_cold_D, pipe_mat)
+            pipe_outeco_hot  = self._find_std_pipe(outputs.outeco_hot_D,  pipe_mat)
+            outputs.ineco_hot_D_std   = pipe_ineco_hot['ID_mm']   / 1000.0
+            outputs.ineev_cold_D_std  = pipe_ineev_cold['ID_mm']  / 1000.0
+            outputs.ineco_cold_D_std  = pipe_ineco_cold['ID_mm']  / 1000.0
+            outputs.outeco_cold_D_std = pipe_outeco_cold['ID_mm'] / 1000.0
+            outputs.outeco_hot_D_std  = pipe_outeco_hot['ID_mm']  / 1000.0
+
+            print(f'  {"ECO 고온측 입구관(액관)":<22}  {outputs.ineco_hot_D*1000:>7.1f}mm'
+                f'   {pipe_ineco_hot["label"]:<9}  {pipe_ineco_hot["ID_mm"]:>5.2f}   {pipe_ineco_hot["OD_mm"]:>5.2f}')
+            print(f'  {"ECO 냉각측 팽창전관(액관)":<22}  {outputs.ineev_cold_D*1000:>7.1f}mm'
+                f'   {pipe_ineev_cold["label"]:<9}  {pipe_ineev_cold["ID_mm"]:>5.2f}   {pipe_ineev_cold["OD_mm"]:>5.2f}')
+            print(f'  {"ECO 냉각측 입구관(2상)":<22}  {outputs.ineco_cold_D*1000:>7.1f}mm'
+                f'   {pipe_ineco_cold["label"]:<9}  {pipe_ineco_cold["ID_mm"]:>5.2f}   {pipe_ineco_cold["OD_mm"]:>5.2f}')
+            print(f'  {"ECO 냉각측 출구(인젝션)관":<22}  {outputs.outeco_cold_D*1000:>7.1f}mm'
+                f'   {pipe_outeco_cold["label"]:<9}  {pipe_outeco_cold["ID_mm"]:>5.2f}   {pipe_outeco_cold["OD_mm"]:>5.2f}')
+            print(f'  {"ECO 고온측 출구관(액관)":<22}  {outputs.outeco_hot_D*1000:>7.1f}mm'
+                f'   {pipe_outeco_hot["label"]:<9}  {pipe_outeco_hot["ID_mm"]:>5.2f}   {pipe_outeco_hot["OD_mm"]:>5.2f}')
+
+            
+        elif inputs.layout == 'ihx':
+            outputs.ihx_hot_rho  = PropsSI("D","T",outputs.ihx_hot_out_T, "P",outputs.ihx_hot_out_p, OutCond_REF.fluidmixture)
+            outputs.ihx_hot_D    = (4/PI*OutCond_REF.m/vl/outputs.ihx_hot_rho)**0.5
+            outputs.ihx_cold_rho = PropsSI("D","T",outputs.ihx_cold_out_T,"P",outputs.ihx_cold_out_p,OutEvap_REF.fluidmixture)
+            outputs.ihx_cold_D   = (4/PI*OutCond_REF.m/vg_s/outputs.ihx_hot_rho)**0.5
+
+            pipe_ihx_hot  = self._find_std_pipe(outputs.ihx_hot_D,  pipe_mat)
+            pipe_ihx_cold = self._find_std_pipe(outputs.ihx_cold_D, pipe_mat)
+            outputs.ihx_hot_D_std  = pipe_ihx_hot['ID_mm']  / 1000.0
+            outputs.ihx_cold_D_std = pipe_ihx_cold['ID_mm'] / 1000.0
+
+            print(f'  {"IHX 고온측 (액관)":<22}  {outputs.ihx_hot_D*1000:>7.1f}mm'
+                f'   {pipe_ihx_hot["label"]:<9}  {pipe_ihx_hot["ID_mm"]:>5.2f}   {pipe_ihx_hot["OD_mm"]:>5.2f}')
+            print(f'  {"IHX 저온측 (흡입관)":<22}  {outputs.ihx_cold_D*1000:>7.1f}mm'
+                f'   {pipe_ihx_cold["label"]:<9}  {pipe_ihx_cold["ID_mm"]:>5.2f}   {pipe_ihx_cold["OD_mm"]:>5.2f}')
+
+        print(f'{"─"*65}')
+
+
+    def Ref_Charge_Calc(self, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs, vg=5.0, vl=1.0, pipe_mat='copper'):
+        self.Pipe_Dia_Calc(InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs, vg, vl, pipe_mat)
+
+        M_evap      = inputs.evap_V    * outputs.d_evap
+        M_evap2comp = inputs.outevap_L * OutEvap_REF.D**2 * PI/4 * OutEvap_REF.rho
+        M_comp2cond = inputs.incond_L  * InCond_REF.D**2  * PI/4 * InCond_REF.rho
+        M_cond      = inputs.cond_V    * outputs.d_cond
+        M_cond2eev  = inputs.outcond_L * OutCond_REF.D**2 * PI/4 * OutCond_REF.rho
+        M_eev2evap  = inputs.inevap_L  * InEvap_REF.D**2  * PI/4 * InEvap_REF.rho
+        M_total     = M_evap + M_evap2comp + M_comp2cond + M_cond + M_cond2eev + M_eev2evap
+
+        print(f'\n{"─"*55}')
+        print(f'  [냉매 충전량 계산 결과]')
+        print(f'{"─"*55}')
+        print(f'  증발기                            : {M_evap:7.3f} kg')
+        print(f'  흡입관 (증발기출구→압축기입구)    : {M_evap2comp:7.3f} kg')
+        print(f'  토출관 (압축기출구→응축기입구)    : {M_comp2cond:7.3f} kg')
+        print(f'  응축기                            : {M_cond:7.3f} kg')
+        print(f'  액관   (응축기출구→팽창밸브)      : {M_cond2eev:7.3f} kg')
+        print(f'  팽창관 (팽창밸브→증발기입구)      : {M_eev2evap:7.3f} kg')
+
+        if inputs.layout == 'inj-flash':
+            M_flash_tank = inputs.flash_V      * outputs.outexpand_high_rho
+            M_flash2comp = inputs.flash2comp_L * outputs.flash_gas_D**2 * PI/4 * outputs.flash_gas_rho
+            M_flash2eev  = inputs.flash2eev_L  * outputs.flash_liq_D**2  * PI/4 * outputs.flash_liq_rho
+            M_total += M_flash_tank + M_flash2comp + M_flash2eev
+            print(f'  플래시탱크                        : {M_flash_tank:7.3f} kg')
+            print(f'  인젝션관 (플래시탱크→압축기)      : {M_flash2comp:7.3f} kg')
+            print(f'  액관     (플래시탱크→EEV)          : {M_flash2eev:7.3f} kg')
+        
+        elif inputs.layout == 'inj-eco':
+            a = 1
+        
+        elif inputs.layout == 'ihx':
+            M_ihx_hot  = inputs.ihx_hot_L  * outputs.ihx_hot_D**2  * PI/4 * outputs.ihx_hot_rho
+            M_ihx_cold = inputs.ihx_cold_L * outputs.ihx_cold_D**2 * PI/4 * outputs.ihx_cold_rho
+            M_total += M_ihx_hot + M_ihx_cold
+            print(f'  IHX 고온측 (액관)                 : {M_ihx_hot:7.3f} kg')
+            print(f'  IHX 저온측 (흡입관)               : {M_ihx_cold:7.3f} kg')
+
+        print(f'{"─"*55}')
+        print(f'  총 냉매 충전량                    : {M_total:7.3f} kg')
+        print(f'{"─"*55}')
+
 
     def Plot_diagram(self, InCond_REF, OutCond_REF, InEvap_REF, OutEvap_REF, inputs, outputs, ts_file, ph_file, coeff):
         (p_array, h_array, T_array, s_array) = self.Dome_Draw(list(inputs.Y.keys())[0], coeff)
@@ -881,7 +1228,6 @@ class VCHP():
         
         fig_ph.savefig(ph_file+'.png',dpi=300)
         fig_ts.savefig(ts_file+'.png',dpi=300)
-        
         
         
     def Dome_Draw(self, fluid, coeff=0.999):
@@ -957,7 +1303,7 @@ class VCHP():
                 h_points = [OutEvap_REF.h, outputs.ihx_cold_out_h, InCond_REF.h]+cond_harray+[OutCond_REF.h, outputs.ihx_hot_out_h, InEvap_REF.h, OutEvap_REF.h]
                 p_points = [OutEvap_REF.p, outputs.ihx_cold_out_p, InCond_REF.p]+outputs.cond_parray+[OutCond_REF.p, outputs.ihx_hot_out_p, InEvap_REF.p, OutEvap_REF.p]
             
-        elif inputs.layout == 'inj':
+        elif inputs.layout == 'inj-flash':
             outcomp_low_svap = PropsSI('S','P',outputs.outcomp_low_p,'Q',1.0,InCond_REF.fluidmixture)
             outcomp_low_Tvap = PropsSI('T','P',outputs.outcomp_low_p,'Q',1.0,InCond_REF.fluidmixture)
             outputs.flash_liq_s = PropsSI('S','P',outputs.flash_liq_p,'Q',0.0,InCond_REF.fluidmixture)
@@ -972,6 +1318,17 @@ class VCHP():
                 T_points = [outputs.flash_liq_T, InEvap_REF.T, OutEvap_REF_Tvap, OutEvap_REF.T, outputs.outcomp_low_T, outcomp_low_Tvap, outputs.flash_liq_T, outputs.outexpand_high_T, outcomp_low_Tvap, outputs.incomp_high_T, InCond_REF.T]+outputs.cond_Tarray+[OutCond_REF.T, outputs.outexpand_high_T] 
                 h_points = [outputs.flash_liq_h, InEvap_REF.h, OutEvap_REF.h, outputs.outcomp_low_h, outputs.flash_liq_h, outputs.outexpand_high_h, outputs.incomp_high_h, InCond_REF.h]+cond_harray+[OutCond_REF.h, outputs.outexpand_high_h]
                 p_points = [outputs.flash_liq_p, InEvap_REF.p, OutEvap_REF.p, outputs.outcomp_low_p, outputs.flash_liq_p, outputs.outexpand_high_p, outputs.incomp_high_p, InCond_REF.p]+outputs.cond_parray+[OutCond_REF.p, outputs.outexpand_high_p]
+        
+        elif inputs.layout == 'inj-eco':
+            outeco_hot_s = PropsSI('S','T',outputs.outeco_hot_T,'P',outputs.outeco_hot_p,InCond_REF.fluidmixture)
+            ineco_cold_s = PropsSI('S','H',outputs.ineco_cold_h,'P',outputs.ineco_cold_p,InCond_REF.fluidmixture)
+            incomp_high_svap = PropsSI('S','P',outputs.incomp_high_p,'Q',1.0,InCond_REF.fluidmixture)
+            incomp_high_Tvap = PropsSI('T','P',outputs.incomp_high_p,'Q',1.0,InCond_REF.fluidmixture)
+            if inputs.cycle == 'vcc':    
+                s_points = [OutCond_REF.s, outeco_hot_s, InEvap_REF.s, OutEvap_REF_svap, OutEvap_REF.s, outputs.outcomp_low_s, outputs.incomp_high_s, incomp_high_svap, ineco_cold_s, OutCond_REF.s, OutCond_REF_sliq, InCond_REF_svap, InCond_REF.s, outputs.incomp_high_s] 
+                T_points = [OutCond_REF.T, outputs.outeco_hot_T, InEvap_REF.T, OutEvap_REF_Tvap, OutEvap_REF.T, outputs.outcomp_low_T, outputs.incomp_high_T, incomp_high_Tvap, outputs.ineco_cold_T, OutCond_REF.T, OutCond_REF_Tliq, InCond_REF_Tvap, InCond_REF.T, outputs.incomp_high_T] 
+                h_points = [OutCond_REF.h, outputs.outeco_hot_h, InEvap_REF.h, OutEvap_REF.h, outputs.outcomp_low_h, outputs.incomp_high_h, outputs.ineco_cold_h, OutCond_REF.h, InCond_REF.h, outputs.incomp_high_h]
+                p_points = [OutCond_REF.p, outputs.outeco_hot_p, InEvap_REF.p, OutEvap_REF.p, outputs.outcomp_low_p, outputs.incomp_high_p, outputs.ineco_cold_p, OutCond_REF.p, InCond_REF.p, outputs.incomp_high_p]
         
         elif inputs.layout == 'part_cool':
             if inputs.cycle == 'vcc':
@@ -1012,6 +1369,8 @@ class VCHP():
             print(f'Q IHX: {outputs.qihx/1000:.3f} [kW]')
         if inputs.layout == 'part_cool':
             print(f'Q PCX: {outputs.qpcx/1000:.3f} [kW]')
+        if inputs.layout == 'inj-eco':
+            print(f'Q ECO: {outputs.qeco/1000:.3f} [kW]')
         print('---------------------------------------------------------------------------')
         if inputs.second == 'steam':
             print(f'Steam mass flow: {inputs.m_steam:.4f} [kg/s] ({inputs.m_steam*3.6:.2f} [ton/hr])')
@@ -1043,7 +1402,10 @@ class VCHP():
             print(f'Tihx_cold_out: {outputs.ihx_cold_out_T-273.15:.3f} [℃], Pihx_cold_out: {outputs.ihx_cold_out_p/1.0e5:.3f} [bar], mihx_cold_out: {OutEvap_REF.m:.3f} [kg/s]')
         elif inputs.layout == 'part_cool':
             print(f'Tcomp_in: {outputs.incomp_T-273.15:.3f} [℃], Pcomp_in: {outputs.incomp_p/1.0e5:.3f} [bar], mcomp_in: {InCond_REF.m:.3f} [kg/s]')
-        elif inputs.layout == 'inj':
+        elif inputs.layout == 'inj-flash':
+            print(f'Toutcomp_s1: {outputs.outcomp_low_T-273.15:.3f} [℃], Poutcomp_s1: {outputs.outcomp_low_p/1.0e5:.3f} [bar], mcomp_s1: {OutEvap_REF.m:.3f} [kg/s]')
+            print(f'Tincomp_s2: {outputs.incomp_high_T-273.15:.3f} [℃], Pincomp_s2: {outputs.incomp_high_p/1.0e5:.3f} [bar], mcomp_s2: {InCond_REF.m:.3f} [kg/s]')
+        elif inputs.layout == 'inj-eco':
             print(f'Toutcomp_s1: {outputs.outcomp_low_T-273.15:.3f} [℃], Poutcomp_s1: {outputs.outcomp_low_p/1.0e5:.3f} [bar], mcomp_s1: {OutEvap_REF.m:.3f} [kg/s]')
             print(f'Tincomp_s2: {outputs.incomp_high_T-273.15:.3f} [℃], Pincomp_s2: {outputs.incomp_high_p/1.0e5:.3f} [bar], mcomp_s2: {InCond_REF.m:.3f} [kg/s]')
         print(f'Tcond_in: {InCond_REF.T-273.15:.3f} [℃], Pcond_in: {InCond_REF.p/1.0e5:.3f} [bar], mcond_in {InCond_REF.m:.3f} [kg/s]')
@@ -1056,9 +1418,15 @@ class VCHP():
             print(f'Tpcx_cold_in: {outputs.pcx_cold_in_T-273.15:.3f} [℃] (xpcx_cold_in: {x_pcx_cold_in:.3f}), Ppcx_cold_in: {outputs.pcx_cold_in_p/1.0e5:.3f} [bar], mpcx_cold_in: {OutCond_REF.m*inputs.pcx_frac:.3f} [kg/s]')
             print(f'Tpcx_cold_out: {outputs.pcx_cold_out_T-273.15:.3f} [℃] (xpcx_cold_out: {x_pcx_cold_out:.3f}), Ppcx_cold_out: {outputs.pcx_cold_out_p/1.0e5:.3f} [bar], mpcx_cold_out: {OutCond_REF.m*inputs.pcx_frac:.3f} [kg/s]')
             print(f'Tpcx_hot_out: {outputs.pcx_hot_out_T-273.15:.3f} [℃], Ppcx_hot_out: {outputs.pcx_hot_out_p/1.0e5:.3f} [bar], mpcx_hot_out: {OutCond_REF.m*(1-inputs.pcx_frac):.3f} [kg/s]')
-        elif inputs.layout == 'inj':
+        elif inputs.layout == 'inj-flash':
             print(f'Tflash: {outputs.flash_liq_T-273.15:.3f} [℃], Pflash: {outputs.flash_liq_p/1.0e5:.3f} [bar], mflash: {OutCond_REF.m-OutEvap_REF.m:.3f} [kg/s]')
-            
+        elif inputs.layout == 'inj-eco':
+            print(f'Teco_cold_in: {outputs.ineco_cold_T-273.15:.3f} [℃] (xeco_cold_in: {PropsSI("Q","P",outputs.ineco_cold_p,"H",outputs.ineco_cold_h,OutCond_REF.fluidmixture):.3f}), Peco_cold_in: {outputs.ineco_cold_p/1.0e5:.3f} [bar], meco_cold: {OutCond_REF.m-OutEvap_REF.m:.3f} [kg/s]')
+            print(f'Teco_cold_out: {outputs.outeco_cold_T-273.15:.3f} [℃], Peco_cold_in: {outputs.outeco_cold_p/1.0e5:.3f} [bar]')
+            print(f'Teco_hot_in: {outputs.ineco_hot_T-273.15:.3f} [℃], Peco_cold_in: {outputs.ineco_hot_p/1.0e5:.3f} [bar], meco_hot: {OutEvap_REF.m:.3f} [kg/s]')
+            print(f'Teco_hot_out: {outputs.outeco_hot_T-273.15:.3f} [℃], Peco_cold_in: {outputs.outeco_hot_p/1.0e5:.3f} [bar]')
+            print(f'DSH_inj: {outputs.outeco_cold_T-PropsSI("T","P",outputs.outeco_cold_p,"Q",1.0,OutCond_REF.fluidmixture):.3f} [℃], DSC_add_eco: {outputs.ineco_hot_T-outputs.outeco_hot_T:.3f} [℃]')
+        
         x_evap_in = PropsSI("Q","P",InEvap_REF.p,"H",InEvap_REF.h,InEvap_REF.fluidmixture)
         print(f'Tevap_in: {InEvap_REF.T-273.15:.3f} [℃] (xevap_in: {x_evap_in:.3f}), Pvalve_out: {InEvap_REF.p/1.0e5:.3f} [bar], mevap_in {InEvap_REF.m:.3f} [kg/s]')
         print(f'DSH_evap_out: {OutEvap_REF.T-PropsSI("T","Q",1.0,"P",OutEvap_REF.p,OutEvap_REF.fluidmixture):.3f} [℃], DSC_cond_out: {PropsSI("T","Q",0.0,"P",OutCond_REF.p,OutCond_REF.fluidmixture)-OutCond_REF.T:.3f} [℃]')
@@ -1076,12 +1444,19 @@ class VCHP():
             Thigh = 0
         print(f'Ts_low: {Tlow-273.15:.3f} [℃], Ts_high: {Thigh-273.15:.3f}')
         print('---------------------------------------------------------------------------')
-        print(f'Cond_UA: {outputs.cond_UA:.3f} [W/℃], Evap_UA: {outputs.evap_UA:.3f} [W/℃]')
+        label = 'T_pp' if inputs.cond_type == 'phe' else 'T_lm'
+        print(f'Cond_UA: {outputs.cond_UA:.3f} [W/℃], Cond_{label}: {outputs.cond_T_pp:.3f} [℃]')
+        label = 'T_pp' if inputs.evap_type == 'phe' else 'T_lm'
+        print(f'Evap_UA: {outputs.evap_UA:.3f} [W/℃], Evap_{label}: {outputs.evap_T_pp:.3f} [℃]')
+        if inputs.layout == 'inj-eco':
+            print(f'Eco_UA: {outputs.eco_UA:.3f} [W/℃], Eco_T_pp: {outputs.eco_T_pp:.3f} [℃]')
         comp_in_d = PropsSI("D","T",OutEvap_REF.T,"P",OutEvap_REF.p,OutEvap_REF.fluidmixture)
         print(f'Vdis comp @60hz: {OutEvap_REF.m/comp_in_d*1.0e6/60:.3f}[cc/rev] / Qflow comp: {OutEvap_REF.m/comp_in_d*3600:.2f}[m3/h]')
         print(f'Comp_eff: {outputs.comp_eff*100:.3f}[%]')
         print('---------------------------------------------------------------------------')
         print(' ')
+        
+        
 class VCHP_cascade(VCHP):
     def __init__(self, InCond, OutCond, InEvap, OutEvap, inputs_t, inputs_b):
         self.InCond = InCond
@@ -1137,7 +1512,7 @@ class VCHP_cascade(VCHP):
         if opt_flag == 1:
             (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF_t, self.OutCond_REF_t, self.InEvap_REF_t, self.OutEvap_REF_t, self.InCond_REF_b, self.OutCond_REF_b, self.InEvap_REF_b, self.OutEvap_REF_b, outputs_t, outputs_b) = self.Cascade_opt(self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, self.inputs_t, self.inputs_b, outputs_t, outputs_b, no_input, cond_t_ph, evap_b_ph)    
         else:
-            evap_t_p_input = CP.PropsSI("P","T",evap_t_T_input,"Q",0.5,OutEvap_REF_t.fluidmixture)
+            evap_t_p_input = PropsSI("P","T",evap_t_T_input,"Q",0.5,OutEvap_REF_t.fluidmixture)
             (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF_t, self.OutCond_REF_t, self.InEvap_REF_t, self.OutEvap_REF_t, self.InCond_REF_b, self.OutCond_REF_b, self.InEvap_REF_b, self.OutEvap_REF_b, outputs_t, outputs_b) = self.Cascade_solver(self.InCond, self.OutCond, self.InEvap, self.OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, self.inputs_t, self.inputs_b, outputs_t, outputs_b, no_input, cond_t_ph, evap_b_ph, evap_t_p_input)
         
         return (self.InCond, self.OutCond, self.InEvap, self.OutEvap, self.InCond_REF_t, self.OutCond_REF_t, self.InEvap_REF_t, self.OutEvap_REF_t, self.InCond_REF_b, self.OutCond_REF_b, self.InEvap_REF_b, self.OutEvap_REF_b, outputs_t, outputs_b)
@@ -1218,6 +1593,8 @@ class VCHP_cascade(VCHP):
             (InCond, OutCond, InEvap_dummy, OutEvap_dummy, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, outputs_t) = super().HighPressure_Solver(InCond, OutCond, InEvap, OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t, no_input, cond_t_ph)
             (InEvap_REF_t, OutEvap_REF_t, InEvap, OutEvap, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, outputs_b) = super().Cycle_Solver(InEvap_REF_t, OutEvap_REF_t, InEvap, OutEvap, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b, no_input, cond_b_ph, evap_b_ph)
             outputs_t.d_evap = outputs_b.d_cond_sec
+            outputs_t.evap_T_pp = outputs_b.cond_T_pp
+            outputs_t.evap_UA = outputs_b.cond_UA
             
             
         elif (no_input == 'InCondT') or (no_input == 'OutCondT') or (no_input == 'Condm'):
@@ -1241,7 +1618,7 @@ class VCHP_cascade(VCHP):
                 outputs_t.d_evap = outputs_b.d_cond_sec
 
                 OutEvap_REF_t.m = InEvap_REF_t.m
-                if inputs_t.layout == 'inj':
+                if inputs_t.layout == 'inj-flash':
                     InCond_REF_t.m = InEvap_REF_t.m/((1.0-outputs_t.inter_x)*(1-inputs_t.liq_frac)+outputs_t.inter_x*(1-inputs_t.vap_frac))
                     OutCond_REF_t.m = InCond_REF_t.m
                     outputs_t.Wcomp_top = outputs_t._Psp_comp_high*InCond_REF_t.m/inputs_t.mech_eff
@@ -1250,6 +1627,14 @@ class VCHP_cascade(VCHP):
                     outputs_t.Wexpand_top = outputs_t._Psp_expand_high*OutCond_REF_t.m*inputs_t.mech_eff
                     outputs_t.Wexpand_bot = outputs_t._Psp_expand_low*InEvap_REF_t.m*inputs_t.mech_eff
                     outputs_t.Wexpand     = outputs_t.Wexpand_bot + outputs_t.Wexpand_top
+                elif inputs_t.layout == 'inj-eco':
+                    InCond_REF_t.m = InEvap_REF_t.m/(1.0-outputs_t.eco_frac)
+                    OutCond_REF_t.m = InCond_REF_t.m
+                    outputs_t.Wcomp_top = outputs_t._Psp_comp_high*InCond_REF_t.m/inputs_t.mech_eff
+                    outputs_t.Wcomp_bot = outputs_t._Psp_comp_low*OutEvap_REF_t.m/inputs_t.mech_eff
+                    outputs_t.Wcomp     = outputs_t.Wcomp_bot + outputs_t.Wcomp_top
+                    outputs_t.Wexpand_hot = outputs_t._Psp_expand_hot*OutCond_REF_t.m*(1-outputs_t.eco_frac)*inputs_t.mech_eff
+                    outputs_t.Wexpand   = outputs_t.Wexpand_hot
                 elif inputs_t.layout == '2comp':
                     InCond_REF_t.m = InEvap_REF_t.m
                     OutCond_REF_t.m = InEvap_REF_t.m                    
@@ -1269,6 +1654,8 @@ class VCHP_cascade(VCHP):
                     outputs_t.Wexpand = outputs_t._Psp_expand*InEvap_REF_t.m*inputs_t.mech_eff
                 if inputs_t.layout == 'ihx':
                     outputs_t.qihx = (outputs_t._ihx_InComp_h - OutEvap_REF_t.h)*OutEvap_REF_t.m
+                elif inputs_t.layout == 'inj-eco':
+                    outputs_t.qeco = (outputs_t.ineco_hot_h - outputs_t.outeco_hot_h)*InEvap_REF_t.m
                 elif inputs_t.layout == 'part_cool':
                     outputs_t.qpcx = (outputs_t.pcx_cold_out_h - outputs_t.pcx_cold_in_h)*(OutCond_REF_t.m*inputs_t.pcx_frac)
 
@@ -1325,20 +1712,32 @@ class VCHP_cascade(VCHP):
                     cond_conv_err = 1
                     cond_a_t = 0
             
+            
+            outputs_t.cond_UA = cond_t.UA
+            outputs_t.cond_T_pp = cond_t.T_pp if inputs_t.cond_type == 'phe' else cond_t.T_lm
+            
         outputs_t.COP_heating = abs(OutCond.q)/(outputs_t.Wcomp - outputs_t.Wexpand)
         outputs_t.COP_cooling = abs(OutEvap.q)/(outputs_t.Wcomp - outputs_t.Wexpand)
         outputs_t.DSH = OutEvap_REF_t.T - OutEvap_REF_t_Tvap
         
         return(InCond, OutCond, InEvap, OutEvap, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, outputs_t, outputs_b)
     
-
-    def Ref_Charge_Calc(self, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b):
+    def Pipe_Dia_Calc(self, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b, vg_s_t=5.0, vg_d_t=10.0, vl_t=1.0, vg_s_b=5.0, vg_d_b=10.0, vl_b=1.0, pipe_mat="copper"):
         print('----------Top Cycle Charge----------')
-        super().Ref_Charge_Calc(InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t)
+        super().Pipe_Dia_Calc(InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t, vg_s_t, vg_d_t, vl_t, pipe_mat)
         print(' ')
         print('----------Bot Cycle Charge----------')
-        super().Ref_Charge_Calc(InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b)
-
+        super().Pipe_Dia_Calc(InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b, vg_s_b, vg_d_b, vl_b, pipe_mat)
+    
+    def Ref_Charge_Calc(self, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b, vg=5.0, vl=1.0, pipe_mat="copper"):
+        print('----------Top Cycle Charge----------')
+        super().Ref_Charge_Calc(InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t, vg, vl, pipe_mat)
+        print(' ')
+        print('----------Bot Cycle Charge----------')
+        super().Ref_Charge_Calc(InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b, vg, vl, pipe_mat)
+        
+        
+        
     def Plot_diagram(self, InCond_REF_t, OutCond_REF_t, InEvap_REF_t, OutEvap_REF_t, inputs_t, outputs_t, InCond_REF_b, OutCond_REF_b, InEvap_REF_b, OutEvap_REF_b, inputs_b, outputs_b, ts_file, ph_file, coeff = 1.0):
         (p_array_t, h_array_t, T_array_t, s_array_t) = super().Dome_Draw(InCond_REF_t.fluidmixture, coeff)
         (p_array_b, h_array_b, T_array_b, s_array_b) = super().Dome_Draw(InCond_REF_b.fluidmixture, coeff)

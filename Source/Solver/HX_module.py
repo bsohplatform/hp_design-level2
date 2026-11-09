@@ -53,7 +53,9 @@ class Heatexchanger_module:
                         if jj == 0: #Turn 입구
                             h_primary[N_element*tt+jj,j] = h_primary_in + (self.primary_in.q/N_element/N_turn/N_row)/self.primary_in.m
                             p_primary[N_element*tt+jj,j] = p_primary_in - (self.primary_in.p - self.primary_out.p)/N_element/N_turn/N_row
-                            x_primary[N_element*tt+jj,j] = PropsSI("Q","H",h_primary[N_element*tt+jj,j],"P",p_primary[N_element*tt+jj,j],self.primary_in.fluidmixture)
+                            hv_primary = PropsSI("H","P",p_primary[N_element*tt+jj,j],"Q",1.0,self.primary_in.fluidmixture)
+                            hl_primary = PropsSI("H","P",p_primary[N_element*tt+jj,j],"Q",0.0,self.primary_in.fluidmixture)
+                            x_primary[N_element*tt+jj,j] = (h_primary[N_element*tt+jj,j]-hl_primary)/(hv_primary-hl_primary)
                             if x_primary[N_element*tt+jj,j] < 0 or x_primary[N_element*tt+jj,j] > 1:
                                 d_primary[N_element*tt+jj,j] = PropsSI("D","H",h_primary[N_element*tt+jj,j],"P",p_primary[N_element*tt+jj,j],self.primary_in.fluidmixture)
                             else:
@@ -77,7 +79,9 @@ class Heatexchanger_module:
                         else:
                             h_primary[N_element*tt+jj,j] = h_primary[N_element*tt+jj-1,j] + (self.primary_in.q/N_element/N_turn/N_row)/self.primary_in.m
                             p_primary[N_element*tt+jj,j] = p_primary[N_element*tt+jj-1,j] - (self.primary_in.p - self.primary_out.p)/N_element/N_turn/N_row
-                            x_primary[N_element*tt+jj,j] = PropsSI("Q","H",h_primary[N_element*tt+jj,j],"P",p_primary[N_element*tt+jj,j],self.primary_in.fluidmixture)
+                            hv_primary = PropsSI("H","P",p_primary[N_element*tt+jj,j],"Q",1.0,self.primary_in.fluidmixture)
+                            hl_primary = PropsSI("H","P",p_primary[N_element*tt+jj,j],"Q",0.0,self.primary_in.fluidmixture)
+                            x_primary[N_element*tt+jj,j] = (h_primary[N_element*tt+jj,j]-hl_primary)/(hv_primary-hl_primary)
                             if x_primary[N_element*tt+jj,j] < 0 or x_primary[N_element*tt+jj,j] > 1:
                                 d_primary[N_element*tt+jj,j] = PropsSI("D","H",h_primary[N_element*tt+jj,j],"P",p_primary[N_element*tt+jj,j],self.primary_in.fluidmixture)
                             else:
@@ -118,7 +122,9 @@ class Heatexchanger_module:
                         if jj == 0: #Turn 입구
                             h_primary[N_element*tt+jj,j] = h_primary_in + (self.primary_in.q/N_element/N_turn/N_row)/self.primary_in.m
                             p_primary[N_element*tt+jj,j] = p_primary_in - (self.primary_in.p - self.primary_out.p)/N_element/N_turn/N_row
-                            x_primary[N_element*tt+jj,j] = PropsSI("Q","H",h_primary[N_element*tt+jj,j],"P",p_primary[N_element*tt+jj,j],self.primary_in.fluidmixture)
+                            hv_primary = PropsSI("H","P",p_primary[N_element*tt+jj,j],"Q",1.0,self.primary_in.fluidmixture)
+                            hl_primary = PropsSI("H","P",p_primary[N_element*tt+jj,j],"Q",0.0,self.primary_in.fluidmixture)
+                            x_primary[N_element*tt+jj,j] = (h_primary[N_element*tt+jj,j]-hl_primary)/(hv_primary-hl_primary)
                             if x_primary[N_element*tt+jj,j] < 0 or x_primary[N_element*tt+jj,j] > 1:
                                 d_primary[N_element*tt+jj,j] = PropsSI("D","H",h_primary[N_element*tt+jj,j],"P",p_primary[N_element*tt+jj,j],self.primary_in.fluidmixture)
                             else:
@@ -142,7 +148,9 @@ class Heatexchanger_module:
                         else:
                             h_primary[N_element*tt+jj,j] = h_primary[N_element*tt+jj-1,j] + (self.primary_in.q/N_element/N_turn/N_row)/self.primary_in.m
                             p_primary[N_element*tt+jj,j] = p_primary[N_element*tt+jj-1,j] - (self.primary_in.p - self.primary_out.p)/N_element/N_turn/N_row
-                            x_primary[N_element*tt+jj,j] = PropsSI("Q","H",h_primary[N_element*tt+jj,j],"P",p_primary[N_element*tt+jj,j],self.primary_in.fluidmixture)
+                            hv_primary = PropsSI("H","P",p_primary[N_element*tt+jj,j],"Q",1.0,self.primary_in.fluidmixture)
+                            hl_primary = PropsSI("H","P",p_primary[N_element*tt+jj,j],"Q",0.0,self.primary_in.fluidmixture)
+                            x_primary[N_element*tt+jj,j] = (h_primary[N_element*tt+jj,j]-hl_primary)/(hv_primary-hl_primary)
                             if x_primary[N_element*tt+jj,j] < 0 or x_primary[N_element*tt+jj,j] > 1:
                                 d_primary[N_element*tt+jj,j] = PropsSI("D","H",h_primary[N_element*tt+jj,j],"P",p_primary[N_element*tt+jj,j],self.primary_in.fluidmixture)
                             else:
@@ -181,7 +189,9 @@ class Heatexchanger_module:
                         if jj == 0: #Turn 입구
                             h_primary[N_element*N_turn-1-N_element*tt-jj,j] = h_primary_in + (self.primary_in.q/N_element/N_turn/N_row)/self.primary_in.m
                             p_primary[N_element*N_turn-1-N_element*tt-jj,j] = p_primary_in - (self.primary_in.p - self.primary_out.p)/N_element/N_turn/N_row
-                            x_primary[N_element*N_turn-1-N_element*tt-jj,j] = PropsSI("Q","H",h_primary[N_element*N_turn-1-N_element*tt-jj,j],"P",p_primary[N_element*N_turn-1-N_element*tt-jj,j],self.primary_in.fluidmixture)
+                            hv_primary = PropsSI("H","P",p_primary[N_element*N_turn-1-N_element*tt-jj,j],"Q",1.0,self.primary_in.fluidmixture)
+                            hl_primary = PropsSI("H","P",p_primary[N_element*N_turn-1-N_element*tt-jj,j],"Q",0.0,self.primary_in.fluidmixture)
+                            x_primary[N_element*N_turn-1-N_element*tt-jj,j] = (h_primary[N_element*N_turn-1-N_element*tt-jj,j]-hl_primary)/(hv_primary-hl_primary)
                             if x_primary[N_element*N_turn-1-N_element*tt-jj,j] < 0 or x_primary[N_element*N_turn-1-N_element*tt-jj,j] > 1:
                                 d_primary[N_element*N_turn-1-N_element*tt-jj,j] = PropsSI("D","H",h_primary[N_element*N_turn-1-N_element*tt-jj,j],"P",p_primary[N_element*N_turn-1-N_element*tt-jj,j],self.primary_in.fluidmixture)
                             else:
@@ -205,7 +215,9 @@ class Heatexchanger_module:
                         else:
                             h_primary[N_element*N_turn-1-N_element*tt-jj,j] = h_primary[N_element*N_turn-N_element*tt-jj,j] + (self.primary_in.q/N_element/N_turn/N_row)/self.primary_in.m
                             p_primary[N_element*N_turn-1-N_element*tt-jj,j] = p_primary[N_element*N_turn-N_element*tt-jj,j] - (self.primary_in.p - self.primary_out.p)/N_element/N_turn/N_row
-                            x_primary[N_element*N_turn-1-N_element*tt-jj,j] = PropsSI("Q","H",h_primary[N_element*N_turn-1-N_element*tt-jj,j],"P",p_primary[N_element*N_turn-1-N_element*tt-jj,j],self.primary_in.fluidmixture)
+                            hv_primary = PropsSI("H","P",p_primary[N_element*N_turn-1-N_element*tt-jj,j],"Q",1.0,self.primary_in.fluidmixture)
+                            hl_primary = PropsSI("H","P",p_primary[N_element*N_turn-1-N_element*tt-jj,j],"Q",0.0,self.primary_in.fluidmixture)
+                            x_primary[N_element*N_turn-1-N_element*tt-jj,j] = (h_primary[N_element*N_turn-1-N_element*tt-jj,j]-hl_primary)/(hv_primary-hl_primary)
                             if x_primary[N_element*N_turn-1-N_element*tt-jj,j] < 0 or x_primary[N_element*N_turn-1-N_element*tt-jj,j] > 1:
                                 d_primary[N_element*N_turn-1-N_element*tt-jj,j] = PropsSI("D","H",h_primary[N_element*N_turn-1-N_element*tt-jj,j],"P",p_primary[N_element*N_turn-1-N_element*tt-jj,j],self.primary_in.fluidmixture)
                             else:
@@ -293,7 +305,9 @@ class Heatexchanger_module:
         p_primary[0] = self.primary_in.p
         T_primary[0] = self.primary_in.T
         h_primary[0] = self.primary_in.h
-        x_primary[0] = PropsSI("Q","H",h_primary[0],"P",p_primary[0],self.primary_in.fluidmixture)
+        hv_primary = PropsSI("H","P",p_primary[0],"Q",1.0,self.primary_in.fluidmixture)
+        hl_primary = PropsSI("H","P",p_primary[0],"Q",0.0,self.primary_in.fluidmixture)
+        x_primary[0] = (h_primary[0]-hv_primary)/(hv_primary-hl_primary)
         if x_primary[0] < 0 or x_primary[0] > 1:
             d_primary[0] = PropsSI("D","H",h_primary[0],"P",p_primary[0],self.primary_in.fluidmixture)
         else:
@@ -315,7 +329,9 @@ class Heatexchanger_module:
             
             p_primary[i+1] = p_primary[i] - (self.primary_in.p - self.primary_out.p)/N_element
             h_primary[i+1] = h_primary[i] + self.primary_in.q/N_element/self.primary_in.m
-            x_primary[i+1] = PropsSI("Q","H",h_primary[i+1],"P",p_primary[i+1],self.primary_in.fluidmixture)
+            hv_primary = PropsSI("H","P",p_primary[i+1],"Q",1.0,self.primary_in.fluidmixture)
+            hl_primary = PropsSI("H","P",p_primary[i+1],"Q",0.0,self.primary_in.fluidmixture)
+            x_primary[i+1] = (h_primary[i+1]-hv_primary)/(hv_primary-hl_primary)
             if x_primary[i+1] < 0 or x_primary[i+1] > 1:
                 d_primary[i+1] = PropsSI("D","H",h_primary[i+1],"P",p_primary[i+1],self.primary_in.fluidmixture)
             else:
