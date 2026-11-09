@@ -1777,7 +1777,4 @@ class VCHP_cascade(VCHP):
         COP_cascade = (self.OutCond.q)/(outputs_t.Wcomp - outputs_t.Wexpand + outputs_b.Wcomp - outputs_b.Wexpand)
         print('Cascade Heating COP:{:.3f}'.format(COP_cascade))
         print('')
-<<<<<<< HEAD
 
-=======
->>>>>>> 01704a9dc7fc6d7948d33a57473346d9c1582f88
